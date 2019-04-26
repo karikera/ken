@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="tester.cpp" />
+    <ClCompile Include="digraph.cpp" />
+    <ClCompile Include="timerTest.cpp" />
+    <ClCompile Include="astar.cpp" />
+    <ClCompile Include="texvideo.cpp" />
+    <ClCompile Include="xml.cpp" />
+    <ClCompile Include="webserver.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="digraph.h" />
+    <ClInclude Include="timerTest.h" />
+    <ClInclude Include="astar.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="texvideo.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Texture3D9.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <DSECompile Include="test2.dse" />
+    <DSECompile Include="test.dse" />
+  </ItemGroup>
+</Project>

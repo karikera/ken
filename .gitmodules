@@ -1,0 +1,12 @@
+[submodule "KRThird/curl"]
+	path = KRThird/curl
+	url = https://github.com/karikera/curl-bin.git
+[submodule "KRThird/angle"]
+	path = KRThird/angle
+	url = https://github.com/karikera/angle-bin.git
+[submodule "KRThird/ken-res-loader"]
+	path = KRThird/ken-res-loader
+	url = https://github.com/karikera/ken-res-loader-bin
+[submodule "KRThird/zlib"]
+	path = KRThird/zlib
+	url = https://github.com/karikera/zlib-bin

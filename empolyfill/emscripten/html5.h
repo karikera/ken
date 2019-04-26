@@ -1,0 +1,176 @@
+#pragma once
+
+#include "../emscripten.h"
+
+/*
+This type is used to return the result of most functions in this API.
+Zero and positive values denote success, while negative values signal failure.
+Possible values are listed below.
+*/
+enum EMSCRIPTEN_RESULT
+{
+	// The operation succeeded.
+	EMSCRIPTEN_RESULT_SUCCESS,
+
+	// The requested operation cannot be completed now for web security reasons, and has been deferred for completion in the next event handler.
+	EMSCRIPTEN_RESULT_DEFERRED,
+
+	// The given operation is not supported by this browser or the target element. This value will be returned at the time the callback is registered if the operation is not supported.
+	EMSCRIPTEN_RESULT_NOT_SUPPORTED,
+
+	// The requested operation could not be completed now for web security reasons. It failed because the user requested the operation not be deferred.
+	EMSCRIPTEN_RESULT_FAILED_NOT_DEFERRED,
+
+	// The operation failed because the specified target element is invalid.
+	EMSCRIPTEN_RESULT_INVALID_TARGET,
+
+	// The operation failed because the specified target element was not found.
+	EMSCRIPTEN_RESULT_UNKNOWN_TARGET,
+
+	// The operation failed because an invalid parameter was passed to the function.
+	EMSCRIPTEN_RESULT_INVALID_PARAM,
+
+	// Generic failure result message, returned if no specific result is available.
+	EMSCRIPTEN_RESULT_FAILED,
+
+	// The operation failed because no data is currently available.
+	EMSCRIPTEN_RESULT_NO_DATA
+};
+
+/*
+The event structure passed in DOM element UIEvent events: resize and scroll
+*/
+struct EmscriptenUiEvent
+{
+	//  Specifies additional detail / information about this event.
+	long detail;
+
+	// The clientWidth / clientHeight of the document.body element.
+	int documentBodyClientWidth, documentBodyClientHeight;
+
+	// The innerWidth/innerHeight of the browser window.
+	int windowInnerWidth, windowInnerHeight;
+
+	// The outerWidth/outerHeight of the browser window.
+	int windowOuterWidth, windowOuterHeight;
+
+	// The page scroll position.
+	int scrollTop, scrollLeft;
+};
+
+/*
+The event structure passed in keyboard events: keypress, keydown and keyup.
+
+Note that since the DOM Level 3 Events spec is very recent at the time of writing (2014-03),
+uniform support for the different fields in the spec is still in flux. Be sure to check the
+results in multiple browsers. See the unmerged pull request #2222 for an example of how to
+interpret the legacy key events.
+*/
+struct EmscriptenKeyboardEvent
+{
+	// The printed representation of the pressed key.
+	//
+	// Maximum size 32 char (i.e. EM_UTF8 key[32]).
+	EM_UTF8 key;
+
+	// A string that identifies the physical key being pressed. The value is not affected by the current keyboard layout or modifier state, so a particular key will always return the same value.
+	//
+	// Maximum size 32 char (i.e. EM_UTF8 code[32]).
+	EM_UTF8 code;
+
+	//Indicates the location of the key on the keyboard. One of the DOM_KEY_LOCATION values.
+	unsigned long location;
+
+	// Specifies which modifiers were active during the key event.
+	EM_BOOL ctrlKey, shiftKey, altKey, metaKey;
+
+	// Specifies if this keyboard event represents a repeated press.
+	EM_BOOL repeat;
+
+	// A locale string indicating the configured keyboard locale. This may be an empty string if the browser or device doesn¡¯t know the keyboard¡¯s locale.
+	//
+	// Maximum size 32 char(i.e.EM_UTF8 locale[32]).
+	EM_UTF8 locale;
+
+	// The following fields are values from previous versions of the DOM key events specifications. See the character representation of the key. This is the field char from the docs, but renamed to charValue to avoid a C reserved word.
+	// 
+	// Maximum size 32 char (i.e. EM_UTF8 charValue[32]).
+	// 
+	// Warning:
+	//     This attribute has been dropped from DOM Level 3 events.
+	EM_UTF8 charValue;
+
+	// The Unicode reference number of the key; this attribute is used only by the keypress event. For keys whose char attribute contains multiple characters, this is the Unicode value of the first character in that attribute.
+	// 
+	// Warning:
+	//     This attribute is deprecated, you should use the field key instead, if available.
+	DEPRECATED unsigned long charCode;
+
+
+	// A system and implementation dependent numerical code identifying the unmodified value of the pressed key.
+	// 
+	// Warning:
+	//     This attribute is deprecated, you should use the field key instead, if available.
+	DEPRECATED unsigned long keyCode;
+
+	// A system and implementation dependent numeric code identifying the unmodified value of the pressed key; this is usually the same as keyCode.
+	// 
+	// Warning:
+	//     This attribute is deprecated, you should use the field key instead, if available. Note thought that while this field is deprecated, the cross-browser support for which may be better than for the other fields, so experimentation is recommended. Read issue https://github.com/kripken/emscripten/issues/2817 for more information.
+	DEPRECATED unsigned long which;
+};
+
+struct EmscriptenMouseEvent
+{
+	//A timestamp of when this data was generated by the browser.This is an absolute wallclock time in milliseconds.
+	double timestamp;
+
+	// The coordinates relative to the browser screen coordinate system.
+	long screenX, screenY;
+
+	// The coordinates relative to the viewport associated with the event.
+	long clientX, clientY;
+
+	// Specifies which modifiers were active during the mouse event.
+	EM_BOOL ctrlKey, shiftKey, altKey, metaKey;
+
+	// Identifies which pointer device button changed state(see MouseEvent.button) :
+	//	0 : Left button
+	//	1 : Middle button(if present)
+	//	2 : Right button
+	unsigned short button;
+
+	// A bitmask that indicates which combinations of mouse buttons were being held down at the time of the event.
+	unsigned short buttons;
+
+	// If pointer lock is active, these two extra fields give relative mouse movement since the last event.
+	long movementX, movementY;
+
+	// These fields give the mouse coordinates mapped relative to the coordinate space of the target DOM element receiving the input events(Emscripten - specific extension).
+	long targetX, targetY;
+
+	// These fields give the mouse coordinates mapped to the Emscripten canvas client area(Emscripten - specific extension).
+	long canvasX, canvasY;
+
+	// Internal, and can be ignored.
+	long padding;
+};
+
+typedef EM_BOOL(*em_key_callback_func)(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData);
+typedef EM_BOOL(*em_mouse_callback_func)(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData);
+typedef EM_BOOL(*em_ui_callback_func)(int eventType, const EmscriptenUiEvent *uiEvent, void *userData);
+
+EMSCRIPTEN_RESULT emscripten_set_keypress_callback(const char *target, void *userData, EM_BOOL useCapture, em_key_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_keydown_callback(const char *target, void *userData, EM_BOOL useCapture, em_key_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_keyup_callback(const char *target, void *userData, EM_BOOL useCapture, em_key_callback_func callback);
+
+EMSCRIPTEN_RESULT emscripten_set_click_callback(const char *target, void *userData, EM_BOOL useCapture, em_mouse_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_mousedown_callback(const char *target, void *userData, EM_BOOL useCapture, em_mouse_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_mouseup_callback(const char *target, void *userData, EM_BOOL useCapture, em_mouse_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_dblclick_callback(const char *target, void *userData, EM_BOOL useCapture, em_mouse_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_mousemove_callback(const char *target, void *userData, EM_BOOL useCapture, em_mouse_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_mouseenter_callback(const char *target, void *userData, EM_BOOL useCapture, em_mouse_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_mouseleave_callback(const char *target, void *userData, EM_BOOL useCapture, em_mouse_callback_func callback);
+
+EMSCRIPTEN_RESULT emscripten_set_resize_callback(const char *target, void *userData, EM_BOOL useCapture, em_ui_callback_func callback);
+EMSCRIPTEN_RESULT emscripten_set_scroll_callback(const char *target, void *userData, EM_BOOL useCapture, em_ui_callback_func callback);

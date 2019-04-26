@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\dirob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\wsevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\server.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="progressor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="promise.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="eventdispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\asyncfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cascader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\IRC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\mtnet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timeout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="poster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msgloop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\dirob.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\wsevent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="progressor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="promise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="eventdispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\asyncfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cascader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\IRC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\mtnet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="timeout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="poster.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msgloop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

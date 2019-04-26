@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="UserMacros">
+    <KEN_DIR>$(MSBuildThisFileDirectory)</KEN_DIR>
+    <VEM_EXCLUDE>$(KEN_DIR)empolyfill;$(KEN_DIR)KRThird\gles_sdk\include;$(VEM_EXCLUDE)</VEM_EXCLUDE>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(PlatformShortName)' == 'js'">
+    <StaticLibraryExt>.bc</StaticLibraryExt>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(PlatformShortName)' != 'js'">
+    <StaticLibraryExt>.lib</StaticLibraryExt>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(PlatformShortName)' == 'x86'">
+    <PlatformDirectory></PlatformDirectory>
+    <PlatformPostfix></PlatformPostfix>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(PlatformShortName)' != 'x86'">
+    <PlatformDirectory>$(PlatformShortName)\</PlatformDirectory>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(PlatformShortName)' == 'x64'">
+    <PlatformShortName2>x86-64</PlatformShortName2>
+    <PlatformPostfix>-x64</PlatformPostfix>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(PlatformShortName)' != 'x64'">
+    <PlatformShortName2>$(PlatformShortName)</PlatformShortName2>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' == 'Debug'">
+    <DebugPostfix>d</DebugPostfix>
+    <ConfigDir>Debug</ConfigDir>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' != 'Debug'">
+    <DebugPostfix></DebugPostfix>
+    <ConfigDir>Release</ConfigDir>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros">
+    <ZLIB_NAME>zlib$(DebugPostfix)$(StaticLibraryExt)</ZLIB_NAME>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)bin\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>bin\$(PlatformShortName)\$(Configuration)\</IntDir>
+    <ExecutablePath>$(OutDir);$(KEN_DIR)batch;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(KEN_DIR);$(KEN_DIR)KRThird\angle\include;$(KEN_DIR)KRThird\zlib\$(PlatformShortName)\include;$(KEN_DIR)empolyfill;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(KEN_DIR)KRThird\ken-res-loader\lib\$(PlatformShortName);$(KEN_DIR)\lib\$(PlatformShortName)\$(Configuration);$(KEN_DIR)KRThird\zlib\$(PlatformShortName)\lib;$(KEN_DIR)KRThird\libpng\lib\$(PlatformShortName);$(KEN_DIR)KRThird\curl\lib\$(PlatformShortName);$(KEN_DIR)KRThird\angle\lib\$(PlatformShortName)\$(ConfigDir);$(MYSQL_C_DIR)lib;$(LibraryPath)</LibraryPath>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemGroup>
+    <BuildMacro Include="KEN_DIR">
+      <Value>$(KEN_DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalDependencies>ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Lib>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Lib>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+    </ResourceCompile>
+    <MASM>
+      <ObjectFileName>$(IntDir)asm$%(FileName).obj</ObjectFileName>
+    </MASM>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Debug'">
+    <ClCompile>
+      <PreprocessorDefinitions>PROJECTRUN;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'ReleaseTest'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;PROJECTRUN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <LinkTimeCodeGeneration></LinkTimeCodeGeneration>
+    </Link>
+    <Lib>
+      <LinkTimeCodeGeneration></LinkTimeCodeGeneration>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MinimalRebuild>false</MinimalRebuild>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <Lib>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)' != 'Emscripten'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)' == 'Emscripten'">
+    <ClCompile>
+      <GNUDisableSpecificWarnings>undefined-var-template</GNUDisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <OutliningLimit>2000</OutliningLimit>
+    </ClCompile>
+    <Link>
+      <OutliningLimit>2000</OutliningLimit>
+    </Link>
+    <Lib>
+      <OutliningLimit>2000</OutliningLimit>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
+    <ClCompile>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <TreatSpecificWarningsAsErrors>4018;4101;4316;4715;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
+      <ExceptionHandling>Async</ExceptionHandling>
+    </ClCompile>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
+  </ItemDefinitionGroup>
+</Project>

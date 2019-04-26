@@ -1,0 +1,614 @@
+
+typedef tric, byte, word, trib, dword, fiveb;
+typedef BaseStatShare, UnitDataShare;
+typedef Header;
+
+struct Position
+{
+	trib x;
+	trib y;
+};
+
+struct AttackType
+{
+	byte stype;
+	byte atype;
+};
+
+struct String
+{
+	byte size;
+	char message[size];
+};
+struct RPacket
+{
+	Header header;
+	Pointer $pos;
+	
+	@$pos = $POINTER;
+
+	switch data(header.code)
+	{
+	case 0x50: Destroy()
+	{
+		byte 6,2,3,1,2;
+	};
+	}
+	};
+/*
+	case 0x00: Login()
+	{
+		@ header.scode = 0x31;
+		byte 3;
+		dword userId;
+		String map;
+		byte 0[3];
+
+	};
+	case 0x02: SetUser()
+	{
+		@ header.scode = 0x31;
+		byte 2;
+		byte 0;
+		word handShakeCode;
+	};
+	case 0x03: Text()
+	{
+		@ header.scode = 0x31; // 0x21
+
+		define NO_USER 4;
+		define INFO 6;
+		define NOTICE 7;
+		define BLUE_TEXT 8;
+		define GREEN_TEXT 12;
+		define DINGDONG 16;
+		define YELLOW_TEXT 19;
+		define PUBLIC_CHAT 0;
+		define WHISPER_RECEIVE 2;
+		define TEAMCHAT 3;
+		define GUILD 9;
+		define REPLAY_CHAT 17;
+		define ICON 10;
+		define USER_INFO 18;
+		
+		struct Message()
+		{
+			String msg;
+		};
+		struct Chat()
+		{
+			String nick;
+			byte server;
+			String msg;
+		};
+
+		byte type;	
+			
+		switch data(type)
+		{
+		case 4: NoUser { String nick; };
+		case 6: Info:Message{};
+		case 7: Notice:Message{};
+		case 8: BlueText:Message{};
+		case 12: GreenText:Message{};
+		case 16: DingDong:Message{};
+		case 19: YellowText:Message{};
+		case 0: PublicChat:Chat{};
+		case 2: WhisperReceive:Chat{};
+		case 3: TeamChat:Chat{};
+		case 9: Guild:Chat{};
+		case 17: ReplayChat:Chat{};
+		case 10: Icon()
+			{
+				String nick;
+				trib rank;
+				trib flag;
+				byte ?;
+				trib server;
+				bool blue;
+				dword ?;
+				word level;
+			};
+		case 18: UserInfo()
+			{
+				String nick;
+				byte server;
+				dword ?;
+			};
+		}
+
+		byte 0x5f;
+	};
+	case 0x05: UnitCreate()
+	{
+		@header.scode=0x31;
+
+		//public final T data;
+
+		dword id;
+		dword owner;
+		dword slot;
+		String name;
+		byte type;
+		Position pos;
+		trib watt;
+		trib speed;
+		dword flags;
+		trib hp;
+		word armor;
+		byte sight;
+		word model_lp;
+		word model_bp;
+		word model_ap;
+		word _autosel; // 999 면 자동 포커싱
+		word damage;
+		byte range;
+		byte range_min;
+		word delay;
+		switch data(type)
+		{
+		case 2:Unit()
+			{
+				trib ori_hp;
+				word ori_damage;
+				byte ori_armor;
+				word ori_delay;
+				byte ori_range;
+				byte ori_range_min;
+				word ori_speed;
+				byte ori_sight;
+
+				tric ac_hp;
+				short ac_damage;
+				short ac_armor;
+				short ac_delay;
+				short ac_range;
+				short ac_range_min;
+				short ac_speed;
+				short ac_sight;
+				AttackType atype;
+				byte skill;
+				byte star; // to 30
+				byte subcore_lp;
+				byte subcore_bp;
+				byte subcore_ap;
+				word model_ac;
+				byte tower;
+			};
+		case 3:Enemy()
+			{
+			};
+		case 4:Item()
+			{
+				@slot=0;
+				@name.size=0;
+				@watt=0;
+				@speed=0;
+				@armor=0;
+				@model_bp=0;
+				@model_ap=0;
+				@_autosel=999;
+				@damage=0;
+				@range=0;
+				@range_min = 0;
+				@delay=50;
+				byte 0[22];
+				// @flags 0x1001; // item
+				// @hp 1; // item
+				// @sight 0; // item
+				// @flags 0x10001; // wall
+			};
+		case 5:Base()
+			{
+				@slot=1;
+				@watt=BaseStatShare.BASE_WATT;
+				@flags=UnitDataShare.FLAGS_BASE | UnitDataShare.FLAGS_FLY;
+				@model_lp=1024; // ?
+				@model_bp=2036; // ?
+				@model_ap=3023; // ?
+				//@BaseStatShare.REAL_BASENAME;
+
+				word model_base;
+				word addons[BaseStatShare.ADDON_COUNT];
+				AttackType atype;
+				byte 1;
+				dword baseid;
+			};
+		}
+	};
+	case 0x06: UnitMove()
+	{
+		@header.scode=0x31;
+		dword id;
+		Position pos;
+		dword ?; // 반응 없음. (20~23)
+		byte type; // 0 - can't move, 1 = normal , 2 = warp
+	};
+	case 0x07: UnitDie()
+	{
+		@header.scode=0x31;
+		dword id;
+	};
+	case 0x08: UnitAttack()
+	{
+		@header.scode=0x31;
+		dword from;
+		byte type;
+		byte missile;
+		switch target(type)
+		{
+		case 0:Normal()
+		{
+			dword to;
+		};
+		case 1:Field()
+		{
+			Position pos;
+			dword to;
+		};
+		case 6:Chain()
+		{
+			dword to[5];
+		};
+		}
+	};
+	case 0x09: UnitModify()
+	{
+		define SET_HP				3;
+		define ADD_ARMOR			4;
+		define ADD_DAMAGE			5;
+		define SET_SPEED			6;
+
+		define SET_WATT				7;
+		define SET_WATT_MAX			8;
+
+		define SET_UNIT_WATT		10;
+		define SET_UNIT_WATT_MAX	11;
+
+		define SET_DELAY			17;
+		define SET_SIGHT			19;
+
+		define SET_OVERWORK			20;
+
+		define SET_SP				21;
+		define SET_SP_MAX			22;
+		define SET_UNIT_COUNT		23;
+		define SET_UNIT_COUNT_MAX	24;
+		define SET_DAMAGE_ALL		25;
+		define SET_DAMAGE_GROUND		26;
+		define SET_DAMAGE_AIR		27;
+		define SET_ARMOR_ALL		28;
+		define SET_ARMOR_GROUND		29;
+		define SET_ARMOR_AIR		30;
+		define SET_ARMOR_BASE		31;
+
+		define SET_TEAM_DUAL		39;
+		define SET_DEFENSE_BASIC		40;
+		define SET_ATTACK_BASIC		41;
+		define SET_STURN			42;
+
+		@header.scode=0x31;
+		dword id;
+		byte type;
+		long value;
+	};
+	case 0x0c: Disconnect()
+	{
+		@ header.scode = 0x32;
+		byte 0x9f;
+	};
+
+	case 0x13: Team()
+	{
+		@ header.scode = 0x31;
+		byte teamid;
+		byte size;
+		dword ids[size];
+	};
+	case 0x16: Reward()
+	{
+		define END_WIN		0;
+		define END_DEFEAT	1;
+		define END_CANCEL	5;
+		define END_UPDATE	8;
+
+		@header.scode = 0x31;
+		dword gamerId;
+		String nick;
+		byte gameEnd; // 0 win 1 defeat 8 reward
+		dword win;
+		dword lose;
+		trib 0;
+		byte 5;
+		byte 0;
+		byte 16;
+		trib level;
+		fiveb exp;
+		fiveb gold;
+		fiveb guildexp;
+		word rank;
+		trib bp;
+		dword luck;
+		word 0;
+		trib abp;
+		trib battleCount_;
+		word 1000;
+		byte server;
+		dword 4666442;
+		trib obsidian;
+		trib staurolite;
+		trib garnet;
+		trib magnetite;
+		dword 0;
+		dword 0;
+		dword 0;
+	};
+	case 0x17: Skill()
+	{
+		@header.scode = 0x31;
+		dword owner;
+		dword from;
+		dword id;
+		word skill;
+		Position pos;
+		dword target;
+		dword delay;
+		dword duration;
+	};
+	case 0x19: Gamer()
+	{
+		@header.scode = 0x31;
+
+		define COLOR_BLACK 0;
+		define COLOR_RED 1;
+		define COLOR_YELLOW 2;
+		define COLOR_GREEN 3;
+		define COLOR_BLUE 4;
+		define COLOR_PINK 5;
+		define COLOR_DKBLUE 6;
+		define COLOR_LTBLUE 7;
+		define COLOR_DKGREEN 8;
+		define COLOR_ORANGE 9;
+		define COLOR_BROWN 10;
+		define COLOR_DKYELLOW 11;
+		define COLOR_PURPLE 12;
+
+		dword id;
+		byte team;
+		String nick;
+		byte color;
+		trib flag;
+		word rank;
+		byte 1;
+		word 0;
+		String comment;
+		trib level;
+	};
+	case 0x1e: Score()
+	{
+		@header.scode = 0x31;
+
+		dword gamerId;
+		String nick;
+
+		byte 9;
+		trib lostUnits;
+		trib destroyedUnits;
+		trib 12;
+		trib 30;
+		byte destroyedBases;
+
+		trib producedUnits;
+		trib usedWatt;
+
+		word score;
+		byte grade;
+		byte 5;
+
+		byte teamBonus;
+		dword luckBonus;
+		bool fullMember;
+		bool pcCafe;
+		byte 9;
+		byte 0;
+
+		fiveb gold;
+		dword luck;
+		byte bp;
+		word expPercent;
+		word level;
+		byte 10;
+		byte 0;
+	};
+	case 0x1f: Towering()
+	{
+		@header.scode = 0x31;
+
+		define TOWERING 1001;
+		define TOWERING2 1002;
+
+		define GROUND 1001;
+		define AIR 1002;
+
+		define TOWER 32;
+		define ARM 33;
+		define SHOULDER 34;
+		define ENERGY_MAX 36;
+		define POWER_MAX 35;
+		define AEGIS 37;
+
+
+		bool complate;
+		dword id;
+		word towering;
+		word 0;
+		word 0;
+		dword hp;
+		dword hpMax;
+		word damage;
+		word armor;
+		word sight;
+		word range;
+		word 0;
+		word nearRange;
+		word delay;
+		word 0;
+		byte tower;
+	};
+	case 0x24: Beacon()
+	{
+		@header.scode = 0x31;
+
+		define COLOR_GREEN 0;
+		define COLOR_ORANGE 1;
+		define COLOR_RED 2;
+
+		bool camera;
+		Position pos;
+		byte color;
+	};
+	case 0x2f: BaseCreate()
+	{
+		@header.scode = 0x31;
+
+		define ADDON_COUNT 5;
+
+		dword id;
+		dword owner; // owner
+
+		byte 0; //"";
+		Position pos;
+
+		word baseModel;
+		word addonModels[ADDON_COUNT];
+
+		trib hp_max; // max-hp
+		trib hp; // now-hp
+		word armor; // armor
+		word sight; // sight
+
+		word 0; // ?
+		word damage; // power
+		word range;
+		word nearRange;
+		word delay; // ?
+		word 0; // ?
+		AttackType atype;
+		dword unitId;
+	};
+	}
+
+	char 0x9f;
+	@header.size=$POINTER-$pos;
+};
+
+struct SPacket
+{
+	Header header;
+	Pointer $pos;
+
+	@$pos = $POINTER;
+
+	switch data(header.code)
+	{
+	case 0x05: SetUser()
+	{
+		@header.scode=0x04;
+		String name;
+		byte lpCount;
+		byte bpCount;
+		byte apCount;
+		byte acCount;
+		byte unitDeck;
+		byte 1;
+		byte server;
+		byte baseCount;
+		byte addonCount;
+		word handshake;
+	};
+	case 0x06: Ping()
+	{
+		byte code;
+	};
+	case 0x08: UnitMove()
+	{
+		@header.scode = 0x04;
+		dword id;
+		Position pos;
+	};
+	case 0x09: UnitAttack()
+	{
+		@header.scode = 0x04;
+		dword from;
+		dword to;
+		byte u1;
+		byte skill;
+		byte order;
+		byte missile;
+		if pos(order || skill) Target:Position {};
+		dword target;
+	};
+	case 0x0C: UnitCreate()
+	{
+		@header.scode = 0x04;
+		byte slot;
+	};
+	case 0x16: Out()
+	{
+		@header.scode = 0x04;
+	};
+	case 0x1d: Skill()
+	{
+		@header.scode = 0x04;
+
+		define TYPE_ATTACK 0;
+		define TYPE_DEFENSE 1;
+		define TYPE_BASE 2;
+		define TYPE_CURSE 3;
+		define TYPE_MISC 4;
+
+		byte cmd;
+		switch data(cmd)
+		{
+		case 1:Buy()
+		{
+			byte type;
+			byte skill;
+			word 0;
+		};
+		case 2:Sell()
+		{
+			byte skill;
+			word 0;
+		};
+		case 3:Use()
+		{
+			byte 1;
+			byte 1;
+			byte slot;
+			byte 0;
+			dword target;
+			Position pos;
+		};
+		case 4:Add()
+		{
+			byte skill;
+			byte slot;
+			byte 0;
+		};
+		case 5:Sub()
+		{
+			byte skill;
+			byte slot;
+			byte 0;
+		};
+		}
+
+		byte deck;
+	};
+	}
+	
+	char 0x9f;
+	@header.size=$POINTER-$pos;
+};
+*/

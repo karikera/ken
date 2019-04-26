@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)..\KR.props" />
+  <PropertyGroup Label="UserMacros">
+    <LIBOGG_DIR>$(MSBuildThisFileDirectory)libogg-1.2.2/</LIBOGG_DIR>
+    <LIBVORBIS_DIR>$(MSBuildThisFileDirectory)libvorbis-1.3.2/</LIBVORBIS_DIR>
+    <LIBLZMA_DIR>$(MSBuildThisFileDirectory)lzma-sdk/C/</LIBLZMA_DIR>
+    <ZLIB_DIR>$(MSBuildThisFileDirectory)zlib/</ZLIB_DIR>
+    <DSHOW_DIR>$(MSBuildThisFileDirectory)dshow/</DSHOW_DIR>
+  </PropertyGroup>
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <_PropertySheetDisplayName>KR Third</_PropertySheetDisplayName>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <DisableSpecificWarnings>4819;4996;4224;4267;4457;4456;4554;4244;4100;4189;4305;4127;4701;4703;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
+    </ClCompile>
+    <Link>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release'">
+    <Link>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <Lib>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
+    </Lib>
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>

@@ -1,0 +1,319 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Emscripten">
+      <Configuration>Debug</Configuration>
+      <Platform>Emscripten</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Emscripten">
+      <Configuration>Release</Configuration>
+      <Platform>Emscripten</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F5212E7B-4791-4488-A23A-57AF3023E7D3}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>KR3</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\KR.props" />
+    <Import Project="..\KRLibrary.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <PreBuildEvent />
+    <PreBuildEvent />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="common\text\method\common.h" />
+    <ClInclude Include="common\autovar.h" />
+    <ClInclude Include="common\error.h" />
+    <ClInclude Include="util\hashtester.h" />
+    <ClInclude Include="common\intrinsic.h" />
+    <ClInclude Include="common\text\iterator.h" />
+    <ClInclude Include="common\keep.h" />
+    <ClInclude Include="common\msver.h" />
+    <ClInclude Include="common\reference.h" />
+    <ClInclude Include="common\container.h" />
+    <ClInclude Include="common\text\buffer\membuffer.h" />
+    <ClInclude Include="common\text\buffer\transbuffer.h" />
+    <ClInclude Include="data\crypt.h" />
+    <ClInclude Include="data\crypt\sha256.h" />
+    <ClInclude Include="data\set.h" />
+    <ClInclude Include="deprecated\wsstream.h" />
+    <ClInclude Include="common\text\encoder.h" />
+    <ClInclude Include="data\crypt\md5.h" />
+    <ClInclude Include="data\idmap.h" />
+    <ClInclude Include="data\map.h" />
+    <ClInclude Include="data\mixedarray.h" />
+    <ClInclude Include="common\text.h" />
+    <ClInclude Include="common\text\buffer.h" />
+    <ClInclude Include="common\text\container.h" />
+    <ClInclude Include="common\text\data\allocator.h" />
+    <ClInclude Include="common\text\data\data.h" />
+    <ClInclude Include="common\text\data\dataform.h" />
+    <ClInclude Include="common\text\encoder\convert.h" />
+    <ClInclude Include="common\text\encoder\encoder.h" />
+    <ClInclude Include="data\crypt\base64.h" />
+    <ClInclude Include="data\crypt\sha1.h" />
+    <ClInclude Include="common\io\istream.h" />
+    <ClInclude Include="common\io\lock.h" />
+    <ClInclude Include="common\io\ostream.h" />
+    <ClInclude Include="common\io\readlock.h" />
+    <ClInclude Include="common\stdio.h" />
+    <ClInclude Include="common\io\stream.h" />
+    <ClInclude Include="common\io\vstream.h" />
+    <ClInclude Include="common\io\writelock.h" />
+    <ClInclude Include="common\text\join.h" />
+    <ClInclude Include="common\text\method\buffer_i.h" />
+    <ClInclude Include="common\text\method\buffer_io.h" />
+    <ClInclude Include="math\geom.h" />
+    <ClInclude Include="meta\ordering.h" />
+    <ClInclude Include="common\text\method\stream.h" />
+    <ClInclude Include="common\text\buffer\textbuffer.h" />
+    <ClInclude Include="common\text\method\utils.h" />
+    <ClInclude Include="common\text\nullterm.h" />
+    <ClInclude Include="common\text\numformat.h" />
+    <ClInclude Include="data\switch.h" />
+    <ClInclude Include="common\text\wrap.h" />
+    <ClInclude Include="math\interpolation.h" />
+    <ClInclude Include="meta\retype.h" />
+    <ClInclude Include="util\lister.h" />
+    <ClInclude Include="util\singleinstance.h" />
+    <ClInclude Include="util\envvar.h" />
+    <ClInclude Include="util\process.h" />
+    <ClInclude Include="util\unaligned.h" />
+    <ClInclude Include="util\wide.h" />
+    <ClInclude Include="wl\console.h" />
+    <ClInclude Include="data\binarray.h" />
+    <ClInclude Include="data\bin_search.h" />
+    <ClInclude Include="data\endian.h" />
+    <ClInclude Include="data\iterator.h" />
+    <ClInclude Include="data\linkedlist.h" />
+    <ClInclude Include="common\memlib.h" />
+    <ClInclude Include="common\temp.h" />
+    <ClInclude Include="io\bufferedstream.h" />
+    <ClInclude Include="io\filterstream.h" />
+    <ClInclude Include="io\protocol.h" />
+    <ClInclude Include="io\selfbufferedstream.h" />
+    <ClInclude Include="io\xorstream.h" />
+    <ClInclude Include="meta\numbers.h" />
+    <ClInclude Include="meta\value.h" />
+    <ClInclude Include="math\coord.h" />
+    <ClInclude Include="math\coord\matrix.h" />
+    <ClInclude Include="math\coord\matrix_method.h" />
+    <ClInclude Include="math\coord\mmx.h" />
+    <ClInclude Include="math\coord\quaternion.h" />
+    <ClInclude Include="math\coord\matrix_data.h" />
+    <ClInclude Include="math\coord\vector.h" />
+    <ClInclude Include="math\inf\miniball.h" />
+    <ClInclude Include="math\coord\vector_data.h" />
+    <ClInclude Include="math\coord\vector_method.h" />
+    <ClInclude Include="math\pose.h" />
+    <ClInclude Include="math\vertexlist.h" />
+    <ClInclude Include="meta\math.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="mt\thread.h" />
+    <ClInclude Include="util\coroutine.h" />
+    <ClInclude Include="util\callable.h" />
+    <ClInclude Include="util\constructor.h" />
+    <ClInclude Include="common\autovar\autovar.h" />
+    <ClInclude Include="common\autovar\intvar.h" />
+    <ClInclude Include="common\autovar\autoptr.h" />
+    <ClInclude Include="common\autovar\zero.h" />
+    <ClInclude Include="common\common.h" />
+    <ClInclude Include="common\compiler.h" />
+    <ClInclude Include="common\exception.h" />
+    <ClInclude Include="common\finally.h" />
+    <ClInclude Include="common\macro.h" />
+    <ClInclude Include="common\system.h" />
+    <ClInclude Include="math\fixed\fixed.h" />
+    <ClInclude Include="math\fixed\fixedmatrix.h" />
+    <ClInclude Include="math\fixed\ref.h" />
+    <ClInclude Include="meta\attacher.h" />
+    <ClInclude Include="meta\bin.h" />
+    <ClInclude Include="meta\if.h" />
+    <ClInclude Include="util\delta.h" />
+    <ClInclude Include="util\scopeobserver.h" />
+    <ClInclude Include="util\StackWalker.h" />
+    <ClInclude Include="mt\criticalsection.h" />
+    <ClInclude Include="wl\eventhandle.h" />
+    <ClInclude Include="wl\msgthread.h" />
+    <ClInclude Include="wl\threadhandle.h" />
+    <ClInclude Include="wl\version.h" />
+    <ClInclude Include="wl\handle.h" />
+    <ClInclude Include="wl\vhelper.h" />
+    <ClInclude Include="wl\windows.h" />
+    <ClInclude Include="initializer.h" />
+    <ClInclude Include="common\math.h" />
+    <ClInclude Include="meta\number.h" />
+    <ClInclude Include="meta\align.h" />
+    <ClInclude Include="meta\boolidx.h" />
+    <ClInclude Include="meta\function.h" />
+    <ClInclude Include="meta\log2.h" />
+    <ClInclude Include="meta\voider.h" />
+    <ClInclude Include="util\numcls.h" />
+    <ClInclude Include="common\type.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="meta\array.h" />
+    <ClInclude Include="meta\chreturn.h" />
+    <ClInclude Include="meta\text.h" />
+    <ClInclude Include="meta\types.h" />
+    <ClInclude Include="util\keeper.h" />
+    <ClInclude Include="common\random.h" />
+    <ClInclude Include="util\time.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="common\autovar\autoptr.cpp" />
+    <ClCompile Include="common\autovar\zero.cpp" />
+    <ClCompile Include="common\compiler.cpp" />
+    <ClCompile Include="common\error.cpp" />
+    <ClCompile Include="common\exception.cpp" />
+    <ClCompile Include="common\keep.cpp" />
+    <ClCompile Include="common\memlib.cpp" />
+    <ClCompile Include="common\stdio.cpp" />
+    <ClCompile Include="common\system.cpp" />
+    <ClCompile Include="common\temp.cpp" />
+    <ClCompile Include="common\text.cpp" />
+    <ClCompile Include="data\crypt.cpp" />
+    <ClCompile Include="data\crypt\sha256.cpp" />
+    <ClCompile Include="deprecated\Pack.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="deprecated\wsstream.cpp" />
+    <ClCompile Include="common\text\encoder\convert.cpp" />
+    <ClCompile Include="data\crypt\base64.cpp" />
+    <ClCompile Include="data\crypt\md5.cpp" />
+    <ClCompile Include="data\crypt\sha1.cpp" />
+    <ClCompile Include="data\linkedlist.cpp" />
+    <ClCompile Include="math\coord.cpp" />
+    <ClCompile Include="math\geom.cpp" />
+    <ClCompile Include="util\envvar.cpp" />
+    <ClCompile Include="util\process.cpp" />
+    <ClCompile Include="util\singleinstance.cpp" />
+    <ClCompile Include="wl\console.cpp" />
+    <ClCompile Include="data\binarray.cpp" />
+    <ClCompile Include="initializer.cpp" />
+    <ClCompile Include="io\protocol.cpp" />
+    <ClCompile Include="math\fixed\fixedmatrix.cpp" />
+    <ClCompile Include="math\inf\miniball.cpp" />
+    <ClCompile Include="common\math.cpp" />
+    <ClCompile Include="math\pose.cpp" />
+    <ClCompile Include="math\vertexlist.cpp" />
+    <ClCompile Include="mt\thread.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="util\coroutine.cpp" />
+    <ClCompile Include="util\delta.cpp" />
+    <ClCompile Include="common\random.cpp" />
+    <ClCompile Include="util\StackWalker.cpp" />
+    <ClCompile Include="util\time.cpp" />
+    <ClCompile Include="mt\criticalsection.cpp" />
+    <ClCompile Include="wl\eventhandle.cpp" />
+    <ClCompile Include="wl\handle.cpp" />
+    <ClCompile Include="wl\msgthread.cpp" />
+    <ClCompile Include="wl\threadhandle.cpp" />
+    <ClCompile Include="wl\version.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\idmap.inl" />
+    <None Include="math\coord\matrix_method.inl" />
+    <None Include="math\coord\matrix_data.inl" />
+    <None Include="math\coord\vector.inl" />
+    <None Include="math\coord\vector_method.inl" />
+    <None Include="math\coord\vector_data.inl" />
+    <None Include="common\math.inl" />
+    <None Include="common\memlib.inl" />
+    <None Include="common\random.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="util\coroutine_x64.asm">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </MASM>
+    <MASM Include="util\coroutine_x86.asm">
+      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="kr3.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="설명\CRTP.h" />
+    <Text Include="설명\Bufferable.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KRNew\KRNew.vcxproj">
+      <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
+</Project>

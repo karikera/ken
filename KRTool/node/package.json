@@ -1,0 +1,14 @@
+{
+  "name": "krtool",
+  "version": "1.0.0",
+  "description": "Build Tools for KR3",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test.js"
+  },
+  "author": "ruakr <karikera3@hotmail.com> (http://rua.kr)",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^11.11.3"
+  }
+}

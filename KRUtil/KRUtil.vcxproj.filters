@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nvutil\checksum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nvutil\peanalyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nvutil\stdex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nvutil\strlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nvutil\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\com.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parameter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bufferqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bitmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="namedenum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="text\filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="text\template.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\path.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\escape.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\fileinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\jsonconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\jsonparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\xmlparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\ipaddr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="serializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="text\slash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\installer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\langparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\csvparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="text\codepoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fetch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="httpstatus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nvutil\checksum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nvutil\peanalyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\com.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parameter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="uts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bufferqueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bitmap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="text\filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\fileinfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\resource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\jsonconfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parser\jsonparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parser\xmlparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parser\parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\ipaddr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\installer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parser\langparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parser\csvparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="text\codepoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fetch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="resloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

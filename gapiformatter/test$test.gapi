@@ -1,0 +1,387 @@
+
+@base
+{
+  "error"?: {
+    "errors": [
+      {
+        "domain": string,
+        "reason": string,
+        "message": string
+      }
+    ],
+    "code": unsigned integer,
+    "message": string
+  }
+}
+
+namespace liveBroadcast
+{
+	Resource
+	{
+	  "kind": "youtube#liveBroadcast",
+	  "etag": etag,
+	  "id": string,
+	  "snippet": {
+		"publishedAt": datetime,
+		"channelId": string,
+		"title": string,
+		"description": string,
+		"thumbnails": {
+		  (key): {
+			"url": string,
+			"width": unsigned integer,
+			"height": unsigned integer
+		  }
+		},
+		"scheduledStartTime": datetime,
+		"scheduledEndTime": datetime,
+		"actualStartTime": datetime,
+		"actualEndTime": datetime,
+		"isDefaultBroadcast": boolean,
+		"liveChatId": string
+	  },
+	  "status": {
+		"lifeCycleStatus": string,
+		"privacyStatus": string,
+		"recordingStatus": string,
+	  },
+	  "contentDetails": {
+		"boundStreamId": string,
+		"boundStreamLastUpdateTimeMs": datetime,
+		"monitorStream": {
+		  "enableMonitorStream": boolean,
+		  "broadcastStreamDelayMs": unsigned integer,
+		  "embedHtml": string
+		},
+		"enableEmbed": boolean,
+		"enableDvr": boolean,
+		"enableContentEncryption": boolean,
+		"startWithSlate": boolean,
+		"recordFromStart": boolean,
+		"enableClosedCaptions": boolean,
+		"closedCaptionsType": string,
+		"projection": string,
+		"enableLowLatency": boolean
+		"latencyPreference": boolean
+		"enableAutoStart": boolean
+	  },
+	  "statistics": {
+		"totalChatCount": unsigned long
+	  }
+	}
+
+	List
+	{
+	  "kind": "youtube#liveBroadcastListResponse",
+	  "etag": etag,
+	  "nextPageToken": string,
+	  "prevPageToken": string,
+	  "pageInfo": {
+		"totalResults": integer,
+		"resultsPerPage": integer
+	  },
+	  "items": [
+		liveBroadcast Resource
+	  ]
+	}
+
+}
+
+namespace liveChatMessage
+{
+	Resource
+	{
+	  "kind": "youtube#liveChatMessage",
+	  "etag": etag,
+	  "id": string,
+	  "snippet": {
+		"type": string,
+		"liveChatId": string,
+		"authorChannelId": string,
+		"publishedAt": datetime,
+		"hasDisplayContent": boolean,
+		"displayMessage": string,
+		"fanFundingEventDetails": {
+		  "amountMicros": unsigned long,
+		  "currency": string,
+		  "amountDisplayString": string,
+		  "userComment": string
+		},
+		"textMessageDetails": {
+		  "messageText": string
+		},
+		"messageDeletedDetails": {
+		  "deletedMessageId": string
+		},
+		"userBannedDetails": {
+		  "bannedUserDetails": {
+			"channelId": string,
+			"channelUrl": string,
+			"displayName": string,
+			"profileImageUrl": string
+		  },
+		  "banType": string,
+		  "banDurationSeconds": unsigned long
+		},
+		"superChatDetails": {
+		  "amountMicros": unsigned long,
+		  "currency": string,
+		  "amountDisplayString": string,
+		  "userComment": string,
+		  "tier": unsigned integer
+		}
+	  },
+	  "authorDetails": {
+		"channelId": string,
+		"channelUrl": string,
+		"displayName": string,
+		"profileImageUrl": string,
+		"isVerified": boolean,
+		"isChatOwner": boolean,
+		"isChatSponsor": boolean,
+		"isChatModerator": boolean
+	  }
+	}
+
+	List
+	{
+	  "kind": "youtube#liveChatMessageListResponse",
+	  "etag": etag,
+	  "nextPageToken": string,
+	  "pollingIntervalMillis": unsigned integer,
+	  "offlineAt": datetime,
+	  "pageInfo": {
+		"totalResults": integer,
+		"resultsPerPage": integer
+	  },
+	  "items": [
+		liveChatMessage Resource
+	  ]
+	}
+}
+
+namespace search
+{
+	Resource
+	{
+		"kind": "youtube#searchResult",
+		"etag": etag,
+		"id": {
+		"kind": string,
+		"videoId": string,
+		"channelId": string,
+		"playlistId": string
+		},
+		"snippet": {
+		"publishedAt": datetime,
+		"channelId": string,
+		"title": string,
+		"description": string,
+		"thumbnails": {
+			(key): {
+			"url": string,
+			"width": unsigned integer,
+			"height": unsigned integer
+			}
+		},
+		"channelTitle": string
+		}
+	}
+	
+	List
+	{
+	  "kind": "youtube#searchListResponse",
+	  "etag": etag,
+	  "nextPageToken": string,
+	  "prevPageToken": string,
+	  "pageInfo": {
+		"totalResults": integer,
+		"resultsPerPage": integer
+	  },
+	  "items": [
+		search Resource
+	  ]
+	}
+}
+
+namespace video
+{
+	Resource
+	{
+	  "kind": "youtube#video",
+	  "etag": etag,
+	  "id": string,
+	  "snippet": {
+		"publishedAt": datetime,
+		"channelId": string,
+		"title": string,
+		"description": string,
+		"thumbnails": {
+		  (key): {
+			"url": string,
+			"width": unsigned integer,
+			"height": unsigned integer
+		  }
+		},
+		"channelTitle": string,
+		"tags": [
+		  string
+		],
+		"categoryId": string
+	  },
+	  "contentDetails": {
+		"duration": string,
+		"dimension": string,
+		"definition": string,
+		"caption": string,
+		"licensedContent": boolean,
+		"regionRestriction": {
+		  "allowed": [
+			string
+		  ],
+		  "blocked": [
+			string
+		  ]
+		},
+		"contentRating": {
+		  "mpaaRating": string,
+		  "tvpgRating": string,
+		  "bbfcRating": string,
+		  "chvrsRating": string,
+		  "eirinRating": string,
+		  "cbfcRating": string,
+		  "fmocRating": string,
+		  "icaaRating": string,
+		  "acbRating": string,
+		  "oflcRating": string,
+		  "fskRating": string,
+		  "kmrbRating": string,
+		  "djctqRating": string,
+		  "russiaRating": string,
+		  "rtcRating": string,
+		  "ytRating": string
+		}
+	  },
+	  "status": {
+		"uploadStatus": string,
+		"failureReason": string,
+		"rejectionReason": string,
+		"privacyStatus": string,
+		"license": string,
+		"embeddable": boolean,
+		"publicStatsViewable": boolean
+	  },
+	  "statistics": {
+		"viewCount": unsigned long,
+		"likeCount": unsigned long,
+		"dislikeCount": unsigned long,
+		"favoriteCount": unsigned long,
+		"commentCount": unsigned long
+	  },
+	  "player": {
+		"embedHtml": string
+	  },
+	  "topicDetails": {
+		"topicIds": [
+		  string
+		],
+		"relevantTopicIds": [
+		  string
+		]
+	  },
+	  "recordingDetails": {
+		"locationDescription": string,
+		"location": {
+		  "latitude": double,
+		  "longitude": double,
+		  "altitude": double
+		},
+		"recordingDate": datetime
+	  },
+	  "fileDetails": {
+		"fileName": string,
+		"fileSize": unsigned long,
+		"fileType": string,
+		"container": string,
+		"videoStreams": [
+		  {
+			"widthPixels": unsigned integer,
+			"heightPixels": unsigned integer,
+			"frameRateFps": double,
+			"aspectRatio": double,
+			"codec": string,
+			"bitrateBps": unsigned long,
+			"rotation": string,
+			"vendor": string
+		  }
+		],
+		"audioStreams": [
+		  {
+			"channelCount": unsigned integer,
+			"codec": string,
+			"bitrateBps": unsigned long,
+			"vendor": string
+		  }
+		],
+		"durationMs": unsigned long,
+		"bitrateBps": unsigned long,
+		"recordingLocation": {
+		  "latitude": double,
+		  "longitude": double,
+		  "altitude": double
+		},
+		"creationTime": string
+	  },
+	  "processingDetails": {
+		"processingStatus": string,
+		"processingProgress": {
+		  "partsTotal": unsigned long,
+		  "partsProcessed": unsigned long,
+		  "timeLeftMs": unsigned long
+		},
+		"processingFailureReason": string,
+		"fileDetailsAvailability": string,
+		"processingIssuesAvailability": string,
+		"tagSuggestionsAvailability": string,
+		"editorSuggestionsAvailability": string,
+		"thumbnailsAvailability": string
+	  },
+	  "suggestions": {
+		"processingErrors": [
+		  string
+		],
+		"processingWarnings": [
+		  string
+		],
+		"processingHints": [
+		  string
+		],
+		"tagSuggestions": [
+		  {
+			"tag": string,
+			"categoryRestricts": [
+			  string
+			]
+		  }
+		],
+		"editorSuggestions": [
+		  string
+		]
+	  }
+	}
+
+	List
+	{
+	  "kind": "youtube#videoListResponse",
+	  "etag": etag,
+	  "nextPageToken": string,
+	  "prevPageToken": string,
+	  "pageInfo": {
+		"totalResults": integer,
+		"resultsPerPage": integer
+	  },
+	  "items": [
+		video Resource
+	  ]
+	}
+}

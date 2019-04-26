@@ -1,0 +1,617 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common\exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\voider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\function.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\log2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\align.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\macro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\number.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\bin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="initializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\finally.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\attacher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\if.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\pose.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\vertexlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\keep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\boolidx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\inf\miniball.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\vector_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\vector_method.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\fixed\fixedmatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\fixed\fixed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\matrix_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\matrix_method.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\quaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\coord\mmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\fixed\ref.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\numcls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\StackWalker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\chreturn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\intrinsic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\msver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\constructor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\autovar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\autovar\autovar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\autovar\intvar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\autovar\autoptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\autovar\zero.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\scopeobserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\handle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mt\thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\coroutine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\reference.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\bin_search.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\binarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\endian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\linkedlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\callable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\numbers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\idmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\data\allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\data\data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\data\dataform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\method\buffer_i.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\method\buffer_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\method\stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\method\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\join.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\nullterm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\numformat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\wrap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\istream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\lock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\ostream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\readlock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\vstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\writelock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\switch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\stdio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\temp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\memlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\vhelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="io\bufferedstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="io\filterstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="io\protocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="io\selfbufferedstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="io\xorstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\delta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\mixedarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\value.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\interpolation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mt\criticalsection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\buffer\textbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\buffer\transbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\buffer\membuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="deprecated\wsstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\ordering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\encoder\convert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\encoder\encoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\encoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\sha1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="math\geom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\eventhandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\threadhandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wl\msgthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\envvar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\retype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\wide.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\unaligned.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\sha256.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\singleinstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\keeper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\hashtester.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\lister.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\method\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="common\autovar\autoptr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\binarray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\coroutine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\autovar\zero.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\exception.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math\fixed\fixedmatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\keep.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\memlib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math\inf\miniball.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math\pose.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\StackWalker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\stdio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\temp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mt\thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math\vertexlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="io\protocol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\delta.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\compiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mt\criticalsection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\math.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\random.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="deprecated\Pack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="deprecated\wsstream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\text\encoder\convert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\md5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\sha1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math\coord.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math\geom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\error.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\eventhandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\threadhandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\console.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wl\msgthread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="initializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\envvar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\sha256.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\singleinstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\linkedlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="math\coord\vector_data.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="math\coord\matrix_data.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="math\coord\matrix_method.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="math\coord\vector.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="math\coord\vector_method.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="data\idmap.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="common\memlib.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="common\math.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="common\random.inl">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="util\coroutine_x64.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="util\coroutine_x86.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="kr3.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="설명\CRTP.h" />
+    <Text Include="설명\Bufferable.h" />
+  </ItemGroup>
+</Project>

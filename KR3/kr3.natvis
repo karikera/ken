@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="kr::Manual&lt;*&gt;">
+    <DisplayString Condition="m_constructed">manual {*($T1*)m_buffer}</DisplayString>
+    <DisplayString Condition="!m_constructed">manual [unconstructed]</DisplayString>
+    <Expand>
+      <ExpandedItem Condition="m_constructed">($T1*)m_buffer</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::Com&lt;*&gt;">
+    <DisplayString>com {m_ptr}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_ptr</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::Keep&lt;*&gt;">
+    <DisplayString>keep {*m_ptr}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_ptr</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::Keep&lt;*&gt;::Pointer">
+    <DisplayString>{m_ptr}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_ptr</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::Keep&lt;*&gt;::ConstPointer">
+    <DisplayString>{m_ptr}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_ptr</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::Must&lt;*&gt;">
+    <DisplayString>must {*m_ptr}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_ptr</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::Dynamic&lt;*&gt;">
+    <DisplayString>dynamic {m_ptr}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_ptr</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::Deferred&lt;*&gt;">
+    <DisplayString>deferred {*($T1*)this}</DisplayString>
+    <Expand>
+      <ExpandedItem>*($T1*)this</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::io::BufferedIStream&lt;*,*,*&gt;">
+    <StringView>m_read,[m_filled-m_read]</StringView>
+    <Expand HideRawView="true">
+      <Item Name="[size]">m_filled-m_read</Item>
+      <Item Name="[buffer]">m_read,[m_filled-m_read]</Item>
+      <Item Name="[stream]">m_pt</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::BBinArray&lt;*&gt;">
+    <DisplayString>{m_dwMap}</DisplayString>
+    <Expand HideRawView="true">
+      <Item Name="[size]">$T1</Item>
+      <CustomListItems>
+        <Variable Name="i" InitialValue="0" />
+        <Size>$T1</Size>
+        <Loop>
+          <Break Condition="i == $T1" />
+          <Item>(m_dwMap[i / (sizeof(uintptr_t) * 8)] &amp; (1 &lt;&lt; (i % (sizeof(uintptr_t) * 8)))) != 0</Item>
+          <Exec>i++</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::ary::data::AccessableData&lt;*,*&gt;">
+    <DisplayString Condition="m_begin != 0">{m_begin,[m_end-m_begin]}</DisplayString>
+    <DisplayString Condition="m_begin == 0">null</DisplayString>
+    <StringView Condition="m_begin != 0">m_begin,[m_end-m_begin]</StringView>
+    <Expand HideRawView="true">
+      <Item Name="[size]">m_end-m_begin</Item>
+      <ArrayItems>
+        <Size>m_end-m_begin</Size>
+        <ValuePointer>m_begin</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::ary::data::ReadableData&lt;*,*&gt;">
+    <DisplayString Condition="m_begin != 0">{m_begin,[m_end-m_begin]}</DisplayString>
+    <DisplayString Condition="m_begin == 0">null</DisplayString>
+    <StringView Condition="m_begin != 0">m_begin,[m_end-m_begin]</StringView>
+    <Expand HideRawView="true">
+      <Item Name="[size]">m_end-m_begin</Item>
+      <ArrayItems>
+        <Size>m_end-m_begin</Size>
+        <ValuePointer>m_begin</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::ary::data::AllocatedForm&lt;*,*,*&gt;">
+    <DisplayString Condition="(size_t*)m_begin != ((size_t*)&amp;kr::_pri_::ZERO_MEMORY + 1)">{m_begin,[(((size_t*)m_begin)[-1])]}</DisplayString>
+    <DisplayString Condition="(size_t*)m_begin == ((size_t*)&amp;kr::_pri_::ZERO_MEMORY + 1)">null</DisplayString>
+    <StringView Condition="(size_t*)m_begin != ((size_t*)&amp;kr::_pri_::ZERO_MEMORY + 1)">m_begin,[(((size_t*)m_begin)[-1])]</StringView>
+    <Expand HideRawView="true">
+      <Item Name="[size]">((size_t*)m_begin)[-1]</Item>
+      <ArrayItems>
+        <Size>((size_t*)m_begin)[-1]</Size>
+        <ValuePointer>m_begin</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::ary::data::BufferedForm&lt;*,*,*&gt;">
+    <DisplayString>{($T2*)m_buffer,[m_size]}</DisplayString>
+    <StringView>($T2*)m_buffer,[m_size]</StringView>
+    <Expand HideRawView="true">
+      <Item Name="[size]">m_size</Item>
+      <Item Name="[capacity]">$T1/sizeof($T2)</Item>
+      <ArrayItems>
+        <Size>m_size</Size>
+        <ValuePointer>($T2*)m_buffer</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::math::vector_data&lt;*,2,*&gt;">
+    <DisplayString>{{{x}, {y}}}</DisplayString>
+    <Expand>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::math::vector_data&lt;*,3,*&gt;">
+    <DisplayString>{{{x}, {y}, {z}}}</DisplayString>
+    <Expand HideRawView="true">
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::math::vector_data&lt;*,3,*&gt;">
+    <DisplayString>{{{x}, {y}, {z}}}</DisplayString>
+    <Expand HideRawView="true">
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::math::vector_data&lt;*,4,*&gt;">
+    <DisplayString>{{{x}, {y}, {z}, {w}}}</DisplayString>
+    <Expand HideRawView="true">
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+      <Item Name="w">w</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::math::vector_data&lt;kr::byte,4,*&gt;">
+    <DisplayString>{{{x}, {y}, {z}, {w}}}</DisplayString>
+    <Expand>
+      <Item Name="r,x">x</Item>
+      <Item Name="g,y">y</Item>
+      <Item Name="b,z">z</Item>
+      <Item Name="a,w">w</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::math::matrix_data&lt;*,*,*,*,*&gt;">
+    <DisplayString>{v,[$T3]}</DisplayString>
+    <Expand HideRawView="true">
+      <ArrayItems>
+        <Size>$T3</Size>
+        <ValuePointer>v</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::PromiseRaw">
+    <DisplayString Condition="m_state==0">PromiseRaw[Pending]</DisplayString>
+    <DisplayString Condition="m_state==1">PromiseRaw[Resolved]</DisplayString>
+    <DisplayString Condition="m_state==2">PromiseRaw[Rejected]</DisplayString>
+    <Expand>
+      <Item Name="[end]">m_ending</Item>
+      <LinkedListItems>
+        <HeadPointer>m_next</HeadPointer>
+        <NextPointer>m_sibling</NextPointer>
+        <ValueNode>this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::Promise&lt;void&gt;">
+    <DisplayString Condition="m_state==0">Promise[Pending]</DisplayString>
+    <DisplayString Condition="m_state==1">Promise[Resolved]</DisplayString>
+    <DisplayString Condition="m_state==2">Promise[Rejected]</DisplayString>
+    <Expand>
+      <Item Name="[end]">m_ending</Item>
+      <Item Name="[rejected]" Condition="m_state==2">m_data</Item>
+      <LinkedListItems>
+        <HeadPointer>m_next</HeadPointer>
+        <NextPointer>m_sibling</NextPointer>
+        <ValueNode>this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::Promise&lt;*&gt;">
+    <DisplayString Condition="m_state==0">Promise[Pending]</DisplayString>
+    <DisplayString Condition="m_state==1">Promise[Resolved]</DisplayString>
+    <DisplayString Condition="m_state==2">Promise[Rejected]</DisplayString>
+    <Expand>
+      <Item Name="[end]">m_ending</Item>
+      <Item Name="[value]" Condition="m_state==1">($T1&amp;)m_data.resolved</Item>
+      <Item Name="[value]" Condition="m_state==2">m_data.rejected</Item>
+      <LinkedListItems>
+        <HeadPointer>m_next</HeadPointer>
+        <NextPointer>m_sibling</NextPointer>
+        <ValueNode>this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::PromiseManager">
+    <Expand>
+      <LinkedListItems>
+        <HeadPointer>m_process</HeadPointer>
+        <NextPointer>m_sibling</NextPointer>
+        <ValueNode>this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::ThreadId">
+    <DisplayString>{m_id}</DisplayString>
+  </Type>
+  <Type Name="kr::EventPump">
+    <Expand>
+      <Item Name="[Thread ID]">m_threadId</Item>
+      <LinkedListItems>
+        <HeadPointer>m_start.m_next</HeadPointer>
+        <NextPointer>m_next</NextPointer>
+        <ValueNode>this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::Chain&lt;*&gt;">
+    <Expand HideRawView="true">
+      <CustomListItems>
+        <Variable Name="orig_head" InitialValue="&amp;m_axis"/>
+        <Variable Name="iter" InitialValue="m_axis.m_next"/>
+        <Loop>
+            <Break Condition="iter == orig_head"/>
+            <Item>*($T1*)iter</Item>
+            <Exec>iter = iter-&gt;m_next</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::LinkedList&lt;*&gt;">
+    <Expand HideRawView="true">
+      <Item Name="[size]">m_size</Item>
+      <CustomListItems>
+        <Variable Name="orig_head" InitialValue="&amp;m_axis"/>
+        <Variable Name="iter" InitialValue="m_axis.m_next"/>
+        <Loop>
+            <Break Condition="iter == orig_head"/>
+            <Item>*($T1*)iter</Item>
+            <Exec>iter = iter-&gt;m_next</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+  <Type Name="kr::Node&lt;*&gt;">
+  </Type>
+  <Type Name="kr::Ipv4Address">
+    <DisplayString>{(int)a}.{(int)b}.{(int)c}.{(int)d}</DisplayString>
+  </Type>
+  <Type Name="kr::BufferQueueWithRef">
+    <Expand>
+      <Item Name="[ref]">(m_size &amp; ~((size_t)-1)) >> 1) != 0</Item>
+      <Item Condition="[ref]" Name="[buffer]">m_bufferPtr</Item>
+      <Item Condition="![ref]" Name="[buffer]">m_buffer</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::TimeType&lt;unsigned int, int&gt;::duration">
+    <DisplayString>{m_time}ms</DisplayString>
+  </Type>
+  <Type Name="kr::BufferBlockReceiver">
+    <DisplayString Condition="m_buffer==0">null</DisplayString>
+    <Expand HideRawView="true">
+      <Item Name="[size]" Condition="m_buffer != 0">
+        m_buffer->buffer + m_buffer->size - m_read
+      </Item>
+      <Item Name="[readed]" Condition="m_buffer != 0">
+        m_read-m_buffer->buffer
+      </Item>
+      <Item Name="[remaining]" Condition="m_buffer != 0">
+        sizeof(m_buffer->buffer) - m_buffer->size
+      </Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::fbx::FBXProperty">
+    <DisplayString Condition="m_type == 'C' || m_type == 'B'">{m_value_bool}</DisplayString>
+    <DisplayString Condition="m_type == 'Y'">{m_value_i16}</DisplayString>
+    <DisplayString Condition="m_type == 'I'">{m_value_i32}</DisplayString>
+    <DisplayString Condition="m_type == 'F'">{m_value_f32}</DisplayString>
+    <DisplayString Condition="m_type == 'D'">{m_value_f64}</DisplayString>
+    <DisplayString Condition="m_type == 'L'">{m_value_i64}</DisplayString>
+    <DisplayString Condition="m_type == 'S'">{m_value_ptr->array,[m_value_ptr->size]}</DisplayString>
+    <DisplayString Condition="m_type == 'R'">{(uint8_t*)m_value_ptr->array,[m_value_ptr->size]}</DisplayString>
+    <Expand HideRawView="true">
+      <Item Name="[type]">m_type</Item>
+      <Item Name="[value]" Condition="m_type == 'C' || m_type == 'B'">m_value_bool</Item>
+      <Item Name="[value]" Condition="m_type == 'Y'">m_value_i16</Item>
+      <Item Name="[value]" Condition="m_type == 'I'">m_value_i32</Item>
+      <Item Name="[value]" Condition="m_type == 'F'">m_value_f32</Item>
+      <Item Name="[value]" Condition="m_type == 'D'">m_value_f64</Item>
+      <Item Name="[value]" Condition="m_type == 'L'">m_value_i64</Item>
+      <Item Name="[value]" Condition="m_type == 'c' || m_type == 'b'">(bool*)m_value_ptr->array,[m_value_ptr->size]</Item>
+      <Item Name="[value]" Condition="m_type == 'y'">(int16_t*)m_value_ptr->array,[m_value_ptr->size]</Item>
+      <Item Name="[value]" Condition="m_type == 'i'">(int32_t*)m_value_ptr->array,[m_value_ptr->size]</Item>
+      <Item Name="[value]" Condition="m_type == 'f'">(float*)m_value_ptr->array,[m_value_ptr->size]</Item>
+      <Item Name="[value]" Condition="m_type == 'd'">(double*)m_value_ptr->array,[m_value_ptr->size]</Item>
+      <Item Name="[value]" Condition="m_type == 'l'">(int64_t*)m_value_ptr->array,[m_value_ptr->size]</Item>
+    </Expand>
+  </Type>
+  <Type Name="kr::fbx::FBXDoc">
+    <Expand HideRawView="true">
+      <ExpandedItem>m_children</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="kr::fbx::FBXNode">
+    <Expand HideRawView="true">
+      <Item Name="[name]">m_name</Item>
+      <Item Name="[properties]" Condition="((size_t*)m_properties.m_begin)[-1] != 0">m_properties</Item>
+      <ExpandedItem>m_children</ExpandedItem>
+    </Expand>
+  </Type>
+</AutoVisualizer>

@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Emscripten">
+      <Configuration>Debug</Configuration>
+      <Platform>Emscripten</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Emscripten">
+      <Configuration>Release</Configuration>
+      <Platform>Emscripten</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{DE83E736-47AC-475F-9DB8-8DDF22B70BF5}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>KRApp</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\KRLibrary.props" />
+    <Import Project="..\KR.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <Lib />
+    <Lib />
+    <Lib />
+    <Lib />
+    <Lib />
+    <Lib />
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ZLIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ZLIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ZLIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ZLIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="2d.h" />
+    <ClInclude Include="app.h" />
+    <ClInclude Include="dx\d3d11.h" />
+    <ClInclude Include="dx\d3d11\common.h" />
+    <ClInclude Include="dx\d2d.h" />
+    <ClInclude Include="dx\d3d11\assimp.h" />
+    <ClInclude Include="dx\d3d11\buffer.h" />
+    <ClInclude Include="dx\d3d11\collider.h" />
+    <ClInclude Include="dx\d3d11\d3d11obj.h" />
+    <ClInclude Include="dx\d3d11\device.h" />
+    <ClInclude Include="dx\d3d11\shader.h" />
+    <ClInclude Include="dx\d3d11\skybox.h" />
+    <ClInclude Include="dx\d3d11\state.h" />
+    <ClInclude Include="dx\d3d11\texture.h" />
+    <ClInclude Include="dx\d3d11\vertexlayout.h" />
+    <ClInclude Include="dx\d3d11\internal.h" />
+    <ClInclude Include="dx\d3d11\view.h" />
+    <ClInclude Include="dx\gi.h" />
+    <ClInclude Include="dx\dxcommon.h" />
+    <ClInclude Include="fbx\fbxnode.h" />
+    <ClInclude Include="fbx\fbxproperty.h" />
+    <ClInclude Include="gl.h" />
+    <ClInclude Include="globject.h" />
+    <ClInclude Include="glrenderprog.h" />
+    <ClInclude Include="gltexture.h" />
+    <ClInclude Include="glutil.h" />
+    <ClInclude Include="image.h" />
+    <ClInclude Include="dx\d3d11\statecache.h" />
+    <ClInclude Include="dx\wic.h" />
+    <ClInclude Include="glshader.h" />
+    <ClInclude Include="fbx\fbxdoc.h" />
+    <ClInclude Include="glmodel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="2d.cpp">
+      <BuildOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">CommandLineEMCC</BuildOutput>
+      <BuildOutput Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">CommandLineEMCC</BuildOutput>
+    </ClCompile>
+    <ClCompile Include="app.cpp" />
+    <ClCompile Include="dx\d3d11\buffer.cpp" />
+    <ClCompile Include="dx\d2d.cpp" />
+    <ClCompile Include="dx\d3d11.cpp" />
+    <ClCompile Include="dx\d3d11\d3d11obj.cpp" />
+    <ClCompile Include="dx\d3d11\shader.cpp" />
+    <ClCompile Include="dx\d3d11\vertexlayout.cpp" />
+    <ClCompile Include="dx\d3d11\view.cpp" />
+    <ClCompile Include="dx\gi.cpp" />
+    <ClCompile Include="dx\wic.cpp" />
+    <ClCompile Include="fbx\fbxnode.cpp" />
+    <ClCompile Include="fbx\fbxproperty.cpp" />
+    <ClCompile Include="gl.cpp" />
+    <ClCompile Include="glmodel.cpp" />
+    <ClCompile Include="globject.cpp" />
+    <ClCompile Include="glshader.cpp" />
+    <ClCompile Include="gltexture.cpp" />
+    <ClCompile Include="glutil.cpp" />
+    <ClCompile Include="image.cpp" />
+    <ClCompile Include="dx\d3d11\internal.cpp" />
+    <ClCompile Include="dx\d3d11\state.cpp" />
+    <ClCompile Include="dx\d3d11\statecache.cpp" />
+    <ClCompile Include="fbx\fbxdoc.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\K2D\K2D.vcxproj">
+      <Project>{cc68c111-ca4b-42f6-b2a1-956420ce5d0f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KR3\KR3.vcxproj">
+      <Project>{f5212e7b-4791-4488-a23a-57af3023e7d3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRMessage\KRMessage.vcxproj">
+      <Project>{93820a74-de22-4f69-83a8-0b848f7d798f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRTool\COPY_DLL\COPY_DLL.vcxproj">
+      <Project>{f476fe60-4037-4045-8495-d744e325192a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
+      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRWin\KRWin.vcxproj">
+      <Project>{432cc3c8-34b1-405d-9675-36fdf25289c7}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dx\d3d11\assimp.inl" />
+    <None Include="dx\d3d11\collider.inl" />
+    <ClCompile Include="dx\d3d11\device.cpp" />
+    <ClCompile Include="dx\d3d11\skybox.cpp" />
+    <ClCompile Include="dx\d3d11\texture.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

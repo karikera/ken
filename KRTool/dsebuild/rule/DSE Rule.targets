@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<PropertyPageSchema Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+		<AvailableItemName Include="DSECompile">
+			<Targets>Target_DSECompile</Targets>
+		</AvailableItemName>
+	</ItemGroup>
+
+	<UsingTask
+		TaskName="DSECompile"
+		TaskFactory="XamlTaskFactory"
+		AssemblyName="Microsoft.Build.Tasks.v4.0, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+		<Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+	</UsingTask>
+
+	<Target
+		Name="Target_DSECompile"
+		BeforeTargets="$(DSE_BT)"
+		AfterTargets="$(DSE_AT)"
+		Condition="'@(DSECompile)' != ''"
+		DependsOnTargets="$(DSECompileDependsOn);ComputeDSECompileOutput"
+		Outputs="@(DSECompile-&gt;'%(Outputs)')"
+		Inputs="@(DSECompile);%(DSECompile.AdditionalDependencies);$(MSBuildProjectFile)">
+
+    <ItemGroup Condition="'@(SelectedFiles)' != ''">
+      <DSECompile Remove="@(DSECompile)" Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+    <DSECompile
+      StandardOutputImportance="High"
+      StandardErrorImportance="High"
+			Condition="'@(DSECompile)' != '' and '%(DSECompile.ExcludedFromBuild)' != 'true'"
+			CommandLineTemplate="%(DSECompile.CommandLineTemplate)"
+			AdditionalOptions="%(DSECompile.AdditionalOptions)"
+			Inputs="@(DSECompile)" />
+	</Target>
+
+	<PropertyGroup>
+		<ComputeLinkInputsTargets>
+			$(ComputeLinkInputsTargets);
+			ComputeDSECompileOutput;
+		</ComputeLinkInputsTargets>
+		<ComputeLibInputsTargets>
+			$(ComputeLibInputsTargets);
+			ComputeDSECompileOutput;
+		</ComputeLibInputsTargets>
+	</PropertyGroup>
+
+	<Target
+		Name="ComputeDSECompileOutput"
+		Condition="'@(DSECompile)' != ''">
+		<ItemGroup>
+			<DSECompileDirsToMake
+				Condition="'@(DSECompile)' != '' and '%(DSECompile.ExcludedFromBuild)' != 'true'"
+				Include="%(DSECompile.Outputs)" />
+		</ItemGroup>
+		<MakeDir Directories="@(DSECompileDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+	</Target>
+</Project>

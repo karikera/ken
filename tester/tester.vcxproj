@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Emscripten">
+      <Configuration>Debug</Configuration>
+      <Platform>Emscripten</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Emscripten">
+      <Configuration>Release</Configuration>
+      <Platform>Emscripten</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6B49467D-D242-420B-91B4-04E6722B2269}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Texture3D9</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="..\KRTool\dsebuild\rule\DSE Rule.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\KR.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <NWJS_Width>1024</NWJS_Width>
+      <NWJS_Height>768</NWJS_Height>
+      <TotalMemory Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">268435456</TotalMemory>
+      <GlUnsafeOpts Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">true</GlUnsafeOpts>
+      <GlFfpOnly Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">true</GlFfpOnly>
+      <GlUnsafeOpts Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">true</GlUnsafeOpts>
+      <GlFfpOnly Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">true</GlFfpOnly>
+      <WASM Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">NativeWASM</WASM>
+      <WASM Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">NativeWASM</WASM>
+    </Link>
+    <ClCompile>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_CONSOLE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CONSOLE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_CONSOLE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CONSOLE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="astar.cpp" />
+    <ClCompile Include="digraph.cpp" />
+    <ClCompile Include="tester.cpp" />
+    <ClCompile Include="texvideo.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="timerTest.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="webserver.cpp" />
+    <ClCompile Include="xml.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="astar.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="digraph.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="texvideo.h" />
+    <ClInclude Include="timerTest.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">true</ExcludedFromBuild>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Texture3D9.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\empolyfill\empolyfill.vcxproj">
+      <Project>{c41350bc-2fc5-4346-8ade-328e13cfc60d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KR3\KR3.vcxproj">
+      <Project>{f5212e7b-4791-4488-a23a-57af3023e7d3}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\KRApp\KRApp.vcxproj">
+      <Project>{de83e736-47ac-475f-9db8-8ddf22b70bf5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRHttp\KRHttp.vcxproj">
+      <Project>{d7aa1504-0276-4ef1-9647-753c57ad3df3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRMessage\KRMessage.vcxproj">
+      <Project>{93820a74-de22-4f69-83a8-0b848f7d798f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRNew\KRNew.vcxproj">
+      <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRSound\KRSound.vcxproj">
+      <Project>{179c15ff-42c0-4d89-b1c9-3f47cf571d6b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
+      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRV8\KRV8.vcxproj">
+      <Project>{9e1fd19f-849d-437d-a206-db711ec858a8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRWin\KRWin.vcxproj">
+      <Project>{432cc3c8-34b1-405d-9675-36fdf25289c7}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <DSECompile Include="test.dse">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </DSECompile>
+    <DSECompile Include="test2.dse">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </DSECompile>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\KRTool\dsebuild\rule\DSE Rule.targets" />
+  </ImportGroup>
+</Project>

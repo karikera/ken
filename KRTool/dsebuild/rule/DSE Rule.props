@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup
+	  Condition="'$(BSE_BT)' == '' and '$(DSE_AT)' == '' and '$(ConfigurationType)' != 'Makefile'">
+		<BSE_BT>Midl</BSE_BT>
+		<DSE_AT>CustomBuild</DSE_AT>
+	</PropertyGroup>
+	<PropertyGroup>
+		<DSECompileDependsOn
+		  Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(DSECompileDependsOn)</DSECompileDependsOn>
+	</PropertyGroup>
+	<ItemDefinitionGroup>
+		<DSECompile>
+			<CommandLineTemplate>@"$(OutputDir)dsebuild.exe" "%(Identity)"</CommandLineTemplate>
+			<Outputs>%(Identity).h</Outputs>
+			<ExecutionDescription>%(Identity)</ExecutionDescription>
+			<AdditionalDependencies>*.fxh</AdditionalDependencies>
+		</DSECompile>
+	</ItemDefinitionGroup>
+</Project>
