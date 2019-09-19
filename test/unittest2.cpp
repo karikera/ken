@@ -9,6 +9,8 @@
 #include <KRUtil/fs/installer.h>
 #include <KRUtil/fs/file.h>
 #include <KR3/data/idmap.h>
+
+#if 0
 #include <KRV8/easyv8.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -167,3 +169,5 @@ namespace test
 		}
 	};
 }
+
+#endif

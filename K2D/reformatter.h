@@ -540,9 +540,9 @@ namespace kr
 			}
 		};
 		template <> struct Pixel<PixelFormatRGBA32F> :
-			px::PixelCommon<Pixel<PixelFormatRGBA32F>, 4, true>
+			px::PixelCommon<Pixel<PixelFormatRGBA32F>, 16, true>
 		{	
-			using Super = px::PixelCommon<Pixel<PixelFormatRGBA32F>, 4, true>;
+			using Super = px::PixelCommon<Pixel<PixelFormatRGBA32F>, 16, true>;
 
 			template <int _tobit> int alpha() const noexcept
 			{

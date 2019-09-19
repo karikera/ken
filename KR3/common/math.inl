@@ -24,7 +24,7 @@ namespace kr
 }
 
 template <typename T, typename ... ARGS>
-T kr::tmax(T arg, ARGS ... args) noexcept
+T kr::maxt(T arg, ARGS ... args) noexcept
 {
 	T out = arg;
 	unpack(args > out ? (out = args) : 0);
@@ -32,12 +32,31 @@ T kr::tmax(T arg, ARGS ... args) noexcept
 }
 
 template <typename T, typename ... ARGS>
-T kr::tmin(T arg, ARGS ... args) noexcept
+T kr::mint(T arg, ARGS ... args) noexcept
 {
 	T out = arg;
 	unpack(args < out ? (out = args) : 0);
 	return out;
 }
+
+template <typename T, typename ... ARGS>
+T kr::sumt(T arg, ARGS ... args) noexcept
+{
+	T out = arg;
+	unpackR(out += (T)args);
+	return out;
+}
+
+template <typename T>
+T kr::clampt(T _min, T _v, T _max) noexcept
+{
+	if (_v < _min)
+		return _min;
+	if (_v > _max)
+		return _max;
+	return _v;
+}
+
 
 template <typename T>
 kr::SinCosT<T>::SinCosT(T sin, T cos) noexcept

@@ -138,13 +138,43 @@ bool File::createFullDirectory(Text16 str) noexcept
 {
 	TText16 temp((size_t)0, 1024);
 	Text16 nstr = str;
+#ifdef WIN32
+	size_t sz = nstr.size();
+	if (sz >= 1)
+	{
+		if (sz >= 3)
+		{
+			if (nstr[1] == ':' && path16.isSeperator(nstr[2]))
+			{
+				nstr+=3;
+			}
+		}
+		else
+		{
+			if (path16.isSeperator(*nstr))
+			{
+				nstr++;
+			}
+		}
+	}
 
-	while ((nstr = nstr.find(u'/')) != nullptr)
+#else
+	if (!nstr.empty())
+	{
+		if (path16.isSeperator(*nstr))
+		{
+			nstr++;
+		}
+	}
+#endif
+
+	while ((nstr = nstr.find_L(path16.isSeperator)) != nullptr)
 	{
 		temp << str.cut(nstr) << nullterm;
 		if (!createDirectory(temp.begin()))
 		{
-			if(GetLastError() != ERROR_ALREADY_EXISTS) return false;
+			int err = GetLastError();
+			if (err != ERROR_ALREADY_EXISTS) return false;
 		}
 
 		str = nstr;

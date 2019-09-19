@@ -79,7 +79,7 @@ namespace kr
 		void read(void * dest, size_t size) noexcept;
 		Buffer read(size_t size, TBuffer * temp) noexcept;
 		Text readwith(char chr, TText * temp) noexcept;
-		bool readwith(Text chr, TText * temp) noexcept;
+		Text readwith(Text chr, TText * temp) noexcept;
 		AText readAll() noexcept;
 		bool empty() noexcept;
 		void clear() noexcept;

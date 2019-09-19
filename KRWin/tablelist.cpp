@@ -767,11 +767,11 @@ void TableList::wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lP
 			break;
 		case SB_PAGERIGHT:
 			pagesz = pWindow->getClientRect().right - 60;
-			if (!pWindow->moveScrollX(tmax(pagesz, 20))) return;
+			if (!pWindow->moveScrollX(maxt(pagesz, 20))) return;
 			break;
 		case SB_PAGELEFT:
 			pagesz = pWindow->getClientRect().right - 60;
-			if (!pWindow->moveScrollX(-tmax(pagesz, 20))) return;
+			if (!pWindow->moveScrollX(-maxt(pagesz, 20))) return;
 			break;
 		case SB_THUMBPOSITION:
 			pWindow->setScrollX(HIWORD(wParam));
@@ -800,11 +800,11 @@ void TableList::wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lP
 			break;
 		case SB_PAGEDOWN:
 			pagesz = pWindow->getClientRect().bottom - m_itemHeight * 2;
-			if (!pWindow->moveScrollY(tmax(pagesz, 20))) return;
+			if (!pWindow->moveScrollY(maxt(pagesz, 20))) return;
 			break;
 		case SB_PAGEUP:
 			pagesz = pWindow->getClientRect().bottom - m_itemHeight * 2;
-			if (!pWindow->moveScrollY(-tmax(pagesz, 20))) return;
+			if (!pWindow->moveScrollY(-maxt(pagesz, 20))) return;
 			break;
 		case SB_THUMBPOSITION:
 			pWindow->setScrollY(HIWORD(wParam));

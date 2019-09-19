@@ -31,8 +31,21 @@ namespace kr
 
 	class WindowProgram;
 
+#define OPTIONS_BEGIN(name) class name { using This = name; public: inline name(){}
+#define OPTION(type, name) private: type _##name = 0; \
+	public: \
+	inline type& name(){ return _##name; } \
+	inline This& name(const type &value){ _##name = value; return *this; } \
+	inline This& name(type&& value) { _##name = move(value); return *this; }
+#define OPTIONS_END()	};
+	
 	namespace win
 	{
+		OPTIONS_BEGIN(ProcessOptions)
+		OPTION(bool, console)
+		OPTION(bool, suspended)
+		OPTIONS_END()
+
 		ivec2 getCursorPos() noexcept;
 
 		class ProcessAndModule
@@ -58,7 +71,7 @@ namespace kr
 				template <typename C>
 				inline size_t copyTo(C * dest) const noexcept
 				{
-					return m_owner->getName<C>(dest, m_module->getNameLength<C>() + 1);
+					return m_owner->getName<C>(dest, module->getNameLength<C>() + 1);
 				}
 			};
 
@@ -128,16 +141,18 @@ namespace kr
 		class Process :public EventHandle
 		{
 		public:
+			struct Pair
+			{
+				Process* process;
+				ThreadHandle* thread;
+			};
 			using ThreadRoutine = unsigned long (CT_STDCALL *)(void* lpThreadParameter);
 			
 			static Process * open(ProcessId id) noexcept;
-			static Process* execute(pstr strCommand, pcstr strPath = nullptr) noexcept;
-			static Process* execute(pstr16 strCommand, pcstr16 strPath = nullptr) noexcept;
-			static Process* suspendedExecute(pstr strCommand, pcstr strPath = nullptr) noexcept;
-			static Process* suspendedExecute(pstr16 strCommand, pcstr16 strPath = nullptr) noexcept;
+			static Pair execute(pstr strCommand, pcstr strPath = nullptr, ProcessOptions opts = ProcessOptions()) noexcept;
+			static Pair execute(pstr16 strCommand, pcstr16 strPath = nullptr, ProcessOptions opts = ProcessOptions()) noexcept;
 
 			bool terminate() noexcept;
-			dword resume() noexcept;
 			Module * getFirstModule() noexcept;
 			Module* injectDll(pcstr strDllPath) noexcept;
 			Module* injectDll(pcstr16 strDllPath) noexcept;

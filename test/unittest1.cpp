@@ -120,7 +120,7 @@ namespace test
 		
 		TEST_METHOD(testMin)
 		{
-			constexpr int v = min(7, 1, 2, 3, 4);
+			constexpr int v = mint(7, 1, 2, 3, 4);
 			Assert::AreEqual(v, 1);
 		}
 

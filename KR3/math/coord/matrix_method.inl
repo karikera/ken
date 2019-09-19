@@ -260,8 +260,8 @@ namespace kr
 		{
 			for (size_t c = 0; c < cols; c++)
 			{
-				T from = tmax(pos[c], rc.pos[c]);
-				T to = tmin(pos[c] + size[c], rc.pos[c] + rc.size[c]);
+				T from = maxt(pos[c], rc.pos[c]);
+				T to = mint(pos[c] + size[c], rc.pos[c] + rc.size[c]);
 				if (to <= from)
 					return false;
 				_out->pos[c] = from;
@@ -316,8 +316,8 @@ namespace kr
 		{
 			for (size_t c = 0; c < cols; c++)
 			{
-				T f = tmax(from[c], rc.from[c]);
-				T t = tmin(to[c], rc.to[c]);
+				T f = maxt(from[c], rc.from[c]);
+				T t = mint(to[c], rc.to[c]);
 				if (t <= f)
 					return false;
 				_out->from[c] = f;
@@ -520,24 +520,31 @@ namespace kr
 		}
 
 		template <typename T, bool aligned>
+		template <Axis axis>
+		ATTR_INLINE const vector<T, 4, aligned> matrix_method<T, 4, 4, aligned>::get() const noexcept
+		{
+			constexpr size_t i = (size_t)axis;
+			return{ v[0][i],v[1][i],v[2][i],v[3][i] };
+		}
+		template <typename T, bool aligned>
 		ATTR_INLINE const vector<T, 4, aligned> matrix_method<T, 4, 4, aligned>::getX() const noexcept
 		{
-			return{ v[0][0],v[1][0],v[2][0],v[3][0] };
+			return get<Axis::X>();
 		}
 		template <typename T, bool aligned>
 		ATTR_INLINE const vector<T, 4, aligned> matrix_method<T, 4, 4, aligned>::getY() const noexcept
 		{
-			return{ v[0][1],v[1][1],v[2][1],v[3][1] };
+			return get<Axis::Y>();
 		}
 		template <typename T, bool aligned>
 		ATTR_INLINE const vector<T, 4, aligned> matrix_method<T, 4, 4, aligned>::getZ() const noexcept
 		{
-			return{ v[0][2],v[1][2],v[2][2],v[3][2] };
+			return get<Axis::Z>();
 		}
 		template <typename T, bool aligned>
 		ATTR_INLINE const vector<T, 4, aligned> matrix_method<T, 4, 4, aligned>::getPos() const noexcept
 		{
-			return{ v[0][3],v[1][3],v[2][3],v[3][3] };
+			return get<Axis::W>();
 		}
 		template <typename T, bool aligned>
 		ATTR_INLINE const matrix<T, 4, 4, aligned> matrix_method<T, 4, 4, aligned>::inverse() const noexcept

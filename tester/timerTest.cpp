@@ -1,7 +1,6 @@
 #include "timerTest.h"
 
 #include <KRMessage/pump.h>
-#include <KRMessage/message.h>
 
 void timerTest() noexcept
 {

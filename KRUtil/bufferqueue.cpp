@@ -314,6 +314,7 @@ Buffer BufferQueue::read(size_t size, TBuffer * temp) noexcept
 }
 Text BufferQueue::readwith(char chr, TText * temp) noexcept
 {
+	temp->clear();
 	auto iter = begin();
 	auto iter_end = end();
 	if (iter == iter_end) return nullptr;
@@ -346,8 +347,9 @@ Text BufferQueue::readwith(char chr, TText * temp) noexcept
 	}
 	return nullptr;
 }
-bool BufferQueue::readwith(Text chr, TText * temp) noexcept
+Text BufferQueue::readwith(Text chr, TText * temp) noexcept
 {
+	temp->clear();
 	auto iter = begin();
 	auto iter_end = end();
 
@@ -355,14 +357,13 @@ bool BufferQueue::readwith(Text chr, TText * temp) noexcept
 
 	{
 		Text text = (*iter).cast<char>();
-		*temp << text;
-		Text finded = temp->find(chr);
+		Text finded = text.readto(chr);
 		if (finded != nullptr)
 		{
-			temp->cut_self(finded);
-			m_readed += temp->size();
-			return true;
+			m_readed += temp->size() + chr.size();
+			return finded;
 		}
+		*temp << text;
 		iter++;
 	}
 	size_t offset = temp->size() - chr.size() + 1;
@@ -376,11 +377,11 @@ bool BufferQueue::readwith(Text chr, TText * temp) noexcept
 		if (finded != nullptr)
 		{
 			temp->cut(finded);
-			skip(temp->size());
-			return true;
+			skip(temp->size() + chr.size());
+			return *temp;
 		}
 	}
-	return false;
+	return nullptr;
 }
 AText BufferQueue::readAll() noexcept
 {

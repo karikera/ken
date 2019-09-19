@@ -12,25 +12,25 @@ namespace kr
 		}
 
 		template <typename T>
-		constexpr T tmin(T v) noexcept
+		constexpr T mint(T v) noexcept
 		{
 			return v;
 		}
 		template <typename T, typename T2, typename ... ARGS>
-		constexpr T tmin(T v, T2 v2, ARGS ... vs) noexcept
+		constexpr T mint(T v, T2 v2, ARGS ... vs) noexcept
 		{
-			return (T)tmin(v2, vs ...) < v ? (T)tmin(v2, vs ...) : v;
+			return (T)mint(v2, vs ...) < v ? (T)mint(v2, vs ...) : v;
 		}
 
 		template <typename T>
-		constexpr T tmax(T v) noexcept
+		constexpr T maxt(T v) noexcept
 		{
 			return v;
 		}
 		template <typename T, typename T2, typename ... ARGS>
-		constexpr T tmax(T v, T2 v2, ARGS ... vs) noexcept
+		constexpr T maxt(T v, T2 v2, ARGS ... vs) noexcept
 		{
-			return (T)tmax(v2, vs ...) > v ? (T)tmax(v2, vs ...) : v;
+			return (T)maxt(v2, vs ...) > v ? (T)maxt(v2, vs ...) : v;
 		}
 
 		/// sqrt

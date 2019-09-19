@@ -54,6 +54,7 @@ namespace
 		ver.dwOSVersionInfoSize = sizeof(ver);
 #pragma warning(push)
 #pragma warning(disable:4996)
+#pragma warning(disable:28159)
 		if (GetVersionExA((OSVERSIONINFOA*)&ver) != FALSE)
 #pragma warning(pop)
 		{

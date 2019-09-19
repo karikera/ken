@@ -11,11 +11,11 @@
 
 using namespace kr;
 
-class MyClient : public WebSocketClient
+class MyClient : public WebSocketSession
 {
 public:
 	MyClient(Socket * args) noexcept
-		: WebSocketClient(args)
+		: WebSocketSession(args)
 	{
 	}
 	void onData(WSStream & stream) override
@@ -29,7 +29,7 @@ public:
 class MyPage :public WebSocketPage
 {
 public:
-	WebSocketClient * onAccept(Socket * args) override
+	WebSocketSession * onAccept(Socket * args) override
 	{
 		return new MyClient(args);
 	}

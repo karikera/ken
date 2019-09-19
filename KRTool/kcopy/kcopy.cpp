@@ -35,7 +35,7 @@ int CT_CDECL wmain(int argn, char16 ** args)
 	
 	if (File::isDirectory(src.data()))
 	{
-		if (argn >= 3)
+		if (argn >= 4)
 		{
 			Text16 regexp = unwrapQuot(args[3]);
 			Installer installer(dest, src, regexp);

@@ -93,6 +93,10 @@ void kr::ThreadHandle::suspend() noexcept
 {
 	SuspendThread(this);
 }
+void kr::ThreadHandle::resume() noexcept
+{
+	ResumeThread(this);
+}
 void kr::ThreadHandle::terminate() noexcept
 {
 	TerminateThread(this, -1);

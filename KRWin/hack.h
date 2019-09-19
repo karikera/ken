@@ -9,18 +9,20 @@ namespace kr
 	class ProcessMemory
 	{
 	public:
-		ProcessMemory(win::Process* hProcess);
-		ProcessMemory(win::Process* hProcess, size_t nSize, dword dwFlags);
-		~ProcessMemory();
+		ProcessMemory(win::Process* process) noexcept;
+		ProcessMemory(win::Process* process, size_t size) noexcept;
+		ProcessMemory(win::Process* process, Buffer buffer) noexcept;
+		~ProcessMemory() noexcept;
 
-		bool alloc(size_t nSize, dword dwFlags);
-		size_t write(LPCVOID pData, size_t nSize);
-		size_t read(LPVOID pData, size_t nSize);
-		LPVOID getAddress();
+		bool alloc(size_t size) noexcept;
+		size_t alloc(Buffer buffer) noexcept;
+		size_t write(Buffer buffer) noexcept;
+		size_t read(void* data, size_t size) noexcept;
+		void* getAddress() noexcept;
 
 	protected:
 		win::Process* m_hProcess;
-		LPVOID m_pAddress;
+		void* m_pAddress;
 		size_t m_nSize;
 	};
 

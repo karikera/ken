@@ -299,6 +299,8 @@ ATTR_INLINE const kr::vec4a sqrtv(const kr::vec4a & v) noexcept;
 ATTR_INLINE const kr::vec4a maxv(const kr::vec4a & a, const kr::vec4a & b) noexcept;
 ATTR_INLINE const kr::vec4a minv(const kr::vec4a & a, const kr::vec4a & b) noexcept;
 ATTR_INLINE const kr::vec4a clampv(const kr::vec4a & a, const kr::vec4a & v, const kr::vec4a & b) noexcept;
+ATTR_INLINE const kr::vec4 clampv(const kr::vec4& a, const kr::vec4& v, const kr::vec4& b) noexcept;
+ATTR_INLINE const kr::vec4 clamp01v(const kr::vec4& a, const kr::vec4& v, const kr::vec4& b) noexcept;
 ATTR_INLINE const kr::vec4a absv(const kr::vec4a& V) noexcept;
 ATTR_INLINE const kr::vec4a mad(const kr::vec4a & a, const kr::vec4a & b, const kr::vec4a & c) noexcept;
 ATTR_INLINE const kr::vec4a andnot(const kr::vec4a & a, const kr::vec4a & b) noexcept;

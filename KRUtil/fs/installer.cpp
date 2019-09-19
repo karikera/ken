@@ -4,6 +4,7 @@
 #ifndef NO_USE_FILESYSTEM
 
 #include "file.h"
+#include "path.h"
 
 using namespace kr;
 
@@ -73,8 +74,9 @@ Installer::Installer(Text16 dest, Text16 src, Wildcard wildcard) noexcept
 	:m_dest(dest), m_src(src), m_wildcard(wildcard)
 {
 	File::createFullDirectory(m_dest);
-	if (!m_dest.endsWith_y(u"\\/")) m_dest << u'/';
-	if (!m_src.endsWith_y(u"\\/")) m_src << u'/';
+	
+	if (!path16.endsWithSeperator(m_dest)) m_dest << path16.sep;
+	if (!path16.endsWithSeperator(m_src)) m_src << path16.sep;
 	m_srcend = m_src.size();
 	m_destend = m_dest.size();
 	m_copyCount = 0;
@@ -135,10 +137,10 @@ void Installer::dir(Text16 dirname) noexcept
 	size_t olddest = m_destend;
 	m_src.resize(oldsrc);
 	m_dest.resize(olddest);
-	m_src << dirname << u'/';
+	m_src << dirname << path16.sep;
 	m_dest << dirname << nullterm;
 	File::createDirectory(m_dest.data());
-	m_dest << u'/';
+	m_dest << path16.sep;
 	m_srcend = m_src.size();
 	m_destend = m_dest.size();
 	

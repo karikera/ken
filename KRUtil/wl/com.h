@@ -129,6 +129,9 @@ namespace kr
 	template <typename T>
 	class ComMethodBasic: public ComMethod<com_parent_t<T>>
 	{
+	protected:
+		using ComData::m_ptr;
+
 	public:
 		T * & ptr() noexcept;
 		T * const & ptr() const noexcept;

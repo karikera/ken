@@ -36,7 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'" Label="Configuration">
@@ -54,7 +54,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -81,6 +81,22 @@
     <Import Project="..\KR.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>D:\Program Files\OpenSSL-Win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\OpenSSL-Win64\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>D:\Program Files\OpenSSL-Win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\OpenSSL-Win64\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>D:\Program Files\OpenSSL-Win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\OpenSSL-Win64\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>D:\Program Files\OpenSSL-Win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\OpenSSL-Win64\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,9 +188,6 @@
     </ProjectReference>
     <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
       <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\KRV8\KRV8.vcxproj">
-      <Project>{9e1fd19f-849d-437d-a206-db711ec858a8}</Project>
     </ProjectReference>
     <ProjectReference Include="..\KRWin\KRWin.vcxproj">
       <Project>{432cc3c8-34b1-405d-9675-36fdf25289c7}</Project>

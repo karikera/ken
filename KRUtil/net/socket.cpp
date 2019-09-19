@@ -202,7 +202,7 @@ Socket* Socket::accept() throws(SocketException)
 }
 void Socket::writeImpl(cptr binary, size_t len) throws(SocketException)
 {
-	int sended = send((SOCKET)this, (pcstr)binary, (int)tmin(len, (size_t)0x7fffffff), 0);
+	int sended = send((SOCKET)this, (pcstr)binary, (int)mint(len, (size_t)0x7fffffff), 0);
 	if (sended == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();

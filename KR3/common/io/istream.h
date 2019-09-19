@@ -157,7 +157,7 @@ namespace kr
 			inline Ref read(size_t _len) throws(EofException)
 			{
 				if (size() == 0) throw EofException();
-				_len = tmin(_len, size());
+				_len = mint(_len, size());
 				Ref out(begin(), _len);
 				derived()->addBegin(_len);
 				return out;

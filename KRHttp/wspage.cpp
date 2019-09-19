@@ -15,12 +15,12 @@ static bool connectionIs(Text list, Text type) noexcept
 	return false;
 }
 
-WebSocketClient::WebSocketClient(Socket * socket) noexcept
+WebSocketSession::WebSocketSession(Socket * socket) noexcept
 	:MTClient(socket)
 {
 	m_frameReady = false;
 }
-void WebSocketClient::onRead()
+void WebSocketSession::onRead() throws(...)
 {
 	for (;;)
 	{
@@ -81,7 +81,7 @@ void WebSocketPage::process(HttpClient * client, Text query, BufferQueue * strea
 {
 	_handShake(client, stream);
 	Socket * socket = client->getSocket();
-	WebSocketClient * newclient = onAccept(socket);
+	WebSocketSession * newclient = onAccept(socket);
 	client->switchClient(newclient);
 }
 

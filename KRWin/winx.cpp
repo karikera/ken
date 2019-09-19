@@ -279,8 +279,8 @@ kr::irectwh kr::calculateWindowPos(dword w, dword h)
 	dword heightmax = (monrc.bottom - monrc.top);
 
 	irectwh rc;
-	rc.x = (monrc.right + monrc.left - (int)tmin(w, widthmax)) / 2;
-	rc.y = (monrc.bottom + monrc.top - (int)tmin(h, heightmax)) / 2;
+	rc.x = (monrc.right + monrc.left - (int)mint(w, widthmax)) / 2;
+	rc.y = (monrc.bottom + monrc.top - (int)mint(h, heightmax)) / 2;
 	rc.width = w;
 	rc.height = h;
 	return rc;

@@ -1,9 +1,7 @@
 #ifdef WIN32
 
-#include <KR3/wl/prepare.h>
 #include <windows.h>
 #include <GdiPlus.h>
-#include <KR3/wl/clean.h>
 
 #include "2d.h"
 
@@ -221,6 +219,10 @@ void WebCanvas2D::_flush() noexcept
 
 WebCanvas2D::WebCanvas2D() noexcept
 {
+}
+WebCanvas2D::WebCanvas2D(int width, int height) noexcept
+{
+	create(width, height);
 }
 WebCanvas2D::~WebCanvas2D() noexcept
 {

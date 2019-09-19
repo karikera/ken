@@ -997,58 +997,36 @@ win::Process * win::Process::open(ProcessId id) noexcept
 {
 	return (win::Process*)OpenProcess(PROCESS_ALL_ACCESS | PROCESS_VM_OPERATION, FALSE, id.value());
 }
-win::Process* win::Process::execute(pstr strCommand, pcstr strPath) noexcept
+win::Process::Pair win::Process::execute(pstr strCommand, pcstr strPath, ProcessOptions opts) noexcept
 {
 	STARTUPINFOA si = { sizeof(STARTUPINFOA), };
 	PROCESS_INFORMATION pi;
-	if (!CreateProcessA(nullptr, strCommand, nullptr, nullptr, false, 0, nullptr, strPath, &si, &pi))
+	DWORD flags = 0;
+	if (opts.suspended()) flags |= CREATE_SUSPENDED;
+	if (opts.console()) flags |= CREATE_NEW_CONSOLE;
+	if (!CreateProcessA(nullptr, strCommand, nullptr, nullptr, false, flags, nullptr, strPath, &si, &pi))
 	{
-		return nullptr;
+		return { nullptr, nullptr };
 	}
-	CloseHandle(pi.hThread);
-	return (Process*)pi.hProcess;
+	return { (Process*)pi.hProcess, (ThreadHandle*)pi.hThread };
 }
-win::Process* win::Process::execute(pstr16 strCommand, pcstr16 strPath) noexcept
+win::Process::Pair win::Process::execute(pstr16 strCommand, pcstr16 strPath, ProcessOptions opts) noexcept
 {
 	STARTUPINFOW si = { sizeof(STARTUPINFOW), };
 	PROCESS_INFORMATION pi;
-	if (!CreateProcessW(nullptr, wide(strCommand), nullptr, nullptr, false, 0, nullptr, wide(strPath), &si, &pi))
+	DWORD flags = 0;
+	if (opts.suspended()) flags |= CREATE_SUSPENDED;
+	if (opts.console()) flags |= CREATE_NEW_CONSOLE;
+	if (!CreateProcessW(nullptr, wide(strCommand), nullptr, nullptr, false, flags, nullptr, wide(strPath), &si, &pi))
 	{
-		return nullptr;
+		return { nullptr, nullptr };
 	}
-	CloseHandle(pi.hThread);
-	return (Process*)pi.hProcess;
-}
-win::Process* win::Process::suspendedExecute(pstr strCommand, pcstr strPath) noexcept
-{
-	STARTUPINFOA si = { sizeof(STARTUPINFOA), };
-	PROCESS_INFORMATION pi;
-	if (!CreateProcessA(nullptr, strCommand, nullptr, nullptr, false, CREATE_SUSPENDED, nullptr, strPath, &si, &pi))
-	{
-		return nullptr;
-	}
-	CloseHandle(pi.hThread);
-	return (Process*)pi.hProcess;
-}
-win::Process* win::Process::suspendedExecute(pstr16 strCommand, pcstr16 strPath) noexcept
-{
-	STARTUPINFOW si = { sizeof(STARTUPINFOW), };
-	PROCESS_INFORMATION pi;
-	if (!CreateProcessW(nullptr, wide(strCommand), nullptr, nullptr, false, CREATE_SUSPENDED, nullptr, wide(strPath), &si, &pi))
-	{
-		return nullptr;
-	}
-	CloseHandle(pi.hThread);
-	return (Process*)pi.hProcess;
+	return { (Process*)pi.hProcess, (ThreadHandle*)pi.hThread };
 }
 
 bool win::Process::terminate() noexcept
 {
 	return TerminateProcess(this, -1);
-}
-dword win::Process::resume() noexcept
-{
-	return ResumeThread(this);
 }
 Module * win::Process::getFirstModule() noexcept
 {
@@ -1067,7 +1045,7 @@ Module* win::Process::injectDll(pcstr16 strDllPath) noexcept
 }
 dword win::Process::call(ThreadRoutine pThread, Buffer buffer) noexcept
 {
-	ProcessMemory memory(this);
+	ProcessMemory memory(this, buffer);
 	return call(pThread, (intptr_t)memory.getAddress());
 }
 dword win::Process::call(ThreadRoutine pThread, intptr_t data) noexcept

@@ -22,6 +22,7 @@ namespace kr
 		complex& operator /=(const complex & other) noexcept;
 		complex& operator *=(float other) noexcept;
 		complex& operator /=(float other) noexcept;
+		explicit operator float() const noexcept;
 		float length() const noexcept;
 	};
 

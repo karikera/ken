@@ -140,7 +140,7 @@ namespace kr
 				}
 				void cut_self(size_t _len) noexcept
 				{
-					return cut_self(tmin(begin() + _len, end()));
+					return cut_self(mint(begin() + _len, end()));
 				}
 
 				template <typename T>

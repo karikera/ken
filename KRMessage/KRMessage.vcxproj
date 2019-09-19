@@ -30,7 +30,7 @@
     <ProjectGuid>{93820A74-DE22-4F69-83A8-0B848F7D798F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KRMessage</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -119,13 +119,13 @@
     <ClInclude Include="fs\asyncfile.h" />
     <ClInclude Include="msgloop.h" />
     <ClInclude Include="net\IRC.h" />
+    <ClInclude Include="net\wsevent.h" />
     <ClInclude Include="poster.h" />
     <ClInclude Include="pump.h" />
     <ClInclude Include="fs\dirob.h" />
     <ClInclude Include="net\client.h" />
     <ClInclude Include="net\server.h" />
     <ClInclude Include="net\mtnet.h" />
-    <ClInclude Include="net\wsevent.h" />
     <ClInclude Include="progressor.h" />
     <ClInclude Include="promise.h" />
     <ClInclude Include="stdafx.h" />
@@ -138,13 +138,13 @@
     <ClCompile Include="fs\asyncfile.cpp" />
     <ClCompile Include="msgloop.cpp" />
     <ClCompile Include="net\IRC.cpp" />
+    <ClCompile Include="net\wsevent.cpp" />
     <ClCompile Include="poster.cpp" />
     <ClCompile Include="pump.cpp" />
     <ClCompile Include="fs\dirob.cpp" />
     <ClCompile Include="net\client.cpp" />
     <ClCompile Include="net\server.cpp" />
     <ClCompile Include="net\mtnet.cpp" />
-    <ClCompile Include="net\wsevent.cpp" />
     <ClCompile Include="progressor.cpp" />
     <ClCompile Include="promise.cpp" />
     <ClCompile Include="stdafx.cpp">

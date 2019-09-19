@@ -19,9 +19,13 @@ namespace kr
 #define _RETURN_	ATTR_CHECK_RETURN ATTR_NOALIAS
 
 	template <typename T, typename ... ARGS>
-	_RETURN_ T tmax(T arg, ARGS ... args) noexcept;
+	_RETURN_ T maxt(T arg, ARGS ... args) noexcept;
 	template <typename T, typename ... ARGS>
-	_RETURN_ T tmin(T arg, ARGS ... args) noexcept;
+	_RETURN_ T mint(T arg, ARGS ... args) noexcept;
+	template <typename T, typename ... ARGS>
+	_RETURN_ T sumt(T arg, ARGS ... args) noexcept;
+	template <typename T>
+	_RETURN_ T clampt(T _min, T _v, T _max) noexcept;
 
 	namespace math
 	{
@@ -89,24 +93,6 @@ namespace kr
 		_RETURN_ uint32_t ilog(uint32_t val, uint32_t n) noexcept;
 		_RETURN_ uint32_t ilog2(uint32_t val) noexcept;
 		_RETURN_ uint32_t plog2(uintptr_t val) noexcept;
-
-		template <typename T, typename ... ARGS> 
-		_RETURN_ T sum(T arg, ARGS ... args) noexcept
-		{
-			T out = arg;
-			unpackR(out += (T)args);
-			return out;
-		}
-
-		template <typename T>
-		_RETURN_ T clamp(T _min, T _v, T _max) noexcept
-		{
-			if (_v < _min)
-				return _min;
-			if (_v > _max)
-				return _max;
-			return _v;
-		}
 
 		#undef _RETURN_
 

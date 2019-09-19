@@ -182,26 +182,26 @@ kr::image::ImageData kr::image::ImageData::subimage(int _x, int _y, int _w, int 
 void kr::image::ImageData::copy(const ImageData * _img, int _dstX, int _dstY, int _srcX, int _srcY, int _srcW, int _srcH) noexcept
 {
 	{
-		int minX = tmin(_dstX, _srcX);
+		int minX = mint(_dstX, _srcX);
 		if (minX < 0)
 		{
 			_srcW += minX;
 			_srcX -= minX;
 			_dstX -= minX;
 		}
-		int minY = tmin(_dstX, _srcX);
+		int minY = mint(_dstX, _srcX);
 		if (minY < 0)
 		{
 			_srcH += minY;
 			_srcY -= minY;
 			_dstY -= minY;
 		}
-		int _srcWMax = tmin(_img->getWidth() - _srcX, getWidth() - _dstX);
+		int _srcWMax = mint(_img->getWidth() - _srcX, getWidth() - _dstX);
 		if (_srcWMax < 0)
 			return;
 		if (_srcW > _srcWMax)
 			_srcW = _srcWMax;
-		int _srcHMax = tmin(_img->getHeight() - _srcY, getHeight() - _dstY);
+		int _srcHMax = mint(_img->getHeight() - _srcY, getHeight() - _dstY);
 		if (_srcHMax < 0)
 			return;
 		if (_srcH > _srcHMax)

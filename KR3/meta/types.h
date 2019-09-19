@@ -568,14 +568,14 @@ namespace kr
 		template <typename LAMBDA, typename ... types_list>
 		void types<args ... >::value_loop_with(LAMBDA && lambda, const types_list & ... types) const
 		{
-			constexpr size_t minvalue = min(size, (types_list::size) ...);
+			constexpr size_t minvalue = mint(size, (types_list::size) ...);
 			make_numlist_counter<minvalue>::loop(lambda, *this, types ...);
 		}
 		template <typename ... args>
 		template <typename LAMBDA, typename ... types_list>
 		void types<args ... >::value_loop_with(LAMBDA && lambda, const types_list & ... types_args)
 		{
-			constexpr size_t minvalue = min(size, (types_list::size) ...);
+			constexpr size_t minvalue = mint(size, (types_list::size) ...);
 			make_numlist_counter<minvalue>::loop(lambda, *this, types_args ...);
 		}
 		

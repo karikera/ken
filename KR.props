@@ -63,6 +63,7 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
     <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <FloatingPointModel>Fast</FloatingPointModel>

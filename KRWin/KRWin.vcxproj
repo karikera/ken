@@ -22,7 +22,7 @@
     <ProjectGuid>{432CC3C8-34B1-405D-9675-36FDF25289C7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KRWin</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -116,6 +116,7 @@
     <ClInclude Include="hack.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="hook.h" />
     <ClInclude Include="printer.h" />
     <ClInclude Include="shell.h" />
     <ClInclude Include="stdafx.h" />
@@ -131,6 +132,7 @@
     <ClCompile Include="hack.cpp" />
     <ClCompile Include="handle.cpp" />
     <ClCompile Include="debug.cpp" />
+    <ClCompile Include="hook.cpp" />
     <ClCompile Include="printer.cpp" />
     <ClCompile Include="shell.cpp" />
     <ClCompile Include="stdafx.cpp">

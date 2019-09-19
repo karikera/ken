@@ -175,7 +175,7 @@ namespace kr
 			}
 			Ref cut(size_t _len) const noexcept
 			{
-				return cut(tmin((InternalComponentRef*)begin() + _len, (InternalComponentRef*)end()));
+				return cut(mint((InternalComponentRef*)begin() + _len, (InternalComponentRef*)end()));
 			}
 
 			Ref subarr(size_t _left, size_t _count) const noexcept
@@ -1022,7 +1022,7 @@ namespace kr
 			}
 			WRef cut(size_t _len) noexcept
 			{
-				return cut(tmin(begin() + _len, end()));
+				return cut(mint(begin() + _len, end()));
 			}
 			WRef subarr(size_t _left, size_t _count) noexcept
 			{

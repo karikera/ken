@@ -95,6 +95,7 @@ namespace kr
 
 		ThreadId getId() noexcept;
 		void suspend() noexcept;
+		void resume() noexcept;
 		void terminate() noexcept;
 		void detach() noexcept;
 		dword join() noexcept;

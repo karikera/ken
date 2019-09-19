@@ -105,8 +105,7 @@ namespace kr
 #ifdef _CONSOLE
 #define main() __cdecl main() 
 #else
-struct HINSTANCE__;
-#define main() __stdcall wWinMain(HINSTANCE__*,HINSTANCE__*,wchar_t *,int)
+#define main() __stdcall wWinMain(_In_ HINSTANCE__*,_In_opt_ HINSTANCE__*,_In_ wchar_t *,_In_ int)
 #endif
 
 #else

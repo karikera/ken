@@ -194,35 +194,35 @@ namespace kr
 
 			uint64_t to_qword_l(size_t _len, uint _radix) const noexcept
 			{
-				return to_uint64_x(_radix, tmin(_len, size()));
+				return to_uint64_x(_radix, mint(_len, size()));
 			}
 			int64_t to_llong_l(size_t _len, uint _radix) const noexcept
 			{
-				return to_int64_x(_radix, tmin(_len, size()));
+				return to_int64_x(_radix, mint(_len, size()));
 			}
 			uint32_t to_uint_l(size_t _len, uint _radix) const noexcept
 			{
-				return to_uint_x(_radix,tmin(_len, size()));
+				return to_uint_x(_radix,mint(_len, size()));
 			}
 			int32_t to_int_l(size_t _len, uint _radix) const noexcept
 			{
-				return to_int_x(_radix,tmin(_len, size()));
+				return to_int_x(_radix,mint(_len, size()));
 			}
 			uintptr_t to_uintp_l(size_t _len, uint _radix) const noexcept
 			{
-				return to_uintp_x(_radix, tmin(_len, size()));
+				return to_uintp_x(_radix, mint(_len, size()));
 			}
 			intptr_t to_intp_l(size_t _len, uint _radix) const noexcept
 			{
-				return to_intp_x(_radix, tmin(_len, size()));
+				return to_intp_x(_radix, mint(_len, size()));
 			}
 			float to_ufloat_l(size_t _len) const noexcept
 			{
-				return to_ufloat_x(tmin(_len, size()));
+				return to_ufloat_x(mint(_len, size()));
 			}
 			float to_float_l(size_t _len) const noexcept
 			{
-				return to_float_x(tmin(_len, size()));
+				return to_float_x(mint(_len, size()));
 			}
 			bool numberonly() const noexcept
 			{
@@ -235,7 +235,7 @@ namespace kr
 				size_t len1 = size();
 				size_t len2 = _str.size();
 
-				int order = memm::compare(begin(), _str.begin(), tmin(len1, len2));
+				int order = memm::compare(begin(), _str.begin(), mint(len1, len2));
 				if (order == 0) return len1 - len2;
 				return order;
 			}

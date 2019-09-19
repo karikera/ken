@@ -56,14 +56,15 @@ void HttpClient::onRead() throws(...)
 			{
 				{
 					TText headerBuffer;
-					if (!m_receive.readwith("\r\n\r\n", &headerBuffer))
+					Text header = m_receive.readwith("\r\n\r\n", &headerBuffer);
+					if (header == nullptr)
 					{
 						if (m_headerData.size() >= HEADER_LENGTH_LIMIT) return;
 						size_t size = m_receive.size() - 3;
 						m_receive.read(m_headerData.prepare(size), size);
 						return;
 					}
-					m_headerData << headerBuffer;
+					m_headerData << header;
 				}
 
 				// parse headline

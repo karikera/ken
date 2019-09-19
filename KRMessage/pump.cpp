@@ -446,7 +446,7 @@ dword EventPump::_processTimer(dword maxSleep)
 			if (callTime > now)
 			{
 				_fireAfterProcess();
-				return tmin((dword)(callTime - now).value(), maxSleep);
+				return mint((dword)(callTime - now).value(), maxSleep);
 			}
 			m_start.m_next = node->m_next;
 		}

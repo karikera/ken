@@ -208,8 +208,8 @@ void Reformat<dstf, srcf>::reformat(image::ImageData * dsti, const image::ImageD
 	using srcpx = image::Pixel<srcf>;
 	using dstpx = image::Pixel<dstf>;
 
-	size_t width = tmin(srci->getWidth(), dsti->getWidth());
-	size_t height = tmin(srci->getHeight(), dsti->getHeight());
+	size_t width = mint(srci->getWidth(), dsti->getWidth());
+	size_t height = mint(srci->getHeight(), dsti->getHeight());
 
 	size_t dstpitch = dsti->getPitch();
 
@@ -238,8 +238,8 @@ void Reformat<dstf, srcf>::reformat(image::ImageData * dsti, const image::ImageD
 template <size_t pxsz>
 void ReformatSame<pxsz>::reformat(image::ImageData * dsti, const image::ImageData * srci) noexcept
 {
-	size_t width = tmin(srci->getWidth(), dsti->getWidth());
-	size_t height = tmin(srci->getHeight(), dsti->getHeight());
+	size_t width = mint(srci->getWidth(), dsti->getWidth());
+	size_t height = mint(srci->getHeight(), dsti->getHeight());
 
 	size_t dstpitch = dsti->getPitch();
 
@@ -590,8 +590,8 @@ vec3 rgb_to_hsv(const vec3 & _color) noexcept
 	float rc = _color.r;
 	float gc = _color.g;
 	float bc = _color.b;
-	float maxv = tmax(rc, gc, bc);
-	float minv = tmin(rc, gc, bc);
+	float maxv = maxt(rc, gc, bc);
+	float minv = mint(rc, gc, bc);
 	float delta = maxv - minv;
 
 	vec3 out;

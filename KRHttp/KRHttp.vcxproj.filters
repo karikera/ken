@@ -30,15 +30,15 @@
     <ClCompile Include="fslpolicy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wsclient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="http.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="httpd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ws\client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wspage.h">
@@ -50,5 +50,11 @@
     <ClInclude Include="common\header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="wsclient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

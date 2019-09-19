@@ -10,6 +10,7 @@ namespace kr
 	{
 	public:
 		WebCanvas2D() noexcept;
+		WebCanvas2D(int width, int height) noexcept;
 		~WebCanvas2D() noexcept;
 
 		void create(int width, int height) noexcept;

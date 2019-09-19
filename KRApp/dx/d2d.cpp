@@ -269,6 +269,8 @@ void ComMethod<IDCompositionDevice>::setContent(IDCompositionTarget * compTarget
 
 void ComMethod<ID2D1RenderTarget>::create(IDXGISurface * surface) throws(ErrorCode)
 {
+#pragma warning(push)
+#pragma warning(disable: 4996)
 	FLOAT dpiX;
 	FLOAT dpiY;
 	s_d2dFactory->GetDesktopDpi(&dpiX, &dpiY);
@@ -278,6 +280,7 @@ void ComMethod<ID2D1RenderTarget>::create(IDXGISurface * surface) throws(ErrorCo
 		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_IGNORE),
 		dpiX, dpiY
 	);
+#pragma warning(pop)
 
 	hrexcept(s_d2dFactory->CreateDxgiSurfaceRenderTarget(surface, &props, &ptr()));
 }
