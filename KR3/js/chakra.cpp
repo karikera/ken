@@ -894,6 +894,7 @@ kr::JsContext::JsContext(const JsContext& _ctx) noexcept
 kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 {
 	m_context = ctx;
+	JsAddRef(ctx, nullptr);
 	JsContextRef oldctx = InternalTools::getCurrentContext();
 	JsSetCurrentContext(m_context);
 	jsassert(JsGetGlobalObject(&m_global));
