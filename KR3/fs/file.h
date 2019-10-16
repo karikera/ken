@@ -3,7 +3,7 @@
 #include <KR3/main.h>
 NEED_FILESYSTEM
 
-#include "../uts.h"
+#include <KR3/util/uts.h>
 
 namespace kr
 {

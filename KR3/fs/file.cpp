@@ -23,7 +23,7 @@ static_assert(File::NAMELEN == MAX_PATH, "MAX_PATH not matching");
 
 #include <KR3/io/selfbufferedstream.h>
 #include <KR3/data/crypt/md5.h>
-#include "path.h"
+#include <KR3/util/path.h>
 
 #pragma warning(disable:4800)
 

@@ -4,7 +4,7 @@
 
 #include "../pool.h"
 
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 #include <WinSock2.h>
 
 using namespace kr;
@@ -217,7 +217,7 @@ Promise<void>* Client::download(Progressor * progressor, const char16 * filename
 
 #else
 
-#include <KRUtil/fs/file.h>
+#include <KR3/fs/file.h>
 
 Promise<void>* Client::download(Progressor * progressor, AText16 filename, size_t size) noexcept
 {

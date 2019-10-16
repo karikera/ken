@@ -2,9 +2,9 @@
 
 #define INITGUID
 #include "sound.h"
-#include <KRUtil/wl/com.h>
-#include <KRUtil/fs/file.h>
-#include <KRUtil/fs/path.h>
+#include <KR3/wl/com.h>
+#include <KR3/fs/file.h>
+#include <KR3/util/path.h>
 #include <KRWin/handle.h>
 #include <KRMessage/eventdispatcher.h>
 

@@ -83,7 +83,7 @@
   </ImportGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;$(KEN_DIR)KRThird\curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <PreBuildEvent />
@@ -93,6 +93,46 @@
     <ClInclude Include="common\text\method\common.h" />
     <ClInclude Include="common\autovar.h" />
     <ClInclude Include="common\error.h" />
+    <ClInclude Include="fs\file.h" />
+    <ClInclude Include="fs\installer.h" />
+    <ClInclude Include="fs\jsonconfig.h" />
+    <ClInclude Include="js\arguments.h" />
+    <ClInclude Include="js\class.h" />
+    <ClInclude Include="js\context.h" />
+    <ClInclude Include="js\exception.h" />
+    <ClInclude Include="js\external.h" />
+    <ClInclude Include="js\function.h" />
+    <ClInclude Include="js\lambda.h" />
+    <ClInclude Include="js\meta.h" />
+    <ClInclude Include="js\object.h" />
+    <ClInclude Include="js\persistent.h" />
+    <ClInclude Include="js\propertyid.h" />
+    <ClInclude Include="js\rawdata.h" />
+    <ClInclude Include="js\string.h" />
+    <ClInclude Include="js\type.h" />
+    <ClInclude Include="js\undefined.h" />
+    <ClInclude Include="js\value.h" />
+    <ClInclude Include="net\ipaddr.h" />
+    <ClInclude Include="net\socket.h" />
+    <ClInclude Include="nvutil\checksum.h" />
+    <ClInclude Include="nvutil\peanalyzer.h" />
+    <ClInclude Include="nvutil\stdex.h" />
+    <ClInclude Include="nvutil\strlib.h" />
+    <ClInclude Include="nvutil\util.h" />
+    <ClInclude Include="parser\csvparser.h" />
+    <ClInclude Include="parser\escape.h" />
+    <ClInclude Include="parser\jsonparser.h" />
+    <ClInclude Include="parser\langparser.h" />
+    <ClInclude Include="parser\parser.h" />
+    <ClInclude Include="parser\xmlparser.h" />
+    <ClInclude Include="text\codepoint.h" />
+    <ClInclude Include="text\filter.h" />
+    <ClInclude Include="text\slash.h" />
+    <ClInclude Include="text\template.h" />
+    <ClInclude Include="util\bitmap.h" />
+    <ClInclude Include="util\bufferqueue.h" />
+    <ClInclude Include="util\dump.h" />
+    <ClInclude Include="util\fetch.h" />
     <ClInclude Include="util\hashtester.h" />
     <ClInclude Include="common\intrinsic.h" />
     <ClInclude Include="common\text\iterator.h" />
@@ -143,12 +183,23 @@
     <ClInclude Include="common\text\wrap.h" />
     <ClInclude Include="math\interpolation.h" />
     <ClInclude Include="meta\retype.h" />
+    <ClInclude Include="util\httpstatus.h" />
+    <ClInclude Include="js\js.h" />
     <ClInclude Include="util\lister.h" />
+    <ClInclude Include="util\logger.h" />
+    <ClInclude Include="util\namedenum.h" />
+    <ClInclude Include="util\parameter.h" />
+    <ClInclude Include="util\path.h" />
+    <ClInclude Include="util\resloader.h" />
+    <ClInclude Include="util\serializer.h" />
     <ClInclude Include="util\singleinstance.h" />
     <ClInclude Include="util\envvar.h" />
     <ClInclude Include="util\process.h" />
+    <ClInclude Include="util\stdext.h" />
     <ClInclude Include="util\unaligned.h" />
+    <ClInclude Include="util\uts.h" />
     <ClInclude Include="util\wide.h" />
+    <ClInclude Include="wl\com.h" />
     <ClInclude Include="wl\console.h" />
     <ClInclude Include="data\binarray.h" />
     <ClInclude Include="data\bin_search.h" />
@@ -203,7 +254,9 @@
     <ClInclude Include="util\StackWalker.h" />
     <ClInclude Include="mt\criticalsection.h" />
     <ClInclude Include="wl\eventhandle.h" />
+    <ClInclude Include="wl\fileinfo.h" />
     <ClInclude Include="wl\msgthread.h" />
+    <ClInclude Include="wl\resource.h" />
     <ClInclude Include="wl\threadhandle.h" />
     <ClInclude Include="wl\version.h" />
     <ClInclude Include="wl\handle.h" />
@@ -251,11 +304,48 @@
     <ClCompile Include="data\crypt\md5.cpp" />
     <ClCompile Include="data\crypt\sha1.cpp" />
     <ClCompile Include="data\linkedlist.cpp" />
+    <ClCompile Include="fs\file.cpp" />
+    <ClCompile Include="fs\installer.cpp" />
+    <ClCompile Include="fs\jsonconfig.cpp" />
+    <ClCompile Include="js\arguments.cpp" />
+    <ClCompile Include="js\chakra.cpp" />
+    <ClCompile Include="js\class.cpp" />
+    <ClCompile Include="js\context.cpp" />
+    <ClCompile Include="js\external.cpp" />
+    <ClCompile Include="js\function.cpp" />
+    <ClCompile Include="js\object.cpp" />
+    <ClCompile Include="js\persistent.cpp" />
+    <ClCompile Include="js\rawdata.cpp" />
+    <ClCompile Include="js\string.cpp" />
+    <ClCompile Include="js\value.cpp" />
     <ClCompile Include="math\coord.cpp" />
     <ClCompile Include="math\geom.cpp" />
+    <ClCompile Include="net\ipaddr.cpp" />
+    <ClCompile Include="net\socket.cpp" />
+    <ClCompile Include="nvutil\checksum.cpp" />
+    <ClCompile Include="nvutil\peanalyzer.cpp" />
+    <ClCompile Include="parser\csvparser.cpp" />
+    <ClCompile Include="parser\jsonparser.cpp" />
+    <ClCompile Include="parser\langparser.cpp" />
+    <ClCompile Include="parser\parser.cpp" />
+    <ClCompile Include="parser\xmlparser.cpp" />
+    <ClCompile Include="text\codepoint.cpp" />
+    <ClCompile Include="text\filter.cpp" />
+    <ClCompile Include="util\bitmap.cpp" />
+    <ClCompile Include="util\bufferqueue.cpp" />
+    <ClCompile Include="util\dump.cpp" />
     <ClCompile Include="util\envvar.cpp" />
+    <ClCompile Include="util\fetch.cpp" />
+    <ClCompile Include="util\logger.cpp" />
+    <ClCompile Include="util\parameter.cpp" />
+    <ClCompile Include="util\path.cpp" />
     <ClCompile Include="util\process.cpp" />
+    <ClCompile Include="util\resloader.cpp" />
     <ClCompile Include="util\singleinstance.cpp" />
+    <ClCompile Include="util\stdext.cpp" />
+    <ClCompile Include="util\uts.cpp" />
+    <ClCompile Include="util\wide.cpp" />
+    <ClCompile Include="wl\com.cpp" />
     <ClCompile Include="wl\console.cpp" />
     <ClCompile Include="data\binarray.cpp" />
     <ClCompile Include="initializer.cpp" />
@@ -276,13 +366,18 @@
     <ClCompile Include="util\time.cpp" />
     <ClCompile Include="mt\criticalsection.cpp" />
     <ClCompile Include="wl\eventhandle.cpp" />
+    <ClCompile Include="wl\fileinfo.cpp" />
     <ClCompile Include="wl\handle.cpp" />
     <ClCompile Include="wl\msgthread.cpp" />
+    <ClCompile Include="wl\resource.cpp" />
     <ClCompile Include="wl\threadhandle.cpp" />
     <ClCompile Include="wl\version.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="data\idmap.inl" />
+    <None Include="js\class.inl" />
+    <None Include="js\meta.inl" />
+    <None Include="js\value.inl" />
     <None Include="math\coord\matrix_method.inl" />
     <None Include="math\coord\matrix_data.inl" />
     <None Include="math\coord\vector.inl" />

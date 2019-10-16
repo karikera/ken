@@ -3,7 +3,7 @@
 #include <KR3/main.h>
 #include <KR3/mt/thread.h>
 #include <KR3/mt/criticalsection.h>
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 
 #include "wsevent.h"
 #include "client.h"

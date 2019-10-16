@@ -184,9 +184,6 @@
     <ProjectReference Include="..\KRTool\COPY_DLL\COPY_DLL.vcxproj">
       <Project>{f476fe60-4037-4045-8495-d744e325192a}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
-      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\KRWin\KRWin.vcxproj">
       <Project>{432cc3c8-34b1-405d-9675-36fdf25289c7}</Project>
     </ProjectReference>

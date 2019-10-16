@@ -16,9 +16,18 @@ namespace kr
 		Text16 m_lastMatch;
 		bool m_fullMatch;
 	};
+	
 	class Installer
 	{
 	public:
+		enum Result
+		{
+			Copied,
+			Skipped,
+			Failed,
+		};
+		static Result copy(pcstr16 dest, pcstr16 src, Text16 msg = nullptr) noexcept;
+
 		Installer(Text16 dest, Text16 src, Wildcard wildcard = Wildcard()) noexcept;
 
 		pcstr16 getSrcSz(Text16 name) noexcept;

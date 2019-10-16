@@ -8,7 +8,7 @@
 #include <KR3/wl/handle.h>
 #include <KR3/wl/eventhandle.h>
 #include <KR3/wl/threadhandle.h>
-#include <KRUtil/uts.h>
+#include <KR3/util/uts.h>
 
 
 namespace kr

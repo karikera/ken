@@ -126,9 +126,6 @@
     <ProjectReference Include="..\KRMessage\KRMessage.vcxproj">
       <Project>{93820a74-de22-4f69-83a8-0b848f7d798f}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
-      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

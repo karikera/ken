@@ -71,7 +71,7 @@ MCISound::~MCISound() noexcept
 void MCISound::play() noexcept
 {
 	if (m_device == 0) return;
-	(*s_system)->postL([this](void*){
+	(*s_system)->post([this](void*){
 		MCI_PLAY_PARMS pp;
 		pp.dwCallback = 0;
 		pp.dwFrom = 0;
@@ -88,7 +88,7 @@ Promise<void>* MCISound::playAnd() noexcept
 	MCIPromise * prom = res.first->second = _new MCIPromise();
 
 	uint deviceId = m_device;
-	(*s_system)->postL([deviceId](void*) {
+	(*s_system)->post([deviceId](void*) {
 		MCI_PLAY_PARMS pp;
 		pp.dwCallback = (DWORD_PTR)win::g_mainWindow;
 		pp.dwFrom = 0;
@@ -103,7 +103,7 @@ Promise<void> * MCISound::open(AText16 filename) noexcept
 	MCIPromise * prom = _new MCIPromise;
 	EventPump * pump = EventPump::getInstance();
 
-	(*s_system)->postL([this, prom, pump, filename = move(filename)](void*) mutable{
+	(*s_system)->post([this, prom, pump, filename = move(filename)](void*) mutable{
 		{
 			MCI_OPEN_PARMSW op;
 			op.dwCallback = 0;
@@ -136,7 +136,7 @@ Promise<void> * MCISound::open(AText16 filename) noexcept
 			m_duration = sp.dwReturn;
 		}
 
-		pump->postL([prom](void*){
+		pump->post([prom](void*){
 			prom->resolve();
 		});
 	});
@@ -149,7 +149,7 @@ void MCISound::close() noexcept
 	uint deviceId = m_device;
 	m_device = 0;
 
-	(*s_system)->postL([deviceId](void*){
+	(*s_system)->post([deviceId](void*){
 		mciSendCommandW(deviceId, MCI_CLOSE, 0, (DWORD_PTR)nullptr);
 	});
 }

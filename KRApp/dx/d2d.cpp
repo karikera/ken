@@ -8,7 +8,7 @@
 #endif
 
 #include "d2d.h"
-#include <KRUtil/wl/com.h>
+#include <KR3/wl/com.h>
 #include <KRWin/gdi.h>
 
 #include <KR3/wl/windows.h>

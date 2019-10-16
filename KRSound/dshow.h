@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KRMessage/promise.h>
-#include <KRUtil/wl/com.h>
+#include <KR3/wl/com.h>
 #include <KRMessage/eventdispatcher.h>
 
 struct IGraphBuilder;

@@ -80,33 +80,7 @@ namespace kr
 		protected:
 			LinkedList<Node<IATHooker>> m_list;
 		};
-/*
-		class CodeHooker
-		{
-		public:
-			CodeHooker();
-			void LCallHook(void* codeDest, void* hook);
-			template <typename T> operator T()
-			{
-				return (T*)m_pNextFunc;
-			}
 
-		protected:
-			DWORD* m_dest;
-			DWORD m_func;
-		};
-
-		template <typename T> class TCodeHooker :protected CodeHooker
-		{
-		public:
-			using CodeHooker::CodeHooker;
-			using CodeHooker::LCallHook;
-			operator T()
-			{
-				return (T)m_dest;
-			};
-		};
-*/
 		class Unprotector
 		{
 		public:
@@ -141,5 +115,59 @@ namespace kr
 			forceCopy(&dest, &src, sizeof(T));
 		}
 
+		class ExecutableAllocator
+		{
+		public:
+			ExecutableAllocator() noexcept;
+			void* alloc(size_t size) noexcept;
+
+			static ExecutableAllocator* getInstance() noexcept;
+
+		private:
+			byte* m_page;
+			byte* m_page_end;
+
+		};
+
+		enum Register
+		{
+			RAX,
+			RCX,
+			RDX,
+			RBX,
+			RSP,
+			RBP,
+			RSI,
+			RDI
+		};
+
+		class CodeWriter :public ArrayWriter<byte>
+		{
+		public:
+			CodeWriter(ExecutableAllocator* alloc, size_t size) noexcept;
+			CodeWriter(void* dest, size_t size) noexcept;
+
+			void fillNop() noexcept;
+			void rjump(int32_t rpos) noexcept;
+			void rcall(int32_t rpos) noexcept;
+#ifdef _M_X64
+			void store32_to_64(dword to) noexcept;
+			void store64(qword to) noexcept;
+			void jump64(void* to) noexcept;
+			void call64(void* to) noexcept;
+#endif
+			void pushRsp() noexcept;
+			void mov(Register dest, Register src) noexcept;
+			void sub(Register dest, char chr) noexcept;
+			void add(Register dest, char chr) noexcept;
+			void jump(void* to) noexcept;
+			void call(void* to) noexcept;
+			void ret() noexcept;
+
+		};
+
+		void* createCodeJunction(void* dest, size_t size, void (*func)()) noexcept;
+
 	}
+
 }

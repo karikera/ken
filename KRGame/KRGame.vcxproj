@@ -141,9 +141,6 @@
     <ProjectReference Include="..\KRNew\KRNew.vcxproj">
       <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
-      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KRUtil/resloader.h>
+#include <KR3/util/resloader.h>
 
 namespace kr
 {

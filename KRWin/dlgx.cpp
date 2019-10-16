@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "dlgx.h"
 
-#include <KRUtil/fs/file.h>
-#include <KRUtil/fs/path.h>
+#include <KR3/fs/file.h>
+#include <KR3/util/path.h>
 #include <commdlg.h>
 
 using namespace kr;

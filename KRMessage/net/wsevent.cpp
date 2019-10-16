@@ -9,7 +9,7 @@
 
 #include "../pump.h"
 #include "../eventdispatcher.h"
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 
 using namespace kr;
 

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <KR3/io/selfbufferedstream.h>
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 #include <KRMessage/net/mtnet.h>
 #include <KR3/mt/thread.h>
 #include <KR3/data/map.h>
-#include <KRUtil/httpstatus.h>
+#include <KR3/util/httpstatus.h>
 
 #include "common/header.h"
 

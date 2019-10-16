@@ -9,7 +9,7 @@ EMPTY_SOURCE
 
 #include <KR3/io/selfbufferedstream.h>
 #include <KR3/util/unaligned.h>
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 
 uint16_t kr::endian::reverse(uint16_t v) noexcept
 {

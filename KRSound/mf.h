@@ -1,8 +1,8 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KRUtil/resloader.h>
-#include <KRUtil/wl/com.h>
+#include <KR3/util/resloader.h>
+#include <KR3/wl/com.h>
 
 struct IMFSourceReader;
 struct IMFSample;

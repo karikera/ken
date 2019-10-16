@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include <KR3/util/wide.h>
 #include <KR3/io/bufferedstream.h>
-#include <KRUtil/parser/langparser.h>
-#include <KRUtil/fs/file.h>
+#include <KR3/parser/langparser.h>
+#include <KR3/fs/file.h>
 
 #include <KR3/data/map.h>
 

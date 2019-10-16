@@ -207,6 +207,10 @@ namespace kr
 				return _idx == nullptr ? (Ref)readAll() : _readto_p(_idx, _skip);
 			}
 
+			inline Ref readto(const InternalComponent&_needle) noexcept
+			{
+				return readto_p(find(_needle));
+			}
 			inline Ref readto(Ref _needle) noexcept
 			{
 				return readto_p(find(_needle));

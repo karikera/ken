@@ -4,7 +4,7 @@
 #ifndef NO_USE_FILESYSTEM
 
 #include "file.h"
-#include "path.h"
+#include <KR3/util/path.h>
 
 using namespace kr;
 
@@ -83,6 +83,33 @@ Installer::Installer(Text16 dest, Text16 src, Wildcard wildcard) noexcept
 	m_skipCount = 0;
 	m_errorCount = 0;
 }
+Installer::Result Installer::copy(pcstr16 dest, pcstr16 src, Text16 msg) noexcept
+{
+	time_t stime = File::getLastModifiedTime(src);
+	try
+	{
+		time_t dtime = File::getLastModifiedTime(dest);
+		if (stime <= dtime)
+		{
+			return Copied;
+		}
+	}
+	catch (Error&)
+	{
+	}
+	if (msg != nullptr)
+	{
+		ucout << msg << endl;
+	}
+	if (!File::copy(dest, src))
+	{
+		return Failed;
+	}
+	else
+	{
+		return Skipped;
+	}
+}
 
 pcstr16 Installer::getSrcSz(Text16 name) noexcept
 {
@@ -157,28 +184,20 @@ void Installer::copy(Text16 dest, Text16 src, Text16 msg) noexcept
 {
 	pcstr16 srcsz = getSrcSz(src);
 	pcstr16 destsz = getDestSz(dest);
-	time_t stime = File::getLastModifiedTime(srcsz);
-	try
+
+	Result res = Installer::copy(destsz, srcsz, msg);
+	switch (res)
 	{
-		time_t dtime = File::getLastModifiedTime(destsz);
-		if (stime <= dtime)
-		{
-			m_skipCount++;
-			return;
-		}
-	}
-	catch (Error&)
-	{
-	}
-	ucout << msg << endl;
-	if (!File::copy(destsz, srcsz))
-	{
-		m_errorCount++;
-		ucerr << u"[ERROR]" << ErrorCode::getLast().getMessage<char16>() << endl;
-	}
-	else
-	{
+	case Result::Copied:
 		m_copyCount++;
+		break;
+	case Result::Failed:
+		ucerr << u"[ERROR]" << ErrorCode::getLast().getMessage<char16>() << endl;
+		m_errorCount++;
+		break;
+	case Result::Skipped:
+		m_skipCount++;
+		break;
 	}
 }
 

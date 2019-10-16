@@ -1,22 +1,32 @@
 #include "stdafx.h"
 #include "hook.h"
 #include "handle.h"
+#include <KR3/util/unaligned.h>
 
 using namespace kr;
 using namespace hook;
 
-inline IMAGE_IMPORT_DESCRIPTOR * getIATStart(HMODULE module) noexcept
+struct PEStructure
 {
-	IMAGE_DOS_HEADER * dos = (IMAGE_DOS_HEADER*)module;
-	_assert(dos->e_magic == IMAGE_DOS_SIGNATURE);
+	IMAGE_DEBUG_DIRECTORY* img_debug_dir;
+	IMAGE_IMPORT_DESCRIPTOR* img_import_desc;
 
-	IMAGE_NT_HEADERS * nt = (IMAGE_NT_HEADERS*)((byte*)dos + dos->e_lfanew);
+	PEStructure(HMODULE module) noexcept
+	{
+		IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)module;
+		_assert(dos->e_magic == IMAGE_DOS_SIGNATURE);
 
-	IMAGE_IMPORT_DESCRIPTOR * img_import_desc = (IMAGE_IMPORT_DESCRIPTOR*)(
-		(byte*)dos + nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+		IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)((byte*)dos + dos->e_lfanew);
 
-	return img_import_desc;
-}
+		img_debug_dir = (IMAGE_DEBUG_DIRECTORY*)(
+			(byte*)dos + nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
+		img_debug_dir->PointerToRawData;
+
+		img_import_desc = (IMAGE_IMPORT_DESCRIPTOR*)(
+			(byte*)dos + nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+
+	}
+};
 
 void hook::forceFill(void* dest, int value, size_t size) noexcept
 {
@@ -33,7 +43,7 @@ DllSearcher::DllSearcher() noexcept
 {
 	HMODULE module = GetModuleHandle(nullptr);
 	this->module = module;
-	this->iat = getIATStart(module);
+	this->iat = PEStructure(module).img_import_desc;
 }
 pcstr DllSearcher::first() noexcept
 {
@@ -70,12 +80,11 @@ void IATHooker::unhook() noexcept
 IATModule::IATModule(win::Module* module, LPCSTR dll) noexcept
 	: m_module(module)
 {
-	PIMAGE_IMPORT_DESCRIPTOR importdesc = getIATStart(module);
+	IMAGE_IMPORT_DESCRIPTOR* importdesc = PEStructure(module).img_import_desc;
 	for (; importdesc->Name; importdesc++)
 	{
 		LPCSTR szLibName = (LPCSTR)((uintptr_t)module + importdesc->Name);
 		if (_stricmp(szLibName, dll) != 0) continue;
-
 		m_desc = importdesc;
 		return;
 	}
@@ -188,4 +197,185 @@ Unprotector::Unprotector(void* pDest, size_t nSize)
 Unprotector::~Unprotector()
 {
 	VirtualProtect(m_dest, m_nSize, m_dwOldPage, &m_dwOldPage);
+}
+
+// 48 b8 35 08 40 00 00 00 00 00   mov rax, 0x0000000000400835
+// ff e0                           jmp rax
+
+ExecutableAllocator::ExecutableAllocator() noexcept
+{
+	m_page = nullptr;
+	m_page_end = nullptr;
+}
+void* ExecutableAllocator::alloc(size_t size) noexcept
+{
+	size_t remaining = m_page_end - m_page;
+	if (remaining <= size)
+	{
+		dword pageSize = getAllocationGranularity();
+		size_t needsize = (size + pageSize - 1 - remaining) & ~(size_t)(pageSize - 1);
+		void* next = VirtualAlloc(m_page_end, needsize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+		if (next != nullptr)
+		{
+			if (m_page_end == nullptr) m_page = (byte*)next;
+			m_page_end = (byte*)next + needsize;
+		}
+		else
+		{
+			if (m_page_end == nullptr) notEnoughMemory();
+			needsize = (size + pageSize - 1) & ~(size_t)(pageSize - 1);
+			m_page = (byte*)VirtualAlloc(nullptr, needsize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+			if (m_page == nullptr) notEnoughMemory();
+			m_page = m_page + needsize;
+		}
+	}
+	void* out = m_page;
+	m_page += size;
+	return out;
+}
+ExecutableAllocator* ExecutableAllocator::getInstance() noexcept
+{
+	static ExecutableAllocator alloc;
+	return &alloc;
+}
+
+CodeWriter::CodeWriter(ExecutableAllocator* alloc, size_t size) noexcept
+	:ArrayWriter<byte>((byte*)alloc->alloc(size), size)
+{
+}
+CodeWriter::CodeWriter(void * dest, size_t size) noexcept
+	:ArrayWriter<byte>((byte*)dest, size)
+{
+}
+
+void CodeWriter::fillNop() noexcept
+{
+	writeFill(0x90, left());
+}
+void CodeWriter::rjump(int32_t rpos) noexcept
+{
+	write(0xe9);
+	writeas(rpos);
+}
+void CodeWriter::rcall(int32_t rpos) noexcept
+{
+	write(0xe8);
+	writeas(rpos);
+}
+#ifdef _M_X64
+void CodeWriter::store32_to_64(dword to) noexcept
+{
+	write(0x48); // mov rax, to
+	write(0xc7);
+	write(to);
+
+}
+void CodeWriter::store64(qword to) noexcept
+{
+	write(0x48); // mov rax, to
+	write(0xb8);
+	writeas(to);
+
+}
+void CodeWriter::jump64(void* to) noexcept
+{
+	store64((uintptr_t)to);
+	write(0xff); // jmp rax
+	write(0xe0);
+}
+void CodeWriter::call64(void* to) noexcept
+{
+	//48 c7 c0 35 08 40 00            mov rax, 0x00400835
+	//ff e0                           jmp rax
+
+	write(0x48); // mov rax, to
+	write(0xb8);
+	writeas(to);
+
+	write(0xff); // jmp rax
+	write(0xd0);
+}
+#endif
+void CodeWriter::pushRsp() noexcept
+{
+	write(0x54);
+}
+void CodeWriter::mov(Register dest, Register src) noexcept
+{
+	write(0x48);
+	write(0x89);
+	write(0xc0 | dest | (src << 3));
+}
+void CodeWriter::sub(Register dest, char chr) noexcept
+{
+	write(0x48);
+	write(0x83);
+	write(0xe8 | dest);
+	write(chr);
+}
+void CodeWriter::add(Register dest, char chr) noexcept
+{
+	write(0x48);
+	write(0x83);
+	write(0xc0 | dest);
+	write(chr);
+}
+void CodeWriter::jump(void* to) noexcept
+{
+	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
+#ifdef _M_X64
+	if (rjumppos < -(intptr_t)0x80000000 || rjumppos >= (intptr_t)0x80000000)
+	{
+		jump64(to);
+	}
+	else
+	{
+		rjump((int)rjumppos);
+	}
+#else
+	rjump((int)rjumppos);
+#endif
+}
+void CodeWriter::call(void* to) noexcept
+{
+	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
+#ifdef _M_X64
+	if (rjumppos < -(intptr_t)0x80000000 || rjumppos >= (intptr_t)0x80000000)
+	{
+		call64(to);
+	}
+	else
+	{
+		rcall((int)rjumppos);
+	}
+#else
+	rcall((int)rjumppos);
+#endif
+}
+void CodeWriter::ret() noexcept
+{
+	write(0xc3);
+}
+
+
+void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)()) noexcept
+{
+	ExecutableAllocator * alloc = ExecutableAllocator::getInstance();
+	void * code = alloc->alloc(size + 12 + 12);
+
+	Unprotector unpro(dest, size);
+	{
+		CodeWriter junction(code, size + 12 + 12);
+		junction.call(func);
+		junction.write(unpro, size);
+		junction.jump(dest);
+	}
+
+	{
+		CodeWriter writer((void*)unpro, size);
+		writer.jump(code);
+		writer.fillNop();
+	}
+
+	return code;
 }

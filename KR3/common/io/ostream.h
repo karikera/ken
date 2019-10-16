@@ -294,9 +294,7 @@ namespace kr
 			using buffer_ref_t = bufferize_t<T, Component>;
 			using buffer_t = remove_constref_t<buffer_ref_t>;
 			using buffer_component_t = typename buffer_t::Component;
-			static_assert_with_type(
-				(is_same<buffer_component_t, AutoComponent>::value || is_same<buffer_component_t, Component>::value),
-				buffer_ref_t, buffer_t, buffer_component_t); // Unmatch component type
+			static_assert(is_same<buffer_component_t, AutoComponent>::value || is_same<buffer_component_t, Component>::value, "Unmatch component type"); // Unmatch component type
 			buffer_ref_t(v).writeTo(this);
 		}
 		template <typename T>

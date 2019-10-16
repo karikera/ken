@@ -66,7 +66,7 @@ namespace kr
 		void call() noexcept override
 		{
 			AddRef();
-			m_pump->postL([this](TimerEvent*) {
+			m_pump->post([this](TimerEvent*) {
 				if (handle() != nullptr)
 				{
 					m_lambda(this);

@@ -1065,17 +1065,17 @@ namespace kr
 				memset(data(), 0, sizeBytes());
 			}
 
-			void subfill(const InternalComponent &chr, size_t sz, size_t offset) noexcept
+			void subfill(const InternalComponent& chr, size_t sz, size_t offset) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_fill(begin() + offset, chr, sz);
+				mema::subs_fill((InternalComponent*)begin() + offset, chr, sz);
 			}
-			void subcopy(const InternalComponent* arr, size_t sz, size_t offset = 0) noexcept
+			void subcopy(const Component* arr, size_t sz, size_t offset = 0) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_copy(begin() + offset, arr, sz);
+				mema::subs_copy((InternalComponent*)begin() + offset, (InternalComponent*)arr, sz);
 			}
-			void subcopy(View<InternalComponent> arr, size_t offset = 0) noexcept
+			void subcopy(View<Component> arr, size_t offset = 0) noexcept
 			{
 				subcopy(arr.begin(), arr.size(), offset);
 			}

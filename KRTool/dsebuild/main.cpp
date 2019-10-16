@@ -5,9 +5,9 @@
 #include <iostream>
 
 #include <KR3/wl/windows.h>
-#include <KRUtil/fs/file.h>
-#include <KRUtil/fs/path.h>
-#include <KRUtil/stdext.h>
+#include <KR3/fs/file.h>
+#include <KR3/util/path.h>
+#include <KR3/util/stdext.h>
 
 using namespace std::krext;
 

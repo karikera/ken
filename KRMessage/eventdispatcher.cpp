@@ -183,7 +183,7 @@ int EventDispatcher::thread() noexcept
 			dptr = m_dispatched[cnt - 1];
 			m_events.pick(res);
 
-			old->m_pump->postL([old] { old->Release(); });
+			old->m_pump->post([old] { old->Release(); });
 		}
 		else if (res == 0)
 		{

@@ -1,5 +1,5 @@
-#include <KRUtil/fetch.h>
-#include <KRUtil/fs/path.h>
+#include <KR3/util/fetch.h>
+#include <KR3/util/path.h>
 
 #include "gltexture.h"
 #include <K2D/canvas.h>

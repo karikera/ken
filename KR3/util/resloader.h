@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KRUtil/fs/path.h>
+#include <KR3/util/path.h>
 #include <KRThird/ken-res-loader/include/ken-back/image.h>
 #include <KRThird/ken-res-loader/include/ken-back/sound.h>
 

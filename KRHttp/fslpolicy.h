@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 #include <KRMessage/net/mtnet.h>
 
 namespace kr

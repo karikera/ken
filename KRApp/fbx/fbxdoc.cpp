@@ -1,7 +1,7 @@
 #include "fbxdoc.h"
 
 #include <KR3/util/wide.h>
-#include <KRUtil/fetch.h>
+#include <KR3/util/fetch.h>
 
 using namespace kr;
 using namespace fbx;

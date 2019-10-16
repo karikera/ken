@@ -72,7 +72,7 @@ bool EventPump::cancel(Timer * node) noexcept
 	node->m_prev = nullptr;
 	return true;
 }
-void EventPump::post(Timer * newnode) noexcept
+void EventPump::attach(Timer * newnode) noexcept
 {
 	// reline_new(newnode); // if timer is secondary parent, it make error
 
@@ -191,7 +191,7 @@ Promise<void> * EventPump::promiseTo(timepoint at) noexcept
 		}
 	};
 	Prom * prom = _new Prom(at);
-	post(prom);
+	attach(prom);
 	return prom;
 }
 void EventPump::sleep(duration dura) throws(QuitException)
@@ -561,7 +561,7 @@ void EventThread::create() noexcept
 void EventThread::quit(int exitCode) noexcept
 {
 	if (!m_pump) return;
-	m_pump->postL([](void*) { throw QuitException(0); });
+	m_pump->post([](void*) { throw QuitException(0); });
 	m_pump->quit(exitCode);
 	m_thread->wait();
 	m_pump = nullptr;

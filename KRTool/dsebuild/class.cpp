@@ -4,7 +4,7 @@
 #include "expression.h"
 #include "root.h"
 
-#include <KRUtil/stdext.h>
+#include <KR3/util/stdext.h>
 
 using namespace std::krext;
 
