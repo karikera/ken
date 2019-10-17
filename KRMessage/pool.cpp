@@ -4,26 +4,25 @@
 #include <KR3/mt/thread.h>
 #include <KR3/util/dump.h>
 
-kr::ThreadPool::ThreadPool(int cpuCount) noexcept
+using namespace kr;
+
+ThreadPoolKrImpl::ThreadPoolKrImpl(int cpuCount) noexcept
 {
 	m_threads.resize(cpuCount);
 
 	uint number = 0;
 	for (ThreadObject & thread : m_threads)
 	{
-		thread.create<ThreadPool, &ThreadPool::_thread>(this);
-		ondebug(thread.setName(TSZ() << "KEN ThreadPool " << decf(number++, 2)));
+		thread.create<ThreadPoolKrImpl, &ThreadPoolKrImpl::_thread>(this);
+		ondebug(thread.setName(TSZ() << "KEN ThreadPoolKrImpl " << decf(number++, 2)));
 	}
+	// QueueUserWorkItem();
 }
-kr::ThreadPool::ThreadPool() noexcept
-	:ThreadPool(getCPUCount())
+ThreadPoolKrImpl::ThreadPoolKrImpl() noexcept
+	:ThreadPoolKrImpl(getCPUCount())
 {
 }
-kr::ThreadPool::~ThreadPool() noexcept
-{
-	terminate();
-}
-void kr::ThreadPool::terminate() noexcept
+ThreadPoolKrImpl::~ThreadPoolKrImpl() noexcept
 {
 	struct QuitWork :Task
 	{
@@ -36,7 +35,7 @@ void kr::ThreadPool::terminate() noexcept
 
 	for (ThreadObject thread : m_threads)
 	{
-		QuitWork * work = _new QuitWork;
+		QuitWork* work = _new QuitWork;
 		attach(work);
 	}
 	for (ThreadObject thread : m_threads)
@@ -45,12 +44,12 @@ void kr::ThreadPool::terminate() noexcept
 	}
 	m_threads = nullptr;
 }
-kr::ThreadPool * kr::ThreadPool::getInstance() noexcept
+ThreadPoolKrImpl * ThreadPoolKrImpl::getInstance() noexcept
 {
-	static ThreadPool instance;
+	static ThreadPoolKrImpl instance;
 	return &instance;
 }
-int kr::ThreadPool::_thread() noexcept
+int ThreadPoolKrImpl::_thread() noexcept
 {
 	return dump_wrap([this] {
 		try
@@ -67,4 +66,28 @@ int kr::ThreadPool::_thread() noexcept
 			return quit.exitCode;
 		}
 	});
+}
+
+ThreadPoolWinImpl* ThreadPoolWinImpl::getInstance() noexcept
+{
+	static ThreadPoolWinImpl instance;
+	return &instance;
+}
+void ThreadPoolWinImpl::attach(Task* work) noexcept
+{
+	if (!QueueUserWorkItem([](void* context) {
+			auto* work = (Task*)context;
+			work->call();
+			return (DWORD)0;
+		}, work, 0))
+	{
+		work->cancel();
+	}
+}
+
+ThreadPoolWinImpl::ThreadPoolWinImpl() noexcept
+{
+}
+ThreadPoolWinImpl::~ThreadPoolWinImpl() noexcept
+{
 }

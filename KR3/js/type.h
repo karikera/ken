@@ -50,6 +50,30 @@ namespace kr
 	typedef JsValue(*JSCallback)(const JsArguments&);
 	typedef View<JsValue> JsArgumentsIn;
 
+	class JsNewArray;
+	class JsNewArrayBuffer;
+	enum class JsTypedArrayType
+	{
+		Int8,
+		Uint8,
+		Uint8Clamped,
+		Int16,
+		Uint16,
+		Int32,
+		Uint32,
+		Float32,
+		Float64,
+	};
+	class JsNewTypedArray;
+
+	template <JsType type>
+	class JsTypedRawData;
+	using JsFunctionRawData = JsTypedRawData<JsType::Function>;
+	using JsObjectRawData = JsTypedRawData<JsType::Object>;
+	using JsArrayBufferRawData = JsTypedRawData<JsType::ArrayBuffer>;
+	using JsTypedArrayRawData = JsTypedRawData<JsType::TypedArray>;
+	using JsDataViewRawData = JsTypedRawData<JsType::DataView>;
+
 	enum undefined_t;
 
 	template <typename FUNC>

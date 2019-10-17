@@ -5,27 +5,43 @@
 #include "poster.h"
 
 #include <KRMessage/promise.h>
-#include "taskqueue.h"
+#include <KR3/mt/taskqueue.h>
 
 namespace kr
 {
-	class ThreadPool;
+	class ThreadPoolKrImpl;
 
-	class ThreadPool:public TaskQueue
+	class ThreadPoolKrImpl:private TaskQueue
 	{
 	public:
-		ThreadPool(int threadCount) noexcept;
-		ThreadPool() noexcept;
-		~ThreadPool() noexcept;
-		void terminate() noexcept;
-		static ThreadPool * getInstance() noexcept;
+		static ThreadPoolKrImpl * getInstance() noexcept;
+		using TaskQueue::post;
+		using TaskQueue::attach;
 
 	private:
+		ThreadPoolKrImpl(int threadCount) noexcept;
+		ThreadPoolKrImpl() noexcept;
+		~ThreadPoolKrImpl() noexcept;
+
 		int _thread() noexcept;
 
 		Array<ThreadObject> m_threads;
 		std::atomic<bool> m_dead;
 	};
+
+	class ThreadPoolWinImpl:public TaskLambdaPost<ThreadPoolWinImpl>
+	{
+	public:
+		static ThreadPoolWinImpl* getInstance() noexcept;
+		void attach(Task* work) noexcept;
+
+	private:
+		ThreadPoolWinImpl() noexcept;
+		~ThreadPoolWinImpl() noexcept;
+
+	};
+
+	using ThreadPool = ThreadPoolWinImpl;
 
 	template <typename LAMBDA>
 	void threadingVoid(LAMBDA lambda) noexcept

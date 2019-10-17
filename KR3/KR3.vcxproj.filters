@@ -585,6 +585,18 @@
     <ClInclude Include="js\object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="js\cast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\news.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mt\taskqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mt\task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\autovar\autoptr.cpp">
@@ -845,6 +857,18 @@
     <ClCompile Include="js\object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="js\cast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\news.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mt\taskqueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mt\task.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="math\coord\vector_data.inl">
@@ -878,9 +902,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="js\meta.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="js\value.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

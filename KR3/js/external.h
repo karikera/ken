@@ -6,11 +6,11 @@
 
 namespace kr
 {
-	class JsExternalData :public Interface<>
+	class JsExternal :public Interface<>
 	{
 	public:
-		KRJS_EXPORT JsExternalData() noexcept;
-		KRJS_EXPORT ~JsExternalData() noexcept;
+		KRJS_EXPORT JsExternal() noexcept;
+		KRJS_EXPORT ~JsExternal() noexcept;
 
 		virtual void remove() noexcept = 0;
 

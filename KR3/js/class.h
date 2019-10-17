@@ -23,7 +23,7 @@ namespace kr
 
 		template <typename T>
 		JsClass createChild(Text16 _name = nullptr) noexcept;
-
+		
 		// 클래스의 멤버 변수를 설정한다
 		// 예외: JsException (이름이 중복될 시 발생)
 		KRJS_EXPORT void setField(Text16 _name, const JsValue& v) throws(JsException);
@@ -34,11 +34,7 @@ namespace kr
 		KRJS_EXPORT void setReadOnlyAccessor(Text16 _name, JsAccessor* _accessor) noexcept;
 		KRJS_EXPORT void setIndexAccessor(JsIndexAccessor* _accessor) noexcept;
 		KRJS_EXPORT void setReadOnlyIndexAccessor(JsIndexAccessor* _accessor) noexcept;
-
-		// 클래스의 멤버 변수를 설정한다
-		// 예외: JsException (이름이 중복될 시 발생)
-		KRJS_EXPORT void setStaticField(Text16 _name, const JsValue &v) noexcept;
-
+		
 		KRJS_EXPORT void setStaticAccessor(Text16 _name, JsAccessor* _accessor) noexcept;
 		KRJS_EXPORT void setStaticReadOnlyAccessor(Text16 _name, JsAccessor* _accessor) noexcept;
 
@@ -107,10 +103,6 @@ namespace kr
 
 		template <typename T, typename RET, typename ... ARGS>
 		void setMethod(Text16 _name, RET(T::* func)(ARGS ...)) noexcept;
-
-		template <typename LAMBDA>
-		void setStaticMethod(Text16 _name, LAMBDA _lambda) noexcept;
-
 
 	};
 

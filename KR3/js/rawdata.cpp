@@ -4,28 +4,6 @@
 
 using namespace kr;
 
-JsNewArray::JsNewArray(size_t size) noexcept
-	:size(size)
-{
-}
-JsNewTypedArray::JsNewTypedArray(JsTypedArrayType type, size_t size) noexcept
-	:type(type), size(size)
-{
-}
-
-size_t kr::getElementSize(JsTypedArrayType type) noexcept
-{
-	static const size_t SIZES[] = {
-		1,1,1,
-		2,2,
-		4,4,
-		4,
-		8
-	};
-	_assert((int)type >= 0 && (int)type < countof(SIZES));
-	return SIZES[(int)type];
-}
-
 JsRawData::~JsRawData() noexcept
 {
 
@@ -59,14 +37,19 @@ JsRawData::JsRawData(Text text, Charset cs) noexcept
 		new(this) JsRawData((Text16)utf16);
 	});
 }
+WBuffer JsRawData::getTypedArrayBuffer() const noexcept
+{
+	JsTypedArrayType type;
+	return getTypedArrayBuffer(&type);
+}
 
 template <>
-nullptr_t JsRawData::get<nullptr_t>() const noexcept
+nullptr_t JsRawData::as<nullptr_t>() const noexcept
 {
 	return nullptr;
 }
 template <>
-undefined_t JsRawData::get<undefined_t>() const noexcept
+undefined_t JsRawData::as<undefined_t>() const noexcept
 {
 	return undefined;
 }

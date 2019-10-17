@@ -26,9 +26,10 @@ namespace kr
 			CTOR m_ctor;
 			size_t m_parentIndex;
 			JsClassInfo* m_next;
+			bool m_isGlobal;
 
 		public:
-			KRJS_EXPORT JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, void (*initMethods)()) noexcept;
+			KRJS_EXPORT JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, void (*initMethods)(), bool global) noexcept;
 
 			size_t getIndex() noexcept;
 			JsClass* get() noexcept;
@@ -48,19 +49,19 @@ namespace kr
 		template <class Class, class Parent>
 		friend class JsObjectT;
 	private:
+		static constexpr undefined_t className = undefined; // Need to define with Text16
 		static _pri_::JsClassInfo s_classInfo;
-		static JsObject* _ctor(const JsArguments &args) noexcept;
+		static JsObject* _ctor(const JsArguments &args) throws(JsException);
 		static void _initMethods() noexcept;
 
 	public:
 		static JsClassT<Class> &classObject;
+		static constexpr bool global = true;
 
 		JsObjectT(const JsArguments & args) :Parent(args)
 		{
 		}
 		JsObjectT(const JsObjectT&) = delete;
-
-		static Text16 getClassName() noexcept = delete;
 
 		static void initMethods(JsClassT<Class> * cls) noexcept
 		{
@@ -118,34 +119,33 @@ namespace kr
 	{
 		friend JsFunction;
 	public:
+		static constexpr char16_t className[] = u"NativeObject";
 
 		JsObject(const JsObject &) = delete;
 
 		JsObject(const JsArguments & args) throws(JsException);
 		~JsObject() noexcept;
 
-		static Text16 getClassName() noexcept;
 		static void initMethods(JsClassT<JsObject>* cls) noexcept;
 		KRJS_EXPORT bool deleted() noexcept;
 	};
 
-
-
-	ATTR_ANY _pri_::JsClassInfo JsObjectT<JsObject>::s_classInfo(JsObject::getClassName(), -1,
+	ATTR_ANY _pri_::JsClassInfo JsObjectT<JsObject>::s_classInfo(JsObject::className, -1,
 		[](const JsArguments& args) { return _new JsObject(args); }, 
-		[]{});
+		[]{}, true);
 
 	ATTR_ANY JsClassT<JsObject>& JsObjectT<JsObject>::classObject = *s_classInfo.get<JsObject>();
 
+	// Need to define className to child of JsObjectT
 	template <class Class, class Parent>
 	_pri_::JsClassInfo JsObjectT<Class, Parent>::s_classInfo(
-		Class::getClassName(), Parent::s_classInfo.getIndex(), _ctor, _initMethods);
+		Class::className, Parent::s_classInfo.getIndex(), _ctor, _initMethods, Class::global);
 
 	template <class Class, class Parent>
 	JsClassT<Class>& JsObjectT<Class, Parent>::classObject = *s_classInfo.get<Class>();
 
 	template <class Class, class Parent>
-	JsObject* JsObjectT<Class, Parent>::_ctor(const JsArguments& args) noexcept
+	JsObject* JsObjectT<Class, Parent>::_ctor(const JsArguments& args) throws(JsException)
 	{
 		return static_cast<JsObject*>(_new Class(args));
 	}
@@ -155,7 +155,7 @@ namespace kr
 		Class::initMethods(s_classInfo.get<Class>());
 	}
 
-	class JsFilter :public JsExternalData
+	class JsFilter :public JsExternal
 	{
 	private:
 		int m_index;
@@ -171,7 +171,7 @@ namespace kr
 		static JsFilter* wrap(int index, FILTER filter) noexcept;
 	};
 
-	class JsAccessor : public JsExternalData
+	class JsAccessor : public JsExternal
 	{
 	public:
 		virtual void set(const JsObject& _this, const JsValue& v) noexcept = 0;
@@ -184,7 +184,7 @@ namespace kr
 		JsAccessor* wrap(GET get) noexcept;
 	};
 
-	class JsIndexAccessor : public JsExternalData
+	class JsIndexAccessor : public JsExternal
 	{
 	public:
 		virtual void set(const JsObject& _this, uint32_t idx, const JsValue& v) noexcept = 0;

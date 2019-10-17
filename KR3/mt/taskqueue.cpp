@@ -3,10 +3,6 @@
 
 using namespace kr;
 
-void kr::_pri_::TaskImpl::cancel() noexcept
-{
-}
-
 TaskQueue::TaskQueue() noexcept
 	:m_leftWorks(0)
 {

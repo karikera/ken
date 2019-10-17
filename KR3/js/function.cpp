@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "function.h"
-#include "value.inl"
 
 using namespace kr;
 

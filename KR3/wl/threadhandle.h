@@ -9,6 +9,7 @@
 #include "windows.h"
 
 #include <KR3/meta/chreturn.h>
+#include <KR3/mt/task.h>
 
 namespace kr
 {
@@ -46,7 +47,7 @@ namespace kr
 		dword m_id;
 	};
 
-	class ThreadHandle :public EventHandle
+	class ThreadHandle :public TaskLambdaPost<ThreadHandle, EventHandle>
 	{
 	public:
 		ThreadHandle() = delete;
@@ -100,6 +101,7 @@ namespace kr
 		void detach() noexcept;
 		dword join() noexcept;
 		void setPriority(ThreadPriority priority) noexcept;
+		void attach(Task * task) noexcept;
 
 		static ThreadHandle * getCurrent() noexcept;
 	private:

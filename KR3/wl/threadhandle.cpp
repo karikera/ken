@@ -129,6 +129,13 @@ void kr::ThreadHandle::setPriority(ThreadPriority priority) noexcept
 	default: _assert(!"invalid parameter");
 	}
 }
+void kr::ThreadHandle::attach(Task * task) noexcept
+{
+	QueueUserAPC([](ULONG_PTR data) {
+		auto * task = (Task*)data;
+		task->call();
+		}, this, (ULONG_PTR)task);
+}
 kr::ThreadHandle * kr::ThreadHandle::getCurrent() noexcept
 {
 	return (kr::ThreadHandle*)GetCurrentThread();

@@ -3,6 +3,8 @@
 #include <KR3/main.h>
 #include "type.h"
 #include "rawdata.h"
+#include "cast.h"
+
 
 namespace kr
 {
@@ -43,7 +45,7 @@ default: _assert(!"Invalid type");\
 	//////////////////////////
 
 	// 자바스크립트 변수를 읽기 위한 클래스
-	class JsValue
+	class JsValue:public JsRawData
 	{
 	public:
 		JsValue() noexcept;
@@ -56,8 +58,6 @@ default: _assert(!"Invalid type");\
 		JsValue(Text text, Charset cs = Charset::Default) noexcept;
 		~JsValue() noexcept;
 
-		bool isEmpty() const noexcept;
-		bool instanceOf(const JsValue& value) const noexcept;
 		void set(Text16 name, const JsValue& value) const noexcept;
 		JsValue get(Text16 name) const noexcept;
 		void set(const JsPropertyId& name, const JsValue& value) const noexcept;
@@ -67,11 +67,6 @@ default: _assert(!"Invalid type");\
 		// for ArrayBuffer, TypedArray, DataView
 		WBuffer getBuffer() const noexcept;
 
-		JsRawData& rawdata() noexcept;
-		const JsRawData& rawdata() const noexcept;
-
-		// 변수의 타입을 가져온다.
-		JsType getType() const noexcept;
 		JsObject* getNativeObject() const noexcept;
 
 		// 네이티브 객체를 타입을 정해서 가져옵니다
@@ -92,19 +87,8 @@ default: _assert(!"Invalid type");\
 		template <>
 		void cast<void>() const noexcept;
 
-		// 내부에서 타입 확인 없이, 강제로 캐스트 하여 가져온다.
-		template <typename T> T as() const noexcept;
-
 		JsValue& operator =(const JsValue& _copy) noexcept;
 		JsValue& operator =(JsValue&& _move) noexcept;
-
-	private:
-		JsRawData m_data;
-
-		template <typename T>
-		void _ctor(const T& value) noexcept;
-		template <typename T>
-		void _ctor(T&& value) noexcept;
 	};
 }
 
@@ -113,3 +97,23 @@ void kr::JsValue::cast<void>() const noexcept;
 
 template <> 
 kr::JsValue kr::JsValue::cast<kr::JsValue>() const noexcept;
+
+template <typename T>
+kr::JsValue::JsValue(const T& value) noexcept
+	:JsRawData(_pri_::JsCast::toInner(value))
+{
+}
+template <typename T>
+kr::JsValue::JsValue(T&& value) noexcept
+	:JsRawData(move(_pri_::JsCast::toInner(value)))
+{
+}
+
+template <typename T> T kr::JsValue::cast() const noexcept
+{
+	using Inner = typename _pri_::GetBridgeType<T>::type;
+	KRJS_TYPE_CONSTLIZE(
+		return _pri_::JsCast::toOuter<T>(_pri_::ComputeCast<type, Inner>::cast(as<type>()));
+	);
+	return _pri_::JsCast::defaultValue<T>();
+}

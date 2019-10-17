@@ -3,11 +3,11 @@
 
 using namespace kr;
 
-void JsExternalData::AddRef() noexcept
+void JsExternal::AddRef() noexcept
 {
 	m_reference++;
 }
-void JsExternalData::Release() noexcept
+void JsExternal::Release() noexcept
 {
 	m_reference--;
 	if (m_reference == 0) _release();

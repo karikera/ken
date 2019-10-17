@@ -179,12 +179,6 @@ void kr::JsClass::setMethod(Text16 _name, RET(T:: * func)(ARGS ...)) noexcept
 		}));
 }
 
-template <typename LAMBDA>
-void kr::JsClass::setStaticMethod(Text16 _name, LAMBDA lambda) noexcept
-{
-	setStatic(_name, JsFunction::make(lambda));
-}
-
 #endif
 
 // 객체를 생성합니다

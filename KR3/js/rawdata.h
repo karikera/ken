@@ -3,40 +3,8 @@
 
 #include "type.h"
 
-
 namespace kr
 {
-	class JsNewArray
-	{
-	public:
-		JsNewArray(size_t size = 0) noexcept;
-
-		const size_t size;
-	};
-
-	enum class JsTypedArrayType
-	{
-		Int8,
-		Uint8,
-		Uint8Clamped,
-		Int16,
-		Uint16,
-		Int32,
-		Uint32,
-		Float32,
-		Float64,
-	};
-	size_t getElementSize(JsTypedArrayType type) noexcept;
-
-	class JsNewTypedArray
-	{
-	public:
-		JsNewTypedArray(JsTypedArrayType type, size_t size = 0) noexcept;
-		JsTypedArrayType type;
-		const size_t size;
-	};
-
-
 	class JsRawData
 	{
 		friend _pri_::InternalTools;
@@ -64,6 +32,7 @@ namespace kr
 		KRJS_EXPORT explicit JsRawData(JsNewObject_t) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsNewArray arr) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsNewTypedArray arr) noexcept;
+		KRJS_EXPORT explicit JsRawData(JsNewArrayBuffer arr) noexcept;
 		KRJS_EXPORT bool isEmpty() const noexcept;
 		KRJS_EXPORT JsType getType() const noexcept;
 		KRJS_EXPORT void setProperty(Text16 name, const JsRawData &value) const noexcept;
@@ -75,9 +44,13 @@ namespace kr
 		KRJS_EXPORT WBuffer getArrayBuffer() const noexcept;
 		KRJS_EXPORT WBuffer getDataViewBuffer() const noexcept;
 		KRJS_EXPORT WBuffer getTypedArrayBuffer(JsTypedArrayType * type) const noexcept;
+		WBuffer getTypedArrayBuffer() const noexcept;
 		KRJS_EXPORT JsRawData call(JsRawData _this, JsArgumentsIn arguments) const noexcept;
+
+		// get value without any-cast
+		// need to match type
 		template <typename T>
-		T get() const noexcept;
+		T as() const noexcept;
 		template <typename LAMBDA>
 		void getTypedArrayBufferL(const LAMBDA& onBuffer) noexcept;
 
@@ -99,33 +72,27 @@ namespace kr
 		{
 		}
 	};
-
-	using JsFunctionRawData = JsTypedRawData<JsType::Function>;
-	using JsObjectRawData = JsTypedRawData<JsType::Object>;
-	using JsArrayBufferRawData = JsTypedRawData<JsType::ArrayBuffer>;
-	using JsTypedArrayRawData = JsTypedRawData<JsType::TypedArray>;
-	using JsDataViewRawData = JsTypedRawData<JsType::DataView>;
 }
 
 
 template <>
-KRJS_EXPORT kr::Text16 kr::JsRawData::get<kr::Text16>() const noexcept;
+KRJS_EXPORT kr::Text16 kr::JsRawData::as<kr::Text16>() const noexcept;
 template <>
-KRJS_EXPORT kr::JsObject* kr::JsRawData::get<kr::JsObject*>() const noexcept;
+KRJS_EXPORT kr::JsObject* kr::JsRawData::as<kr::JsObject*>() const noexcept;
 template <>
-KRJS_EXPORT int kr::JsRawData::get<int>() const noexcept;
+KRJS_EXPORT int kr::JsRawData::as<int>() const noexcept;
 template <>
-KRJS_EXPORT double kr::JsRawData::get<double>() const noexcept;
+KRJS_EXPORT double kr::JsRawData::as<double>() const noexcept;
 template <>
-KRJS_EXPORT bool kr::JsRawData::get<bool>() const noexcept;
+KRJS_EXPORT bool kr::JsRawData::as<bool>() const noexcept;
 
 template <>
-nullptr_t kr::JsRawData::get<nullptr_t>() const noexcept;
+nullptr_t kr::JsRawData::as<nullptr_t>() const noexcept;
 template <>
-kr::undefined_t kr::JsRawData::get<kr::undefined_t>() const noexcept;
+kr::undefined_t kr::JsRawData::as<kr::undefined_t>() const noexcept;
 
 template <typename T>
-T kr::JsRawData::get() const noexcept
+T kr::JsRawData::as() const noexcept
 {
 	return *this;
 }

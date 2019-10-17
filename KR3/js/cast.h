@@ -1,13 +1,6 @@
 #pragma once
 
-#include <type_traits>
-
 #include "type.h"
-#include "rawdata.h"
-#include "value.h"
-#include "string.h"
-#include "function.h"
-#include "object.h"
 #include "undefined.h"
 
 namespace kr
@@ -44,7 +37,7 @@ namespace kr
 					return To(move(_value));
 				}
 			};
-			template <typename T,typename TI>
+			template <typename T, typename TI>
 			static T toOuter(const TI& _value) noexcept
 			{
 				return ToOuter<T, TI>::toOuter(_value);
@@ -54,7 +47,7 @@ namespace kr
 			{
 				return ToOuter<T, TI>::toOuter(move(_value));
 			}
-			
+
 #define CASTER(from, to) \
 static to toInner(from _value) noexcept { return (to)_value; }
 #define CASTER_COPY(from, to) \
@@ -90,6 +83,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static Text16 toInner(const AText16& _value) noexcept;
 			static JsRawData toInner(JsNewObject_t) noexcept;
 			static JsRawData toInner(JsNewArray arr) noexcept;
+			static JsRawData toInner(JsNewArrayBuffer arr) noexcept;
 			static JsRawData toInner(JsNewTypedArray arr) noexcept;
 			static JsRawData toInner(const JsPersistent& value) noexcept;
 
@@ -122,31 +116,31 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 		template <CastType type, typename S, typename D> struct ComputeCastImpl;
 		template <typename S, typename D> struct ComputeCastImpl<CastTypeCast, S, D>
 		{
-			static D cast(const S &v) noexcept
+			static D cast(const S& v) noexcept
 			{
 				return (D)v;
 			}
 		};
 		template <typename S, typename D> struct ComputeCastImpl<CastTypeSame, S, D>
 		{
-			static const D & cast(const S &v) noexcept
+			static const D& cast(const S& v) noexcept
 			{
 				return v;
 			}
 		};
 		template <typename S, typename D> struct ComputeCastImpl<CastTypeDefault, S, D>
 		{
-			static D cast(const S &) noexcept
+			static D cast(const S&) noexcept
 			{
 				return JsCast::defaultValue<D>();
 			}
 		};
 		template <typename T>
-		struct IsTypedRawData :meta::bool_false{};
+		struct IsTypedRawData :meta::bool_false {};
 		template <JsType type>
 		struct IsTypedRawData<JsTypedRawData<type>> :meta::bool_true {};
 
-		template <typename S, typename D> struct ComputeCast: public ComputeCastImpl<
+		template <typename S, typename D> struct ComputeCast : public ComputeCastImpl<
 			std::is_same<S, D>::value ? CastTypeSame :
 			(
 				IsTypedRawData<D>::value ||
@@ -156,12 +150,16 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 				IsTypedRawData<S>::value ||
 				std::is_same<S, undefined_t>::value ||
 				std::is_same<S, nullptr_t>::value
-			) ? CastTypeDefault : CastTypeCast, S, D>
+				) ? CastTypeDefault : CastTypeCast, S, D>
 		{
 		};
-		template <typename S> struct ComputeCast<S, bool>
+		template <> struct ComputeCast<int, bool>
 		{
-			static bool cast(const S &v) noexcept { return v != 0; }
+			static bool cast(int v) noexcept { return v != 0; }
+		};
+		template <> struct ComputeCast<double, bool>
+		{
+			static bool cast(double v) noexcept { return v != 0; }
 		};
 		template <> struct ComputeCast<nullptr_t, bool>
 		{
@@ -171,18 +169,27 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 		{
 			static bool cast(undefined_t) noexcept { return false; }
 		};
+		template <JsType jstype> struct ComputeCast<JsTypedRawData<jstype>, bool>
+		{
+			static bool cast(const JsTypedRawData<jstype>&) noexcept {
+				return true;
+			}
+		};
 		template <> struct ComputeCast<Text16, bool>
 		{
-			static bool cast(const Text16 &v) noexcept { return !v.empty(); }
+			static bool cast(const Text16& v) noexcept { return !v.empty(); }
 		};
 		template <> struct ComputeCast<Text16, int>
 		{
-			static int cast(const Text16&v) noexcept { return v.to_int(); }
+			static int cast(const Text16& v) noexcept { return v.to_int(); }
 		};
 		template <> struct ComputeCast<Text16, double>
 		{
-			static double cast(const Text16&v) noexcept{ return v.to_float(); }
+			static double cast(const Text16& v) noexcept { return v.to_float(); }
 		};
+		template <> struct ComputeCast<AText16, bool> :ComputeCast<Text16, bool> {};
+		template <> struct ComputeCast<AText16, int> :ComputeCast<Text16, int> {};
+		template <> struct ComputeCast<AText16, double> :ComputeCast<Text16, double> {};
 		template <> struct ComputeCast<bool, Text16>
 		{
 			static Text16 cast(bool v) noexcept {
@@ -258,7 +265,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 		template <> struct ComputeCast<bool, AText16> :public ComputeCast<bool, Text16> {};
 		template <> struct ComputeCast<undefined_t, AText16> :public ComputeCast<undefined_t, Text16> {};
 		template <> struct ComputeCast<nullptr_t, AText16> :public ComputeCast<nullptr_t, Text16> {};
-		template <> struct ComputeCast<JsFunctionRawData, AText16> :public ComputeCast<JsFunctionRawData, Text16>{};
+		template <> struct ComputeCast<JsFunctionRawData, AText16> :public ComputeCast<JsFunctionRawData, Text16> {};
 		template <> struct ComputeCast<JsObjectRawData, AText16> :public ComputeCast<JsObjectRawData, Text16> {};
 		template <> struct ComputeCast<JsArrayBufferRawData, AText16> :public ComputeCast<JsArrayBufferRawData, Text16> {};
 		template <> struct ComputeCast<JsTypedArrayRawData, AText16> :public ComputeCast<JsTypedArrayRawData, Text16> {};
@@ -273,39 +280,4 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			using type = AText16;
 		};
 	}
-}
-
-template <typename T>
-void kr::JsValue::_ctor(const T & value) noexcept
-{
-	m_data = JsRawData(_pri_::JsCast::toInner(value));
-}
-template <typename T>
-void kr::JsValue::_ctor(T && value) noexcept
-{
-	m_data = JsRawData(move(_pri_::JsCast::toInner(value)));
-}
-template <typename T>
-kr::JsValue::JsValue(const T& value) noexcept
-{
-	_ctor(value);
-}
-template <typename T>
-kr::JsValue::JsValue(T&& value) noexcept
-{
-	_ctor(move(value));
-}
-template <typename T>
-T kr::JsValue::as() const noexcept
-{
-	return m_data.get<T>();
-}
-
-template <typename T> T kr::JsValue::cast() const noexcept
-{
-	using Inner = typename _pri_::GetBridgeType<T>::type;
-	KRJS_TYPE_CONSTLIZE(
-		return _pri_::JsCast::toOuter<T>(_pri_::ComputeCast<type, Inner>::cast(as<type>()));
-	);
-	return _pri_::JsCast::defaultValue<T>();
 }

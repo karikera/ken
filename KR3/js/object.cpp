@@ -12,10 +12,6 @@ JsObject::JsObject(const JsArguments& args) throws(JsObject)
 JsObject::~JsObject() noexcept
 {
 }
-Text16 JsObject::getClassName() noexcept
-{
-	return u"NativeObject";
-}
 void JsObject::initMethods(JsClassT<JsObject>* cls) noexcept
 {
 }

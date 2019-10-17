@@ -8,6 +8,7 @@
 #include "type.h"
 #include "meta.h"
 #include "rawdata.h"
+#include "news.h"
 #include "persistent.h"
 #include "external.h"
 #include "value.h"
@@ -19,7 +20,6 @@
 #include "arguments.h"
 
 #include "meta.inl"
-#include "value.inl"
 // #include "private.inl"
 #include "class.inl"
 #include "context.h"

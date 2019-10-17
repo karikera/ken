@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "string.h"
-#include "value.inl"
 
 using namespace kr;
 
@@ -46,7 +45,7 @@ JsString::JsString(void*) noexcept
 {
 }
 JsString::JsString(const JsValue& value) noexcept
-	:JsValue((value.getType() == JsType::String) ? value.rawdata() : JsRawData(value.cast<AText16>()))
+	:JsValue((value.getType() == JsType::String) ? (JsRawData)value : JsRawData(value.cast<AText16>()))
 {
 }
 JsString& JsString::operator =(const JsString& _copy) noexcept

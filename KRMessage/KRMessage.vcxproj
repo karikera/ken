@@ -118,7 +118,6 @@
     <ClInclude Include="eventdispatcher.h" />
     <ClInclude Include="fs\asyncfile.h" />
     <ClInclude Include="msgloop.h" />
-    <ClInclude Include="taskqueue.h" />
     <ClInclude Include="net\IRC.h" />
     <ClInclude Include="net\wsevent.h" />
     <ClInclude Include="poster.h" />
@@ -138,7 +137,6 @@
     <ClCompile Include="eventdispatcher.cpp" />
     <ClCompile Include="fs\asyncfile.cpp" />
     <ClCompile Include="msgloop.cpp" />
-    <ClCompile Include="taskqueue.cpp" />
     <ClCompile Include="net\IRC.cpp" />
     <ClCompile Include="net\wsevent.cpp" />
     <ClCompile Include="poster.cpp" />

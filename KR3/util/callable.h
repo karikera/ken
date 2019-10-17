@@ -1,5 +1,7 @@
 #pragma once
 
+#include <KR3/main.h>
+
 namespace kr
 {
 	template <typename func_t> class CallableT;
