@@ -30,7 +30,6 @@
     <ProjectGuid>{93820A74-DE22-4F69-83A8-0B848F7D798F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KRMessage</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

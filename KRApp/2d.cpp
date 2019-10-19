@@ -1,9 +1,7 @@
 #ifdef WIN32
 
-#include <KR3/wl/prepare.h>
 #include <windows.h>
 #include <GdiPlus.h>
-#include <KR3/wl/clean.h>
 
 #include "2d.h"
 

@@ -23,7 +23,6 @@
     <ProjectGuid>{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>gapiformatter</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

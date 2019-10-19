@@ -22,7 +22,6 @@
     <ProjectGuid>{432CC3C8-34B1-405D-9675-36FDF25289C7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KRWin</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

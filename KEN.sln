@@ -56,6 +56,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KRSound", "KRSound\KRSound.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "COPY_DLL", "KRTool\COPY_DLL\COPY_DLL.vcxproj", "{F476FE60-4037-4045-8495-D744E325192A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gapiformatter", "gapiformatter\gapiformatter.vcxproj", "{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Emscripten = Debug|Emscripten
@@ -366,6 +368,22 @@ Global
 		{F476FE60-4037-4045-8495-D744E325192A}.ReleaseTest|x64.Build.0 = Release|x64
 		{F476FE60-4037-4045-8495-D744E325192A}.ReleaseTest|x86.ActiveCfg = Release|Win32
 		{F476FE60-4037-4045-8495-D744E325192A}.ReleaseTest|x86.Build.0 = Release|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Debug|Emscripten.ActiveCfg = Debug|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Debug|x64.ActiveCfg = Debug|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Debug|x64.Build.0 = Debug|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Debug|x86.ActiveCfg = Debug|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Debug|x86.Build.0 = Debug|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Release|Emscripten.ActiveCfg = Release|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Release|x64.ActiveCfg = Release|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Release|x64.Build.0 = Release|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Release|x86.ActiveCfg = Release|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.Release|x86.Build.0 = Release|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.ReleaseTest|Emscripten.ActiveCfg = Release|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.ReleaseTest|Emscripten.Build.0 = Release|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.ReleaseTest|x64.ActiveCfg = Release|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.ReleaseTest|x64.Build.0 = Release|x64
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.ReleaseTest|x86.ActiveCfg = Release|Win32
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69}.ReleaseTest|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -392,6 +410,7 @@ Global
 		{4966CD90-DEDD-4A78-9F3F-01345AB72B27} = {812683F9-452D-4EC6-B881-5A4D5F76457C}
 		{179C15FF-42C0-4D89-B1C9-3F47CF571D6B} = {723F917F-0072-4B76-ABB1-3336381F001A}
 		{F476FE60-4037-4045-8495-D744E325192A} = {812683F9-452D-4EC6-B881-5A4D5F76457C}
+		{2E1BA2C7-BA19-47E5-824E-CB68E5D04B69} = {812683F9-452D-4EC6-B881-5A4D5F76457C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B792BB10-56F7-42E6-BD30-24C9B586AD9B}

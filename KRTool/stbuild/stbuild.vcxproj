@@ -22,7 +22,6 @@
     <ProjectGuid>{606C1D3F-EF16-45EB-8B39-0906A9B8BA6C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>StringTableGenerator</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -22,7 +22,6 @@
     <ProjectGuid>{E25F0C5A-72CE-481E-8F08-C36AC5AD9666}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KRMySQL</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

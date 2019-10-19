@@ -6,9 +6,13 @@
 #include <mfidl.h>
 #include <mferror.h>
 #include <mfreadwrite.h>
+#include <propkey.h>
+#include <propvarutil.h>
 
+#pragma comment(lib, "mf.lib")
 #pragma comment(lib, "Mfplat.lib")
 #pragma comment(lib, "mfuuid.lib")
+#pragma comment(lib, "propsys.lib")
 #pragma comment(lib, "Mfreadwrite.lib")
 
 using namespace kr;
@@ -16,6 +20,7 @@ using namespace kr;
 namespace
 {
 	IMFAttributes * s_sourceReaderConfiguration;
+	IMFSourceResolver* s_mediaResolver;
 	const DWORD STREAM_INDEX = (DWORD)MF_SOURCE_READER_FIRST_AUDIO_STREAM;
 }
 
@@ -37,39 +42,33 @@ void ComMethod<IMFMediaBuffer>::unlock() noexcept
 	ptr()->Unlock();
 }
 
-ComMethod<IMFSourceReader>::Init::Init() noexcept
+MFMediaSource ComMethod<IMFMediaSource>::load(pcstr16 path) throws(ErrorCode)
 {
-	HRESULT hr = S_OK;
+	// Use the source resolver to create the media source.
 
-	// initialize media foundation
-	hr = MFStartup(MF_VERSION);
-	if (FAILED(hr)) error("Critical error: Unable to start the Windows Media Foundation!");
+	// Note: For simplicity this sample uses the synchronous method to create 
+	// the media source. However, creating a media source can take a noticeable
+	// amount of time, especially for a network source. For a more responsive 
+	// UI, use the asynchronous BeginCreateObjectFromURL method.
 
-	// set media foundation reader to low latency
-	hr = MFCreateAttributes(&s_sourceReaderConfiguration, 1);
-	if (FAILED(hr)) error("Critical error: Unable to create Media Foundation Source Reader configuration!");
-		
-	// hr = s_sourceReaderConfiguration->SetUINT32(MF_LOW_LATENCY, true);
-	// if (FAILED(hr)) error("Critical error: Unable to set Windows Media Foundation configuration!");
+	MF_OBJECT_TYPE objtype;
+	MFMediaSource source;
+	hrexcept(s_mediaResolver->CreateObjectFromURL(
+		wide(path),                       // URL of the source.
+		MF_RESOLUTION_MEDIASOURCE,  // Create a source object.
+		nullptr,                       // Optional property store.
+		&objtype,        // Receives the created object type. 
+		&source            // Receives a pointer to the media source.
+	));
+	return source;
 }
-ComMethod<IMFSourceReader>::Init::~Init() noexcept
+MFSourceReader ComMethod<IMFMediaSource>::getReader(WaveFormat* waveFormat) throws(ErrorCode)
 {
-	if (s_sourceReaderConfiguration)
-	{
-		s_sourceReaderConfiguration->Release();
-		s_sourceReaderConfiguration = nullptr;
-	}
-}
-
-MFSourceReader ComMethod<IMFSourceReader>::load(pcstr16 path, WaveFormat* waveFormat) throws(ErrorCode)
-{
-	// handle errors
-	HRESULT hr = S_OK;
-	
-	MFSourceReader sourceReader;
-
 	// create the source reader
-	hrexcept(MFCreateSourceReaderFromURL(wide(path), s_sourceReaderConfiguration, &sourceReader));
+	MFSourceReader sourceReader;
+	hrexcept(MFCreateSourceReaderFromMediaSource(ptr(), nullptr, &sourceReader));
+
+	// hrexcept(MFCreateSourceReaderFromURL(wide(path), s_sourceReaderConfiguration, &sourceReader));
 
 	// select the first audio stream, and deselect all other streams
 	hrexcept(sourceReader->SetStreamSelection((DWORD)MF_SOURCE_READER_ALL_STREAMS, false));
@@ -87,7 +86,7 @@ MFSourceReader ComMethod<IMFSourceReader>::load(pcstr16 path, WaveFormat* waveFo
 
 	// check whether the audio file is compressed or uncompressed
 	GUID subType{};
-	hr = nativeMediaType->GetGUID(MF_MT_MAJOR_TYPE, &subType);
+	nativeMediaType->GetGUID(MF_MT_MAJOR_TYPE, &subType);
 	if (subType == MFAudioFormat_Float || subType == MFAudioFormat_PCM)
 	{
 		// the audio file is uncompressed
@@ -132,6 +131,68 @@ MFSourceReader ComMethod<IMFSourceReader>::load(pcstr16 path, WaveFormat* waveFo
 	// ensure the stream is selected
 	hrexcept(sourceReader->SetStreamSelection(STREAM_INDEX, true));
 	return sourceReader;
+}
+PropertyStore ComMethod<IMFMediaSource>::getProperty() throws(ErrorCode)
+{
+	Com<IPropertyStore> props;
+	hrexcept(MFGetService(ptr(), MF_PROPERTY_HANDLER_SERVICE, __uuidof(IPropertyStore), &props));
+	return props;
+}
+
+AText16 ComMethod<IPropertyStore>::get(const PROPERTYKEY& key) noexcept
+{
+	AText16 out;
+	PROPVARIANT authorvar;
+	if (SUCCEEDED(ptr()->GetValue(key, &authorvar)))
+	{
+		LPWSTR author;
+		if (SUCCEEDED(PropVariantToStringAlloc(authorvar, &author)))
+		{
+			out = (Text16)unwide(author);
+		}
+		PropVariantClear(&authorvar);
+	}
+	return out;
+}
+AText16 ComMethod<IPropertyStore>::getAuthor() noexcept
+{
+	return get(PKEY_Author);
+}
+AText16 ComMethod<IPropertyStore>::getTitle() noexcept
+{
+	return get(PKEY_Title);
+}
+
+ComMethod<IMFMediaSource>::Init::Init() noexcept
+{
+	HRESULT hr = S_OK;
+
+	// initialize media foundation
+	hr = MFStartup(MF_VERSION);
+	if (FAILED(hr)) error("Critical error: Unable to start the Windows Media Foundation!");
+
+	// set media foundation reader to low latency
+	hr = MFCreateAttributes(&s_sourceReaderConfiguration, 1);
+	if (FAILED(hr)) error("Critical error: Unable to create Media Foundation Source Reader configuration!");
+		
+	// hr = s_sourceReaderConfiguration->SetUINT32(MF_LOW_LATENCY, true);
+	// if (FAILED(hr)) error("Critical error: Unable to set Windows Media Foundation configuration!");
+
+	hr = MFCreateSourceResolver(&s_mediaResolver);
+	if (FAILED(hr)) error("Critical error: Unable to create Media Resolver");
+}
+ComMethod<IMFMediaSource>::Init::~Init() noexcept
+{
+	if (s_sourceReaderConfiguration)
+	{
+		s_sourceReaderConfiguration->Release();
+		s_sourceReaderConfiguration = nullptr;
+	}
+	if (s_mediaResolver)
+	{
+		s_mediaResolver->Release();
+		s_mediaResolver = nullptr;
+	}
 }
 
 MFMediaBuffer ComMethod<IMFSourceReader>::read() throws(ErrorCode)
