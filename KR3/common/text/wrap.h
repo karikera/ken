@@ -78,12 +78,12 @@ namespace kr
 					return *this;
 				}
 
-				WrapImpl & operator =(const WrapImpl & _copy)
+				WrapImpl& operator =(const WrapImpl & _copy)
 				{
 					equalOperator(_copy);
 					return *this;
 				}
-				WrapImpl & operator =(WrapImpl && _move) noexcept
+				WrapImpl& operator =(WrapImpl && _move) noexcept
 				{
 					this->~WrapImpl();
 					new (this) WrapImpl(move(_move));

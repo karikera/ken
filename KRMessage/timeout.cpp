@@ -49,7 +49,7 @@ bool Timeout::post(duration to) noexcept
 #ifdef WIN32
 	if (isPosted()) return false;
 	m_at = timepoint::now() + to;
-	EventPump::getInstance()->post(this);
+	EventPump::getInstance()->attach(this);
 	return true;
 #elif defined(__EMSCRIPTEN__)
 	if (m_timeoutId != 0) return false;
@@ -89,7 +89,7 @@ bool Interval::Wrapper::start(duration interval) noexcept
 	if (isPosted()) return false;
 	m_interval = interval;
 	m_at = timepoint::now() + interval;
-	EventPump::getInstance()->post(this);
+	EventPump::getInstance()->attach(this);
 	return true;
 }
 void Interval::Wrapper::call() noexcept
@@ -97,7 +97,7 @@ void Interval::Wrapper::call() noexcept
 	Interval * interval = (Interval*)((byte*)this - offsetof(Interval, m_wrapper));
 	interval->call();
 	m_at += m_interval;
-	EventPump::getInstance()->post(this);
+	EventPump::getInstance()->attach(this);
 }
 #endif
 bool Interval::start(duration interval) noexcept

@@ -15,7 +15,7 @@ namespace
 	{
 	public:
 		Walker() noexcept;
-		virtual void onOutput(pcstr szText) noexcept override;
+		virtual void onOutput(Text16 text) noexcept override;
 	};
 	Walker::Walker() noexcept
 	{
@@ -24,11 +24,11 @@ namespace
 			udout << u"[StackWalker]Cannot load modules" << endl;
 		};
 	}
-	void Walker::onOutput(pcstr szText) noexcept
+	void Walker::onOutput(Text16 text) noexcept
 	{
-		dout << szText << endl;
+		udout << text << endl;
 	}
-	Walker * getStackWalker()
+	Walker * getStackWalker() noexcept
 	{
 		static Walker stackWalker;
 		return &stackWalker;

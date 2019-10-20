@@ -80,7 +80,7 @@ namespace kr
 			m_fillchr = fillchr;
 			m_radix = _radix;
 			dword cipher = math::cipher(m_value, m_radix);
-			m_contlen = tmax(cipher, _fixed);
+			m_contlen = maxt(cipher, _fixed);
 			m_zerolen = m_contlen - cipher;
 			m_size = m_contlen + m_minus;
 		}
@@ -510,7 +510,7 @@ namespace kr
 			, m_text(text)
 		{
 			size_t txsize = m_text.template sizeAs<Component>();
-			totalSize = tmax(txsize, _count);
+			totalSize = maxt(txsize, _count);
 			count = totalSize - txsize;
 		}
 

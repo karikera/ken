@@ -133,8 +133,8 @@ namespace kr
 		std::exception_ptr * _rejectValue() noexcept;
 
 	private:
-		alignas(meta::tmax(alignof(T), alignof(std::exception_ptr))) struct {
-			byte buffer[meta::tmax(sizeof(T), sizeof(std::exception_ptr))];
+		alignas(meta::maxt(alignof(T), alignof(std::exception_ptr))) struct {
+			byte buffer[meta::maxt(sizeof(T), sizeof(std::exception_ptr))];
 		} m_data;
 	};
 

@@ -3,8 +3,8 @@
 #include "http.h"
 
 #include <KR3/wl/windows.h>
-#include <KRUtil/fs/file.h>
-#include <KRUtil/net/socket.h>
+#include <KR3/fs/file.h>
+#include <KR3/net/socket.h>
 
 #pragma comment(lib,"shell32.lib")
 

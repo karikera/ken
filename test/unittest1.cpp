@@ -3,11 +3,11 @@
 #include <KR3/main.h>
 #include <KR3/util/process.h>
 #include <KR3/io/bufferedstream.h>
-#include <KRUtil/text/slash.h>
-#include <KRUtil/text/template.h>
-#include <KRUtil/fs/path.h>
-#include <KRUtil/fs/installer.h>
-#include <KRUtil/fs/file.h>
+#include <KR3/text/slash.h>
+#include <KR3/text/template.h>
+#include <KR3/util/path.h>
+#include <KR3/fs/installer.h>
+#include <KR3/fs/file.h>
 #include <KR3/data/idmap.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -120,7 +120,7 @@ namespace test
 		
 		TEST_METHOD(testMin)
 		{
-			constexpr int v = min(7, 1, 2, 3, 4);
+			constexpr int v = mint(7, 1, 2, 3, 4);
 			Assert::AreEqual(v, 1);
 		}
 

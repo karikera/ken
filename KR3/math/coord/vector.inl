@@ -723,12 +723,31 @@ ATTR_INLINE const kr::vec4a clampv(const kr::vec4a & a, const kr::vec4a & v, con
 	return minv(maxv(v, a), b);
 #else
 	return kr::vec4a(
-		kr::math::clamp(a.x, v.x, b.x),
-		kr::math::clamp(a.y, v.y, b.y),
-		kr::math::clamp(a.z, v.z, b.z),
-		kr::math::clamp(a.w, v.w, b.w)
+		tclamp(a.x, v.x, b.x),
+		tclamp(a.y, v.y, b.y),
+		tclamp(a.z, v.z, b.z),
+		tclamp(a.w, v.w, b.w)
 	);
 #endif
+}
+ATTR_INLINE const kr::vec4 clampv(const kr::vec4& a, const kr::vec4& v, const kr::vec4& b) noexcept
+{
+	return kr::vec4(
+		kr::clampt(a.x, v.x, b.x),
+		kr::clampt(a.y, v.y, b.y),
+		kr::clampt(a.z, v.z, b.z),
+		kr::clampt(a.w, v.w, b.w)
+	);
+}
+
+ATTR_INLINE const kr::vec4 clamp01v(const kr::vec4& v) noexcept
+{
+	return kr::vec4(
+		kr::clampt(0.f, v.x, 1.f),
+		kr::clampt(0.f, v.y, 1.f),
+		kr::clampt(0.f, v.z, 1.f),
+		kr::clampt(0.f, v.w, 1.f)
+	);
 }
 ATTR_INLINE const kr::vec4a absv(const kr::vec4a& V) noexcept
 {

@@ -26,3 +26,7 @@ kcopy "%thirddir%\ken-res-loader\lib\%platform%\libvorbisfile%d%.dll" "%outdir%l
 kcopy "%thirddir%\ken-res-loader\lib\%platform%\jpeg%d%.dll" "%outdir%jpeg%d%.dll"
 kcopy "%MYSQL_C_DIR%\lib\libmysql.dll" "%outdir%libmysql.dll"
 kcopy "%thirddir%\fftw-3.3.5-dll-%platform%\libfftw3f-3.dll" "%OutDir%libfftw3f-3.dll"
+if "%platform%" neq "js" ( 
+kcopy "%thirddir%\angle\lib\%platform%\%config%\libEGL.dll" "%OutDir%libEGL.dll"
+kcopy "%thirddir%\angle\lib\%platform%\%config%\libGLESv2.dll" "%OutDir%libGLESv2.dll"
+)

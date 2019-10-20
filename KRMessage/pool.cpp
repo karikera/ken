@@ -2,103 +2,92 @@
 #include "pool.h"
 
 #include <KR3/mt/thread.h>
-#include <KRUtil/dump.h>
+#include <KR3/util/dump.h>
 
-void kr::ThreadTaskBase::cancel() noexcept
-{
-}
+using namespace kr;
 
-kr::ThreadPool::ThreadPool(int cpuCount) noexcept
+ThreadPoolKrImpl::ThreadPoolKrImpl(int cpuCount) noexcept
 {
-	m_leftWorks = 0;
 	m_threads.resize(cpuCount);
 
 	uint number = 0;
 	for (ThreadObject & thread : m_threads)
 	{
-		thread.create<ThreadPool, &ThreadPool::_thread>(this);
-		ondebug(thread.setName(TSZ() << "KEN ThreadPool " << decf(number++, 2)));
+		thread.create<ThreadPoolKrImpl, &ThreadPoolKrImpl::_thread>(this);
+		ondebug(thread.setName(TSZ() << "KEN ThreadPoolKrImpl " << decf(number++, 2)));
 	}
+	// QueueUserWorkItem();
 }
-kr::ThreadPool::ThreadPool() noexcept
-	:ThreadPool(getCPUCount())
+ThreadPoolKrImpl::ThreadPoolKrImpl() noexcept
+	:ThreadPoolKrImpl(getCPUCount())
 {
 }
-kr::ThreadPool::~ThreadPool() noexcept
+ThreadPoolKrImpl::~ThreadPoolKrImpl() noexcept
 {
-	terminate();
-}
-void kr::ThreadPool::post(ThreadTask * work) noexcept
-{
-	m_leftWorks++;
-	CsLock lock(m_cs);
-	m_works.attach(work);
-	m_event.set();
-}
-void kr::ThreadPool::terminate() noexcept
-{
-	struct QuitWork :ThreadTask
+	struct QuitWork :Task
 	{
 		void operator ()() override
 		{
 			throw QuitException(0);
 		}
 	};
-	for (ThreadTask & work : m_works)
-	{
-		work.cancel();
-	}
-	m_works.clear();
+	clearTask();
 
 	for (ThreadObject thread : m_threads)
 	{
-		QuitWork * work = _new QuitWork;
-		m_leftWorks++;
-		CsLock lock(m_cs);
-		m_works.attach(work);
-		m_event.set();
+		QuitWork* work = _new QuitWork;
+		attach(work);
 	}
 	for (ThreadObject thread : m_threads)
 	{
 		thread.join();
 	}
-	m_works.clear();
 	m_threads = nullptr;
 }
-kr::ThreadPool * kr::ThreadPool::getInstance() noexcept
+ThreadPoolKrImpl * ThreadPoolKrImpl::getInstance() noexcept
 {
-	static ThreadPool instance;
+	static ThreadPoolKrImpl instance;
 	return &instance;
 }
-int kr::ThreadPool::_thread() noexcept
+int ThreadPoolKrImpl::_thread() noexcept
 {
 	return dump_wrap([this] {
 		try
 		{
 			for (;;)
 			{
-				if (m_leftWorks != 0)
-				{
-					ThreadTask * work;
-					{
-						CsLock lock(m_cs);
-						if (m_works.empty()) continue;
-						work = m_works.detachFirst();
-					}
-					m_leftWorks--;
-					Must<ThreadTask> kill = work;
-					work->call();
-				}
-				else
-				{
-					m_event.wait();
-				}
+				process();
+				wait();
 			}
 		}
 		catch (QuitException & quit)
 		{
-			m_event.set();
+			wake();
 			return quit.exitCode;
 		}
 	});
+}
+
+ThreadPoolWinImpl* ThreadPoolWinImpl::getInstance() noexcept
+{
+	static ThreadPoolWinImpl instance;
+	return &instance;
+}
+void ThreadPoolWinImpl::attach(Task* work) noexcept
+{
+	if (!QueueUserWorkItem([](void* context) {
+			auto* work = (Task*)context;
+			work->call();
+			return (DWORD)0;
+		}, work, 0))
+	{
+		work->cancel();
+	}
+}
+
+ThreadPoolWinImpl::ThreadPoolWinImpl() noexcept
+{
+}
+ThreadPoolWinImpl::~ThreadPoolWinImpl() noexcept
+{
 }

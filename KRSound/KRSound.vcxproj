@@ -154,9 +154,6 @@
     <ProjectReference Include="..\KRTool\kcopy\kcopy.vcxproj">
       <Project>{748300f4-632c-4dfb-a64c-e70ea0cf53dc}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
-      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

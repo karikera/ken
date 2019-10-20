@@ -51,4 +51,6 @@ namespace kr
 	{
 		return _pri_::wide_tmp_type<T>::wide_tmp(str, sz);
 	}
+
+	const wchar_t * szlize(Text16 text, TText16* buffer) noexcept;
 }

@@ -4,8 +4,9 @@
 #include <KR3/initializer.h>
 
 Main::Main() noexcept
-	:WebCanvas2D(1024, 768)
+	:WebCanvas2D()
 {
+	create(1024, 768);
 }
 Main::~Main() noexcept
 {

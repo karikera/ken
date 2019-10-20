@@ -1,8 +1,8 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KRUtil/uts.h>
-#include <KRUtil/net/socket.h>
+#include <KR3/util/uts.h>
+#include <KR3/net/socket.h>
 #include <KR3/data/map.h>
 
 namespace kr

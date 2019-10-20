@@ -88,6 +88,11 @@ namespace kr
 	{
 		size_t beg, end;
 	};
+
+	enum class Axis
+	{
+		X,Y,Z,W
+	};
 }
 
 using std::nullptr_t;

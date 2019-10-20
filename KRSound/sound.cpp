@@ -2,9 +2,9 @@
 
 #define INITGUID
 #include "sound.h"
-#include <KRUtil/wl/com.h>
-#include <KRUtil/fs/file.h>
-#include <KRUtil/fs/path.h>
+#include <KR3/wl/com.h>
+#include <KR3/fs/file.h>
+#include <KR3/util/path.h>
 #include <KRWin/handle.h>
 #include <KRMessage/eventdispatcher.h>
 
@@ -13,9 +13,6 @@
 #include <dsound.h>
 
 #pragma comment(lib,"dsound.lib")
-#pragma comment(lib,"libogg_static.lib")
-#pragma comment(lib,"libvorbis_static.lib")
-#pragma comment(lib,"libvorbisfile_static.lib")
 
 using namespace kr;
 using namespace sound;

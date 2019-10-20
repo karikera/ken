@@ -72,7 +72,7 @@ bool EventPump::cancel(Timer * node) noexcept
 	node->m_prev = nullptr;
 	return true;
 }
-void EventPump::post(Timer * newnode) noexcept
+void EventPump::attach(Timer * newnode) noexcept
 {
 	// reline_new(newnode); // if timer is secondary parent, it make error
 
@@ -125,7 +125,7 @@ void EventPump::processOnce(View<EventProcedure> proc) throws(QuitException)
 		DWORD sleep = _processTimer(0);
 		DWORD cnt = intact<DWORD>(events.size());
 
-		dword index = MsgWaitForMultipleObjects(cnt, (HANDLE*)events.data(), false, 0, QS_ALLINPUT);
+		dword index = MsgWaitForMultipleObjectsEx(cnt, (HANDLE*)events.data(), 0, QS_ALLINPUT, MWMO_ALERTABLE);
 		if (index == WAIT_TIMEOUT) return;
 		_assert(index != WAIT_FAILED);
 		if (index == cnt)
@@ -191,7 +191,7 @@ Promise<void> * EventPump::promiseTo(timepoint at) noexcept
 		}
 	};
 	Prom * prom = _new Prom(at);
-	post(prom);
+	attach(prom);
 	return prom;
 }
 void EventPump::sleep(duration dura) throws(QuitException)
@@ -222,7 +222,7 @@ dword EventPump::wait(View<EventHandle *> events) throws(QuitException)
 	for (;;)
 	{
 		DWORD sleep = _processTimer(INFINITE);
-		dword index = MsgWaitForMultipleObjects(count, (HANDLE*)newevents.data(), false, sleep, QS_ALLINPUT);
+		dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 		_assert(index != WAIT_FAILED);
 		if (index != count - 1)
 		{
@@ -253,7 +253,7 @@ dword EventPump::wait(View<EventHandle *> events, duration time) throws(QuitExce
 	for (;;)
 	{
 		DWORD sleep = _processTimer(time.value());
-		dword index = MsgWaitForMultipleObjects(count, (HANDLE*)newevents.data(), false, sleep, QS_ALLINPUT);
+		dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 		_assert(index != WAIT_FAILED);
 		if (index != count - 1)
 		{
@@ -289,7 +289,7 @@ dword EventPump::waitTo(View<EventHandle *> events, timepoint timeto) throws(Qui
 	for (;;)
 	{
 		DWORD sleep = _processTimer(time.value());
-		dword index = MsgWaitForMultipleObjects(count, (HANDLE*)newevents.data(), false, sleep, QS_ALLINPUT);
+		dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 		_assert(index != WAIT_FAILED);
 		if (index != count - 1)
 		{
@@ -318,7 +318,7 @@ int EventPump::messageLoop() noexcept
 			for (;;)
 			{
 				DWORD sleep = _processTimer(INFINITE);
-				dword index = MsgWaitForMultipleObjects(1, (HANDLE*)&m_msgevent, false, sleep, QS_ALLINPUT);
+				dword index = MsgWaitForMultipleObjectsEx(1, (HANDLE*)&m_msgevent, sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 				_assert(index != WAIT_FAILED);
 				if (index == 1) _processMessage();
 			}
@@ -342,7 +342,7 @@ int EventPump::messageLoopWith(View<EventProcedure> proc) noexcept
 		{
 			DWORD sleep = _processTimer(INFINITE);
 			DWORD cnt = intact<DWORD>(events.size());
-			dword index = MsgWaitForMultipleObjects(cnt, (HANDLE*)events.data(), false, sleep, QS_ALLINPUT);
+			dword index = MsgWaitForMultipleObjectsEx(cnt, (HANDLE*)events.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 			_assert(index != WAIT_FAILED);
 			if (index == cnt)
 			{
@@ -373,7 +373,7 @@ dword EventPump::_tryProcess(EventHandle * const * events, dword count) throws(Q
 {
 	m_msgevent->reset();
 	_processTimer(0);
-	dword index = MsgWaitForMultipleObjects(count, (HANDLE*)events, false, 0, QS_ALLINPUT);
+	dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)events, 0, QS_ALLINPUT, MWMO_ALERTABLE);
 	_assert(index != WAIT_FAILED);
 	if (index != count - 1)
 	{
@@ -446,7 +446,7 @@ dword EventPump::_processTimer(dword maxSleep)
 			if (callTime > now)
 			{
 				_fireAfterProcess();
-				return tmin((dword)(callTime - now).value(), maxSleep);
+				return mint((dword)(callTime - now).value(), maxSleep);
 			}
 			m_start.m_next = node->m_next;
 		}
@@ -561,7 +561,7 @@ void EventThread::create() noexcept
 void EventThread::quit(int exitCode) noexcept
 {
 	if (!m_pump) return;
-	m_pump->postL([](void*) { throw QuitException(0); });
+	m_pump->post([](void*) { throw QuitException(0); });
 	m_pump->quit(exitCode);
 	m_thread->wait();
 	m_pump = nullptr;

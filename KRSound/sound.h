@@ -5,7 +5,7 @@
 #endif
 
 #include <KR3/main.h>
-#include <KRUtil/resloader.h>
+#include <KR3/util/resloader.h>
 
 struct IDirectSoundBuffer;
 struct IDirectSoundCaptureBuffer;

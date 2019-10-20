@@ -1,7 +1,7 @@
 #include <KR3/main.h>
-#include <KRUtil/fs/installer.h>
-#include <KRUtil/fs/file.h>
-#include <KRUtil/fs/path.h>
+#include <KR3/fs/installer.h>
+#include <KR3/fs/file.h>
+#include <KR3/util/path.h>
 #include <iostream>
 
 using namespace kr;
@@ -35,7 +35,7 @@ int CT_CDECL wmain(int argn, char16 ** args)
 	
 	if (File::isDirectory(src.data()))
 	{
-		if (argn >= 3)
+		if (argn >= 4)
 		{
 			Text16 regexp = unwrapQuot(args[3]);
 			Installer installer(dest, src, regexp);

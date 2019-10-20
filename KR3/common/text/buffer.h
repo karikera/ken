@@ -241,6 +241,31 @@ namespace kr
 				}
 			}
 		};
+		class NullPointerWrite :public Bufferable<NullPointerWrite, BufferInfo<AutoComponent, false, false, true>>
+		{
+		public:
+			inline NullPointerWrite(nullptr_t) noexcept
+			{
+			}
+
+			template <typename T>
+			inline size_t sizeAs() const noexcept
+			{
+				return 7;
+			}
+			template <typename T>
+			inline size_t copyTo(T* dest) const noexcept
+			{
+				*dest++ = 'n';
+				*dest++ = 'u';
+				*dest++ = 'l';
+				*dest++ = 'l';
+				*dest++ = 'p';
+				*dest++ = 't';
+				*dest++ = 'r';
+				return 7;
+			}
+		};
 
 		template <typename array_t>
 		using array_component_t = std::remove_const_t<std::remove_reference_t<decltype(**((array_t*)nullptr))>>;
@@ -272,13 +297,14 @@ namespace kr
 		>::value
 	>
 	{
-	};;
+	};
 	template <typename T, typename C> struct Bufferize<const T*, C> { using type = View<T>; };
 	template <typename T, typename C> struct Bufferize<T*, C> { using type = View<T>; };
 	template <typename C> struct Bufferize<const void*, C> { using type = NumberAddress; };
 	template <typename C> struct Bufferize<void*, C> { using type = NumberAddress; };
 	template <typename T, typename C, size_t sz> struct Bufferize<T[sz], C> { using type = View<T>; };
 	template <typename C> struct Bufferize<nullterm_t, C> { using type = nullterm_t; };
+	template <typename C> struct Bufferize<nullptr_t, C> { using type = _pri_::NullPointerWrite; };
 	template <typename C> struct Bufferize<bool, C> { using type = _pri_::BooleanWrite; };
 	template <typename C, typename _Traits, typename _Alloc> struct Bufferize<std::basic_string<C, _Traits, _Alloc>, C> { using type = kr::View<C>; };
 }

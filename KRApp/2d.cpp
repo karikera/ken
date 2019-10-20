@@ -220,6 +220,10 @@ void WebCanvas2D::_flush() noexcept
 WebCanvas2D::WebCanvas2D() noexcept
 {
 }
+WebCanvas2D::WebCanvas2D(int width, int height) noexcept
+{
+	create(width, height);
+}
 WebCanvas2D::~WebCanvas2D() noexcept
 {
 #ifdef __EMSCRIPTEN__

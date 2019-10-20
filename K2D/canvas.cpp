@@ -33,8 +33,8 @@ namespace
 	{
 		using namespace kr::math;
 		irectwh out;
-		out.width = tmin(rc.width, src.getWidth());
-		out.height = tmin(rc.height, src.getHeight());
+		out.width = mint(rc.width, src.getWidth());
+		out.height = mint(rc.height, src.getHeight());
 		out.x = rc.x;
 		out.y = rc.y;
 
@@ -42,12 +42,12 @@ namespace
 
 		c = dest.getWidth() - pt->x;
 		c2 = dest.getWidth() - out.x;
-		c = tmin(c, c2);
+		c = mint(c, c2);
 		if (out.width>c) out.width = c;
 
 		c = dest.getHeight() - pt->y;
 		c2 = dest.getHeight() - out.y;
-		c = tmin(c, c2);
+		c = mint(c, c2);
 		if (out.height>c) out.height = c;
 
 		if (pt->x<0)
@@ -244,14 +244,14 @@ void kr::image::MemCanvas<pf>::line(ivec2 pt1, ivec2 pt2) noexcept
 	if (pt1.x == pt2.x)
 	{
 		int len = abs(pt1.y - pt2.y) + 1;
-		pt1.y = tmin(pt1.y, pt2.y);
+		pt1.y = mint(pt1.y, pt2.y);
 		vLine(pt1, len);
 		return;
 	}
 	if (pt1.y == pt2.y)
 	{
 		int len = abs(pt1.x - pt2.x) + 1;
-		pt1.x = tmin(pt1.x, pt2.x);
+		pt1.x = mint(pt1.x, pt2.x);
 		hLine(pt1, len);
 		return;
 	}
@@ -269,7 +269,7 @@ void kr::image::MemCanvas<pf>::line(ivec2 pt1, ivec2 pt2) noexcept
 	int ToX = (pt2.x - pt1.x);
 	int ToY = (pt2.y - pt1.y);
 	int Len = abs(ToX), Len2 = abs(ToY);
-	Len = tmax(Len, Len2) + 1;
+	Len = maxt(Len, Len2) + 1;
 	ToX = (ToX << 16) / Len;
 	ToY = (ToY << 16) / Len;
 

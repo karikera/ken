@@ -384,6 +384,9 @@ namespace kr
 	// 참조하는 버퍼(읽기 전용), 근원이 사라지면 안된다.
 	using Buffer = View<void>;
 
+	// 참조하는 버퍼(읽기+쓰기), 근원이 사라지면 안된다.
+	using WBuffer = WView<void>;
+
 	// 할당된 버퍼, 복사시 메모리가 할당되어진다.
 	using ABuffer = Array<void>;
 
@@ -395,6 +398,15 @@ namespace kr
 
 	// 참조하는 UTF-32 텍스트(읽기 전용), 근원이 사라지면 안된다.
 	using Text32 = View<char32>;
+
+	// 참조하는 텍스트(읽기+쓰기), 근원이 사라지면 안된다.
+	using WText = WView<char>;
+
+	// 참조하는 UTF-16 텍스트(읽기+쓰기), 근원이 사라지면 안된다.
+	using WText16 = WView<char16>;
+
+	// 참조하는 UTF-32 텍스트(읽기+쓰기), 근원이 사라지면 안된다.
+	using WText32 = WView<char32>;
 
 	// 텍스트 라이터, char 배열등에 기록시킨다.
 	using Writer = ArrayWriter<char>;

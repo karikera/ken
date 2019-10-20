@@ -53,19 +53,6 @@ namespace kr
 		template <typename T, typename NEXT>
 		struct InitializeThis<T, true, NEXT>: NEXT
 		{
-			T _;
-
-			InitializeThis() noexcept
-			{
-			}
-			~InitializeThis() noexcept
-			{
-			}
-		};
-
-		template <typename T, typename NEXT>
-		struct InitializeThis<T, false, NEXT> : NEXT
-		{
 			InitializeThis() noexcept
 			{
 				new((T*)this) T;
@@ -73,6 +60,19 @@ namespace kr
 			~InitializeThis() noexcept
 			{
 				((T*)this)->~T();
+			}
+		};
+
+		template <typename T, typename NEXT>
+		struct InitializeThis<T, false, NEXT> : NEXT
+		{
+			T _;
+
+			InitializeThis() noexcept
+			{
+			}
+			~InitializeThis() noexcept
+			{
 			}
 		};
 
@@ -105,8 +105,7 @@ namespace kr
 #ifdef _CONSOLE
 #define main() __cdecl main() 
 #else
-struct HINSTANCE__;
-#define main() __stdcall wWinMain(HINSTANCE__*,HINSTANCE__*,wchar_t *,int)
+#define main() __stdcall wWinMain(_In_ HINSTANCE__*,_In_opt_ HINSTANCE__*,_In_ wchar_t *,_In_ int)
 #endif
 
 #else

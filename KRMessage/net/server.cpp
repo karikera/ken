@@ -6,7 +6,7 @@ EMPTY_SOURCE
 
 #else
 #include "server.h"
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 
 #include <KRMessage/msgloop.h>
 #include <winsock2.h>

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KRUtil/net/socket.h>
-#include <KRUtil/net/ipaddr.h>
+#include <KR3/net/socket.h>
+#include <KR3/net/ipaddr.h>
 #include <KR3/wl/eventhandle.h>
 #include "../promise.h"
 

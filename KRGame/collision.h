@@ -9,9 +9,9 @@ namespace kr
 	class Collision
 	{
 	public:
-		virtual bool setSlip(movable3 &move) noexcept = 0;
-		virtual bool setStick(movable3 &move) noexcept = 0;
-		virtual bool test(const movable3 &move) noexcept = 0;
+		virtual bool setSlip(line3 &move) noexcept = 0;
+		virtual bool setStick(line3 &move) noexcept = 0;
+		virtual bool test(const line3 &move) noexcept = 0;
 	};
 	class CollisionObject
 	{
@@ -24,9 +24,9 @@ namespace kr
 	class CollisionCube: public Collision
 	{
 	public:
-		bool setSlip(movable3 &move) noexcept override;
-		bool setStick(movable3 &move) noexcept override;
-		bool test(const movable3 &move) noexcept override;
+		bool setSlip(line3 &move) noexcept override;
+		bool setStick(line3 &move) noexcept override;
+		bool test(const line3 &move) noexcept override;
 	};
 	class CollisionMap
 	{
@@ -36,7 +36,7 @@ namespace kr
 
 	public:
 		CollisionMap() noexcept;
-		bool test(movable3 &move) noexcept;
+		bool test(line3 &move) noexcept;
 	};
 
 }

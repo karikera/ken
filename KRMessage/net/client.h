@@ -2,9 +2,9 @@
 
 #include <KR3/main.h>
 #include <KR3/io/selfbufferedstream.h>
-#include <KRUtil/net/socket.h>
-#include <KRUtil/bufferqueue.h>
-#include <KRUtil/serializer.h>
+#include <KR3/net/socket.h>
+#include <KR3/util/bufferqueue.h>
+#include <KR3/util/serializer.h>
 #include "wsevent.h"
 #include "../progressor.h"
 #include "../promise.h"
@@ -19,11 +19,11 @@ namespace kr
 
 		Client() noexcept;
 		Client(Socket* socket) noexcept;
-		Client(pcstr16 host, int port) noexcept;
+		Client(pcstr16 host, int port) throws(SocketException);
 		~Client() noexcept;
 		Client(const Client&) = delete;
 		Client& operator =(const Client&) = delete;
-		void connect(pcstr16 host, word port) noexcept;
+		void connect(pcstr16 host, word port) throws(SocketException);
 		Ipv4Address getIpAddress() noexcept;
 		void setSocket(Socket * socket) noexcept;
 		Socket * getSocket() noexcept;
@@ -47,7 +47,7 @@ namespace kr
 		template <typename T>
 		T serializeRead()  // EofException
 		{
-			Deserializer<SBISocketStream> szer = &m_stream;
+			Deserializer<SBISocketStream> szer = &m_receive;
 			T dest;
 			szer >> dest;
 			return dest;

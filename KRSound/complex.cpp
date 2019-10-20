@@ -75,6 +75,10 @@ complex& complex::operator /=(float other) noexcept
 	imag /= other;
 	return *this;
 }
+complex::operator float() const noexcept
+{
+	return length();
+}
 float complex::length() const noexcept
 {
 	return sqrtf(real * real + imag * imag);

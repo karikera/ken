@@ -4,9 +4,10 @@
 #include <KR3/data/idmap.h>
 #include <KRApp/2d.h>
 
+
 #ifndef __EMSCRIPTEN__
 #include "timertest.h"
-#include <KRUtil/fs/file.h>
+#include <KR3/fs/file.h>
 #endif
 
 #ifdef WIN32
@@ -75,7 +76,7 @@ class VoiceFilter
 public:
 	sound::SoundStreamer m_writer;
 	sound::STFTCapture m_capture;
-	sound::FFTW m_ifft;
+	sound::FFTW<complex, complex> m_ifft;
 
 	Array<complex> m_result;
 	ComplexSum m_complexSum;
@@ -95,7 +96,7 @@ public:
 		m_writer.create(1, secByte / 10);
 		m_writer.loop();
 		m_capture.create(samplingCount, STFT_DELTA_COUNT * sizeof(sample));
-		m_ifft.createInverse(samplingCount);
+		m_ifft.create_1d_inverse(samplingCount);
 
 		m_complexSum.create(samplingCount, STFT_DELTA_COUNT);
 	}
@@ -175,7 +176,7 @@ public:
 		try
 		{
 			m_ifft.put(m_result.data());
-			m_complexSum.add(m_ifft.fft());
+			m_complexSum.add(m_ifft.execute());
 			auto iter = m_complexSum.iterable().begin();
 
 			Sound::Locked locked = m_writer.lock(STFT_DELTA_COUNT * sizeof(sample));
@@ -183,7 +184,7 @@ public:
 			{
 				const complex * res = &*iter++;
 				int v = (int)(res->real);
-				dest = (sample)math::clamp(-0x7fff, v, 0x7fff);
+				dest = (sample)clampt(-0x7fff, v, 0x7fff);
 			}
 		}
 		catch (...)
@@ -281,8 +282,8 @@ public:
 	void onDraw() noexcept override
 	{
 		{
-			gl::ImageData image;
-			image.attach(gl::PixelFormat::ABGR8, m_image.data(), 4 * width, width, height);
+			image::ImageData image;
+			image.attach(PixelFormatABGR8, m_image.data(), 4 * width, width, height);
 
 			int linedrawed = 0;
 			size_t pitch = image.getPitch();
@@ -377,6 +378,7 @@ public:
 	{
 		lineWidth = 3.f;
 
+		clearRect(0, 0, 640, 640);
 		beginPath();
 		moveTo(0, 0);
 		lineTo(100, 100);
@@ -386,6 +388,11 @@ public:
 
 int main()
 {
+	using t = bufferize_t<int, char>;
+	meta::types<t> datas = { ((t)1) };
+
+	return 0;
+
 	MainWindow wnd;
 	main_loop(&wnd);
 	return 0;

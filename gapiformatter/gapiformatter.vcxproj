@@ -167,9 +167,6 @@
     <ProjectReference Include="..\KRTool\kcopy\kcopy.vcxproj">
       <Project>{748300f4-632c-4dfb-a64c-e70ea0cf53dc}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
-      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="test%24test.gapi" />

@@ -3,7 +3,7 @@
 #include <fstream>
 
 #include <KR3/main.h>
-#include <KRUtil/parser/langparser.h>
+#include <KR3/parser/langparser.h>
 
 #include "common.h"
 

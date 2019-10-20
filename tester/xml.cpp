@@ -3,8 +3,8 @@
 
 #ifdef WIN32
 
-#include <KRUtil/fs/file.h>
-#include <KRUtil/parser/parser.h>
+#include <KR3/fs/file.h>
+#include <KR3/parser/parser.h>
 
 namespace kr
 {

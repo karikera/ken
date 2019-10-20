@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "gdi.h"
-#include <KRUtil/bitmap.h>
+#include <KR3/util/bitmap.h>
 
 #include <KR3/wl/windows.h>
 

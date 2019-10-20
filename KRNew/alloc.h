@@ -8,7 +8,7 @@ namespace kr
 {
 	namespace _pri_
 	{
-		void * krmalloc(size_t size) noexcept;
+		ATTR_NONULL void * krmalloc(size_t size) noexcept;
 		void krfree(void * ptr) noexcept;
 	}
 }
@@ -49,11 +49,11 @@ namespace kr
 		getAllocatedPointer(parent), \
 		getAllocatedPointer(child)))
 
-ATTR_INLINE void * CT_CDECL operator new(size_t size, const char * file, int line) noexcept
+ATTR_INLINE ATTR_NONULL void * CT_CDECL operator new(size_t size, const char * file, int line) noexcept
 {
 	return ::kr::_pri_::reline_new_pass_impl(::kr::_pri_::krmalloc(size), file, line);
 }
-ATTR_INLINE void * CT_CDECL operator new[](size_t size, const char * file, int line) noexcept
+ATTR_INLINE ATTR_NONULL void * CT_CDECL operator new[](size_t size, const char * file, int line) noexcept
 {
 	return ::kr::_pri_::reline_new_pass_impl(::kr::_pri_::krmalloc(size), file, line);
 }

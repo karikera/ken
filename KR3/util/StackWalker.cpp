@@ -2,12 +2,13 @@
 #include "StackWalker.h"
 
 #include <stdio.h>
+#include <KR3/util/path.h>
 
 #ifdef WIN32
 
 #include <tchar.h>
 
-#include "../wl/windows.h"
+#include <KR3/wl/windows.h>
 
 #pragma comment(lib, "dbghelp.lib")
 
@@ -54,6 +55,7 @@ namespace
 		ver.dwOSVersionInfoSize = sizeof(ver);
 #pragma warning(push)
 #pragma warning(disable:4996)
+#pragma warning(disable:28159)
 		if (GetVersionExA((OSVERSIONINFOA*)&ver) != FALSE)
 #pragma warning(pop)
 		{
@@ -161,11 +163,11 @@ namespace
 	}
 
 #pragma region get module info
-	// show module info (SymGetModuleInfo64())
+	// show module info (SymGetModuleInfoW64())
 	//IMAGEHLP_MODULE64 Module;
 	//memset(&Module, 0, sizeof(Module));
 	//Module.SizeOfStruct = sizeof(Module);
-	//if (SymGetModuleInfo64(this->m_hProcess, s.AddrPC.Offset, &Module) != FALSE)
+	//if (SymGetModuleInfoW64(this->m_hProcess, s.AddrPC.Offset, &Module) != FALSE)
 	//{
 	//	csEntry.symTypeString = getSymTypeName(Module.SymType);
 	//	strcpy_s(csEntry.moduleName, Module.ModuleName);
@@ -174,7 +176,7 @@ namespace
 	//} // got module info OK
 	//else
 	//{
-	//	this->OnDbgHelpErr("SymGetModuleInfo64", GetLastError(), s.AddrPC.Offset);
+	//	this->OnDbgHelpErr("SymGetModuleInfoW64", GetLastError(), s.AddrPC.Offset);
 	//}
 #pragma endregion
 #pragma region get thread context
@@ -195,7 +197,7 @@ namespace
 	//info.szSymType = "-unknown-";
 	//IMAGEHLP_MODULE64 Module;
 	//fileVersion = getFileVersion(szImg);
-	//if (SymGetModuleInfo64(hProcess, baseAddr, &Module) != FALSE)
+	//if (SymGetModuleInfoW64(hProcess, baseAddr, &Module) != FALSE)
 	//{
 	//	info.szSymType = getSymTypeName(Module.SymType);
 	//	info.pdbName = Module.LoadedImageName;
@@ -237,15 +239,15 @@ bool kr::StackWalker::loadModules() noexcept
 	if (hSnap == INVALID_HANDLE_VALUE) return false;
 
 	ModuleInfo info;
-	MODULEENTRY32 me;
+	MODULEENTRY32W me;
 	me.dwSize = sizeof(me);
-	if (Module32First(hSnap, &me)) do
+	if (Module32FirstW(hSnap, &me)) do
 	{
-		if (SymLoadModule64(m_hProcess, 0, me.szExePath, me.szModule, (qword)me.modBaseAddr, me.modBaseSize) == 0) break;
-		info.name = me.szModule;
+		if (SymLoadModuleExW(m_hProcess, 0, me.szExePath, me.szModule, (qword)me.modBaseAddr, me.modBaseSize, nullptr, 0) == 0) break;
+		info.name = unwide(me.szModule);
 		onLoadModule(&info);
 	}
-	while (Module32Next(hSnap, &me));
+	while (Module32NextW(hSnap, &me));
 	CloseHandle(hSnap);
 	m_modulesLoaded = true;
 	return true;
@@ -303,7 +305,7 @@ bool kr::StackWalker::showCallstack() noexcept
 	StackInfo csEntry;
 	memset(&csEntry, 0, sizeof(csEntry));
 
-	IMAGEHLP_LINE64 Line;
+	IMAGEHLP_LINEW64 Line;
 	memset(&Line, 0, sizeof(Line));
 	Line.SizeOfStruct = sizeof(Line);
 
@@ -345,10 +347,10 @@ bool kr::StackWalker::showCallstack() noexcept
 		}
 
 		DWORD offsetFromLine;
-		if (SymGetLineFromAddr64(this->m_hProcess, s.AddrPC.Offset, &offsetFromLine, &Line) != FALSE)
+		if (SymGetLineFromAddrW64(this->m_hProcess, s.AddrPC.Offset, &offsetFromLine, &Line) != FALSE)
 		{
 			csEntry.line = Line.LineNumber;
-			csEntry.filename = Line.FileName;
+			csEntry.filename = unwide(Line.FileName);
 		}
 		else
 		{
@@ -404,9 +406,7 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 {
 	if (entry->filename == nullptr) return;
 
-	const char * filename = strrchr(entry->filename, '\\');
-	if (filename == nullptr) filename = entry->filename;
-	else filename++;
+	Text16 filename = path16.basename((Text16)entry->filename);
 
 	if (strcmp(entry->function, "kr::criticalError") == 0) return;
 	if (strcmp(entry->function, "kr::StackWalker::ShowCallstack") == 0) return;
@@ -415,13 +415,13 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 	if (strcmp(entry->function, "__scrt_common_main") == 0) return;
 	if (strcmp(entry->function, "mainCRTStartup") == 0) return;
 
-	TSZ buf;
-	buf << entry->filename << '(' << entry->line << "): " << entry->function << '\n';
+	TSZ16 buf;
+	buf << filename << u'(' << entry->line << u"): " << (Utf8ToUtf16)(Text)entry->function << u'\n';
 	onOutput(buf);
 }
-void kr::StackWalker::onDbgHelpErr(pcstr szFuncName, dword gle, qword addr) noexcept
+void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept
 {
-	TSZ buf;
-	buf << "ERROR: " << ", GetLastError: " << gle << " (Address: " << (void*)(uintptr_t)addr << ")\n";
+	TSZ16 buf;
+	buf << u"ERROR: " << (Utf8ToUtf16)(Text)function << u", GetLastError: " << gle << u" (Address: " << (void*)(uintptr_t)addr << u")\n";
 	onOutput(buf);
 }

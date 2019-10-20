@@ -115,6 +115,7 @@
     <ClInclude Include="hack.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="hook.h" />
     <ClInclude Include="printer.h" />
     <ClInclude Include="shell.h" />
     <ClInclude Include="stdafx.h" />
@@ -130,6 +131,7 @@
     <ClCompile Include="hack.cpp" />
     <ClCompile Include="handle.cpp" />
     <ClCompile Include="debug.cpp" />
+    <ClCompile Include="hook.cpp" />
     <ClCompile Include="printer.cpp" />
     <ClCompile Include="shell.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -150,9 +152,6 @@
     </ProjectReference>
     <ProjectReference Include="..\KRNew\KRNew.vcxproj">
       <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
-      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

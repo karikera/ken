@@ -4,7 +4,7 @@
 
 #include "../pool.h"
 
-#include <KRUtil/net/socket.h>
+#include <KR3/net/socket.h>
 #include <WinSock2.h>
 
 using namespace kr;
@@ -20,7 +20,7 @@ Client::Client(Socket * socket) noexcept
 	m_socket = socket;
 	m_event->select(socket, FNetworkEvent(true, true, true, true, false));
 }
-Client::Client(pcstr16 host, int port) noexcept
+Client::Client(pcstr16 host, int port) throws(SocketException)
 	:Client()
 {
 	connect(host, port);
@@ -29,7 +29,7 @@ Client::~Client() noexcept
 {
 	delete m_socket;
 }
-void Client::connect(pcstr16 host, word port) noexcept
+void Client::connect(pcstr16 host, word port) throws(SocketException)
 {
 	close();
 
@@ -217,7 +217,7 @@ Promise<void>* Client::download(Progressor * progressor, const char16 * filename
 
 #else
 
-#include <KRUtil/fs/file.h>
+#include <KR3/fs/file.h>
 
 Promise<void>* Client::download(Progressor * progressor, AText16 filename, size_t size) noexcept
 {
@@ -246,7 +246,7 @@ Promise<void>* Client::download(Progressor * progressor, AText16 filename, size_
 			TmpArray<char> buffer(TEMP_BUFFER);
 			while (sz != 0)
 			{
-				size_t r = m_socket->readImpl(buffer.data(), tmin((size_t)TEMP_BUFFER, sz));
+				size_t r = m_socket->readImpl(buffer.data(), mint((size_t)TEMP_BUFFER, sz));
 				if (r == 0) continue;
 
 				file->writeImpl(buffer.data(), r);

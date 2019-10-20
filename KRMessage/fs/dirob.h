@@ -2,7 +2,7 @@
 
 #include <KR3/main.h>
 #include <KR3/mt/thread.h>
-#include <KRUtil/fs/file.h>
+#include <KR3/fs/file.h>
 
 #include "../eventdispatcher.h"
 

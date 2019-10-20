@@ -8,7 +8,7 @@
 #endif
 
 #include "d2d.h"
-#include <KRUtil/wl/com.h>
+#include <KR3/wl/com.h>
 #include <KRWin/gdi.h>
 
 #include <KR3/wl/windows.h>
@@ -270,6 +270,8 @@ void ComMethod<IDCompositionDevice>::setContent(IDCompositionTarget * compTarget
 
 void ComMethod<ID2D1RenderTarget>::create(IDXGISurface * surface) throws(ErrorCode)
 {
+#pragma warning(push)
+#pragma warning(disable: 4996)
 	FLOAT dpiX;
 	FLOAT dpiY;
 #pragma warning(disable: 4996)
@@ -280,6 +282,7 @@ void ComMethod<ID2D1RenderTarget>::create(IDXGISurface * surface) throws(ErrorCo
 		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_IGNORE),
 		dpiX, dpiY
 	);
+#pragma warning(pop)
 
 	hrexcept(s_d2dFactory->CreateDxgiSurfaceRenderTarget(surface, &props, &ptr()));
 }

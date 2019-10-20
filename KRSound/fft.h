@@ -107,6 +107,19 @@ namespace kr
 			IT* getInput() noexcept;
 			template <typename T>
 			void put(const T* input, size_t stride, size_t destOffset, size_t count) noexcept;
+			template <>
+			void put<IT>(const IT* input, size_t stride, size_t destOffset, size_t count) noexcept
+			{
+				_assert(destOffset + count <= m_samplingCount);
+				IT * dest = (IT*)m_in + destOffset;
+				IT * destend = dest + count;
+				while (dest != destend)
+				{
+					*dest = *input;
+					(uint8_t * &)input += stride;
+					dest++;
+				}
+			}
 			template <typename T>
 			void put(const T* input) noexcept;
 		};
@@ -184,7 +197,11 @@ namespace kr
 			IT* destend = dest + count;
 			while (dest != destend)
 			{
-				if (std::is_floating_point_v<T>)
+				if (std::is_same_v<IT, T>)
+				{
+					*dest = (IT)*input;
+				}
+				else if (std::is_floating_point_v<T>)
 				{
 					*dest = (IT)((float)* input);
 				}

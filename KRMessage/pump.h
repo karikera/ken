@@ -63,18 +63,18 @@ namespace kr
 		bool cancel(Timer * node) noexcept;
 
 		// newnode는 내부에서 관리하게된다.
-		void post(Timer * newnode) noexcept;
+		void attach(Timer * newnode) noexcept;
 
 		template <typename LAMBDA>
-		void postL(LAMBDA lambda) noexcept
+		void post(LAMBDA lambda) noexcept
 		{
-			return post(Timer::create(timepoint::now(), move(lambda)));
+			return attach(Timer::create(timepoint::now(), move(lambda)));
 		}
 
 		template <typename LAMBDA>
-		void postL(timepoint at, LAMBDA lambda) noexcept
+		void post(timepoint at, LAMBDA lambda) noexcept
 		{
-			return post(Timer::create(at, move(lambda)));
+			return attach(Timer::create(at, move(lambda)));
 		}
 
 		template <typename LAMBDA>
@@ -82,7 +82,7 @@ namespace kr
 		{
 			Timer * node = Timer::create(at, move(lambda));
 			node->AddRef();
-			if (post(node))
+			if (attach(node))
 			{
 				return node;
 			}
@@ -91,9 +91,9 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		void postL(duration wait, LAMBDA lambda) noexcept
+		void post(duration wait, LAMBDA lambda) noexcept
 		{
-			return postL(timepoint::now() + wait, move(lambda));
+			return post(timepoint::now() + wait, move(lambda));
 		}
 
 		template <typename LAMBDA>

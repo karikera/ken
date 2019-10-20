@@ -42,7 +42,7 @@ void emscripten_set_main_loop(void(*func)(), int fps, int simulate_infinite_loop
 		}
 		do
 		{
-			if (MsgWaitForMultipleObjects(0, NULL, FALSE, wait, QS_ALLEVENTS) != WAIT_OBJECT_0)
+			if (MsgWaitForMultipleObjectsEx(0, NULL, wait, QS_ALLEVENTS, MWMO_ALERTABLE) != WAIT_OBJECT_0)
 				break;
 			if (!GetMessage(&msg, nullptr, 0, 0)) return;
 			TranslateMessage(&msg);

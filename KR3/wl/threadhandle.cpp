@@ -93,6 +93,10 @@ void kr::ThreadHandle::suspend() noexcept
 {
 	SuspendThread(this);
 }
+void kr::ThreadHandle::resume() noexcept
+{
+	ResumeThread(this);
+}
 void kr::ThreadHandle::terminate() noexcept
 {
 	TerminateThread(this, -1);
@@ -124,6 +128,13 @@ void kr::ThreadHandle::setPriority(ThreadPriority priority) noexcept
 	case kr::ThreadPriority::Highest: SetThreadPriority(this, THREAD_PRIORITY_HIGHEST); break;
 	default: _assert(!"invalid parameter");
 	}
+}
+void kr::ThreadHandle::attach(Task * task) noexcept
+{
+	QueueUserAPC([](ULONG_PTR data) {
+		auto * task = (Task*)data;
+		task->call();
+		}, this, (ULONG_PTR)task);
 }
 kr::ThreadHandle * kr::ThreadHandle::getCurrent() noexcept
 {

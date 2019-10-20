@@ -107,6 +107,7 @@
     <ClCompile Include="fslpolicy.cpp" />
     <ClCompile Include="Http.cpp" />
     <ClCompile Include="httpd.cpp" />
+    <ClCompile Include="wsclient.cpp" />
     <ClCompile Include="wspage.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -114,7 +115,7 @@
     <ClInclude Include="http.h" />
     <ClInclude Include="httpd.h" />
     <ClInclude Include="common\header.h" />
-    <ClInclude Include="ws\client.h" />
+    <ClInclude Include="wsclient.h" />
     <ClInclude Include="wspage.h" />
   </ItemGroup>
   <ItemGroup>
@@ -124,9 +125,9 @@
     <ProjectReference Include="..\KRMessage\KRMessage.vcxproj">
       <Project>{93820a74-de22-4f69-83a8-0b848f7d798f}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRUtil\KRUtil.vcxproj">
-      <Project>{b169b80d-383d-4324-abfa-b71c289bf4c1}</Project>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

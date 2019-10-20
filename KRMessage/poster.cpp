@@ -25,12 +25,12 @@ PostTarget * PostTarget::getCurrent() noexcept
 	return nullptr;
 #endif
 }
-bool PostTarget::post(Posted * data) noexcept
+bool PostTarget::attach(Posted * data) noexcept
 {
 #ifdef WIN32
 	if (data->isPosted()) return false;
 	data->m_at = timepoint::now();
-	((EventPump*)this)->post(data);
+	((EventPump*)this)->attach(data);
 	return true;
 #elif defined(__EMSCRIPTEN__)
 	return false;

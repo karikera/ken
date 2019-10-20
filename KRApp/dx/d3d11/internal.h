@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KRUtil/wl/com.h>
+#include <KR3/wl/com.h>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <d3d11.h>

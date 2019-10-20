@@ -157,7 +157,7 @@ namespace kr
 			inline Ref read(size_t _len) throws(EofException)
 			{
 				if (size() == 0) throw EofException();
-				_len = tmin(_len, size());
+				_len = mint(_len, size());
 				Ref out(begin(), _len);
 				derived()->addBegin(_len);
 				return out;
@@ -207,6 +207,10 @@ namespace kr
 				return _idx == nullptr ? (Ref)readAll() : _readto_p(_idx, _skip);
 			}
 
+			inline Ref readto(const InternalComponent&_needle) noexcept
+			{
+				return readto_p(find(_needle));
+			}
 			inline Ref readto(Ref _needle) noexcept
 			{
 				return readto_p(find(_needle));

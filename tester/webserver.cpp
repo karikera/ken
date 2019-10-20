@@ -2,7 +2,7 @@
 #include <KR3/main.h>
 #include <KR3/initializer.h>
 
-#include <KRUtil/fs/path.h>
+#include <KR3/util/path.h>
 
 #ifdef WIN32
 
@@ -11,11 +11,11 @@
 
 using namespace kr;
 
-class MyClient : public WebSocketClient
+class MyClient : public WebSocketSession
 {
 public:
 	MyClient(Socket * args) noexcept
-		: WebSocketClient(args)
+		: WebSocketSession(args)
 	{
 	}
 	void onData(WSStream & stream) override
@@ -29,7 +29,7 @@ public:
 class MyPage :public WebSocketPage
 {
 public:
-	WebSocketClient * onAccept(Socket * args) override
+	WebSocketSession * onAccept(Socket * args) override
 	{
 		return new MyClient(args);
 	}

@@ -2,7 +2,7 @@
 
 #include <KR3/main.h>
 #include <KR3/math/coord.h>
-#include <KRUtil/resloader.h>
+#include <KR3/util/resloader.h>
 #include "common.h"
 
 class kr::image::Palette :public kr::Bufferable<Palette, kr::BufferInfo<color, true, false, false, krb_image_palette_t> >

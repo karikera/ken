@@ -54,11 +54,11 @@ namespace kr
 	public:
 		PostTarget() = delete;
 		static PostTarget * getCurrent() noexcept;
-		bool post(Posted * data) noexcept;
+		bool attach(Posted * data) noexcept;
 		template <typename LAMBDA>
-		bool postL(LAMBDA && lambda) noexcept
+		bool post(LAMBDA && lambda) noexcept
 		{
-			return post(Posted::create(forward<LAMBDA>(lambda)));
+			return attach(Posted::create(forward<LAMBDA>(lambda)));
 		}
 	};
 }

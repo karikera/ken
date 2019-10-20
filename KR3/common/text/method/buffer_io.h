@@ -183,7 +183,7 @@ namespace kr
 				}
 				void cut_self(size_t _len) noexcept
 				{
-					_len = tmin(_len, size());
+					_len = mint(_len, size());
 					_resize(_len);
 				}
 

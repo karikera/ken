@@ -6,14 +6,14 @@ namespace kr
 {
 	struct ModuleInfo
 	{
-		const char * name;
+		pcstr16 name;
 	};
 
 	struct StackInfo
 	{
 		void * address;
-		const char * filename;
-		const char * function;
+		pcstr16 filename;
+		pcstr function;
 		unsigned int line;
 	};
 
@@ -29,8 +29,8 @@ namespace kr
 	protected:
 		virtual void onLoadModule(ModuleInfo * info) noexcept;
 		virtual void onStack(StackInfo * entry) noexcept;
-		virtual void onDbgHelpErr(pcstr szFuncName, dword gle, qword addr) noexcept;
-		virtual void onOutput(pcstr szText) noexcept = 0;
+		virtual void onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept;
+		virtual void onOutput(Text16 szText) noexcept = 0;
 
 #ifdef WIN32
 		void* m_hProcess;

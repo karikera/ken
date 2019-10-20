@@ -175,7 +175,7 @@ namespace kr
 			}
 			Ref cut(size_t _len) const noexcept
 			{
-				return cut(tmin((InternalComponentRef*)begin() + _len, (InternalComponentRef*)end()));
+				return cut(mint((InternalComponentRef*)begin() + _len, (InternalComponentRef*)end()));
 			}
 
 			Ref subarr(size_t _left, size_t _count) const noexcept
@@ -1022,7 +1022,7 @@ namespace kr
 			}
 			WRef cut(size_t _len) noexcept
 			{
-				return cut(tmin(begin() + _len, end()));
+				return cut(mint(begin() + _len, end()));
 			}
 			WRef subarr(size_t _left, size_t _count) noexcept
 			{
@@ -1065,17 +1065,17 @@ namespace kr
 				memset(data(), 0, sizeBytes());
 			}
 
-			void subfill(const InternalComponent &chr, size_t sz, size_t offset) noexcept
+			void subfill(const InternalComponent& chr, size_t sz, size_t offset) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_fill(begin() + offset, chr, sz);
+				mema::subs_fill((InternalComponent*)begin() + offset, chr, sz);
 			}
-			void subcopy(const InternalComponent* arr, size_t sz, size_t offset = 0) noexcept
+			void subcopy(const Component* arr, size_t sz, size_t offset = 0) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_copy(begin() + offset, arr, sz);
+				mema::subs_copy((InternalComponent*)begin() + offset, (InternalComponent*)arr, sz);
 			}
-			void subcopy(View<InternalComponent> arr, size_t offset = 0) noexcept
+			void subcopy(View<Component> arr, size_t offset = 0) noexcept
 			{
 				subcopy(arr.begin(), arr.size(), offset);
 			}

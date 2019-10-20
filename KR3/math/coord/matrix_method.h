@@ -189,6 +189,8 @@ namespace kr
 			using super::_43;
 			using super::_44;
 
+			template <Axis axis>
+			ATTR_INLINE const vector<T, 4, aligned> get() const noexcept;
 			ATTR_INLINE const vector<T, 4, aligned> getX() const noexcept;
 			ATTR_INLINE const vector<T, 4, aligned> getY() const noexcept;
 			ATTR_INLINE const vector<T, 4, aligned> getZ() const noexcept;
