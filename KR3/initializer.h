@@ -53,19 +53,6 @@ namespace kr
 		template <typename T, typename NEXT>
 		struct InitializeThis<T, true, NEXT>: NEXT
 		{
-			T _;
-
-			InitializeThis() noexcept
-			{
-			}
-			~InitializeThis() noexcept
-			{
-			}
-		};
-
-		template <typename T, typename NEXT>
-		struct InitializeThis<T, false, NEXT> : NEXT
-		{
 			InitializeThis() noexcept
 			{
 				new((T*)this) T;
@@ -73,6 +60,19 @@ namespace kr
 			~InitializeThis() noexcept
 			{
 				((T*)this)->~T();
+			}
+		};
+
+		template <typename T, typename NEXT>
+		struct InitializeThis<T, false, NEXT> : NEXT
+		{
+			T _;
+
+			InitializeThis() noexcept
+			{
+			}
+			~InitializeThis() noexcept
+			{
 			}
 		};
 

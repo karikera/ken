@@ -22,7 +22,6 @@
     <ProjectGuid>{748300F4-632C-4DFB-A64C-E70EA0CF53DC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>xcopy</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

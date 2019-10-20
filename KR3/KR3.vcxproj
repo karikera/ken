@@ -30,7 +30,6 @@
     <ProjectGuid>{F5212E7B-4791-4488-A23A-57AF3023E7D3}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KR3</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -96,24 +95,6 @@
     <ClInclude Include="fs\file.h" />
     <ClInclude Include="fs\installer.h" />
     <ClInclude Include="fs\jsonconfig.h" />
-    <ClInclude Include="js\arguments.h" />
-    <ClInclude Include="js\cast.h" />
-    <ClInclude Include="js\class.h" />
-    <ClInclude Include="js\context.h" />
-    <ClInclude Include="js\exception.h" />
-    <ClInclude Include="js\external.h" />
-    <ClInclude Include="js\function.h" />
-    <ClInclude Include="js\lambda.h" />
-    <ClInclude Include="js\meta.h" />
-    <ClInclude Include="js\news.h" />
-    <ClInclude Include="js\object.h" />
-    <ClInclude Include="js\persistent.h" />
-    <ClInclude Include="js\propertyid.h" />
-    <ClInclude Include="js\rawdata.h" />
-    <ClInclude Include="js\string.h" />
-    <ClInclude Include="js\type.h" />
-    <ClInclude Include="js\undefined.h" />
-    <ClInclude Include="js\value.h" />
     <ClInclude Include="mt\task.h" />
     <ClInclude Include="mt\taskqueue.h" />
     <ClInclude Include="net\ipaddr.h" />
@@ -188,7 +169,6 @@
     <ClInclude Include="math\interpolation.h" />
     <ClInclude Include="meta\retype.h" />
     <ClInclude Include="util\httpstatus.h" />
-    <ClInclude Include="js\js.h" />
     <ClInclude Include="util\lister.h" />
     <ClInclude Include="util\logger.h" />
     <ClInclude Include="util\namedenum.h" />
@@ -311,19 +291,6 @@
     <ClCompile Include="fs\file.cpp" />
     <ClCompile Include="fs\installer.cpp" />
     <ClCompile Include="fs\jsonconfig.cpp" />
-    <ClCompile Include="js\arguments.cpp" />
-    <ClCompile Include="js\cast.cpp" />
-    <ClCompile Include="js\chakra.cpp" />
-    <ClCompile Include="js\class.cpp" />
-    <ClCompile Include="js\context.cpp" />
-    <ClCompile Include="js\external.cpp" />
-    <ClCompile Include="js\function.cpp" />
-    <ClCompile Include="js\news.cpp" />
-    <ClCompile Include="js\object.cpp" />
-    <ClCompile Include="js\persistent.cpp" />
-    <ClCompile Include="js\rawdata.cpp" />
-    <ClCompile Include="js\string.cpp" />
-    <ClCompile Include="js\value.cpp" />
     <ClCompile Include="math\coord.cpp" />
     <ClCompile Include="math\geom.cpp" />
     <ClCompile Include="mt\task.cpp" />
@@ -383,8 +350,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="data\idmap.inl" />
-    <None Include="js\class.inl" />
-    <None Include="js\meta.inl" />
     <None Include="math\coord\matrix_method.inl" />
     <None Include="math\coord\matrix_data.inl" />
     <None Include="math\coord\vector.inl" />

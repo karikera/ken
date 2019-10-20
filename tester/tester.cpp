@@ -7,14 +7,8 @@
 
 #ifndef __EMSCRIPTEN__
 #include "timertest.h"
-#include <KRUtil/fs/file.h>
+#include <KR3/fs/file.h>
 #endif
-
-#include <KR3/data/crypt.h>
-#include <openssl/evp.h>
-#include <openssl/x509.h>
-#pragma comment(lib, "openssl.lib")
-#pragma comment(lib, "libcrypto.lib")
 
 #ifdef WIN32
 
@@ -394,79 +388,8 @@ public:
 
 int main()
 {
-	OPENSSL_add_all_algorithms_noconf();
-	OpenSSL_add_all_digests();
-	ERR_load_EVP_strings();
-	ERR_load_CRYPTO_strings();
-	ERR_load_PKCS7_strings();
-
-	std::string pubkey, privkey;
-
-	{
-		EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new_id(0x198, nullptr);
-		int ecKeyType = 0x2CB;
-		EVP_PKEY_paramgen_init(ctx);
-		EVP_PKEY_CTX_ctrl(ctx, 0x198, 6, 0x1001, ecKeyType, 0);
-		EVP_PKEY* pkey = nullptr;
-		EVP_PKEY_paramgen(ctx, &pkey);
-		EVP_PKEY_CTX* pkey_ctx = EVP_PKEY_CTX_new(pkey, nullptr);
-		EVP_PKEY_keygen_init(pkey_ctx);
-		EVP_PKEY* keygen = nullptr;
-		EVP_PKEY_keygen(pkey_ctx, &keygen);
-		ec_key_st* res = EVP_PKEY_get1_EC_KEY(keygen);
-		EC_KEY_set_asn1_flag(res, 1);
-		{
-			int length = i2d_EC_PUBKEY(res, 0);
-			pubkey.resize(length);
-			byte* dest = (byte*)pubkey.data();
-			i2d_EC_PUBKEY(res, &dest);
-		}
-		{
-			int length = i2d_PrivateKey(keygen, 0);
-			privkey.resize(length);
-			byte* dest = (byte*)privkey.data();
-			i2d_PrivateKey(keygen, &dest);
-		}
-		EC_KEY_free(res);
-		EVP_PKEY_free(keygen);
-		EVP_PKEY_CTX_free(pkey_ctx);
-		EVP_PKEY_free(pkey);
-		EVP_PKEY_CTX_free(ctx);
-	}
-
-	
-	AText idpubkey = (encoder::Base64::Decoder)Text("MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEoV9liUXaZuGgj6f/sUlv1XQALCPGPvhW9YHq3xA+SpSyVDfq9T6qSgSfvm/fV66GgKBIENSQ2g3pPDbJPIfUFkUfhzeb41ZzzcPVFgohj5HiuvAJN8+WtPO1HJLecCtY");
-
-	const uint8_t* pp = (uint8_t*)privkey.data();
-	EVP_PKEY* apkey = d2i_AutoPrivateKey(nullptr, &pp, (long)privkey.size());
-
-	pp = (uint8_t*)idpubkey.data();
-	EVP_PKEY * pkey = d2i_PUBKEY(nullptr, &pp, (long)idpubkey.size());
-
-	EVP_PKEY_CTX * ekey = EVP_PKEY_CTX_new(apkey, nullptr);
-	EVP_PKEY_derive_init(ekey);
-	EVP_PKEY_derive_set_peer(ekey, pkey);
-	size_t keylen = 0;
-	EVP_PKEY_derive(ekey, nullptr, &keylen);
-
-	AText secretKey;
-	secretKey.resize(keylen);
-	EVP_PKEY_derive(ekey, (byte*)secretKey.data(), &keylen);
-
-	EVP_PKEY_CTX_free(ekey);
-	EVP_PKEY_free(apkey);
-	EVP_PKEY_free(pkey);
-
-	{
-		//const char* name = OBJ_nid2sn(0x2A0); // "SHA256"
-		//const EVP_MD* type = EVP_get_digestbyname(name);
-		//EVP_MD_CTX* ctx = EVP_MD_CTX_create();
-		//EVP_DigestInit_ex(ctx, type, nullptr);
-		//EVP_DigestUpdate(ctx, input, input_len);
-		//EVP_DigestFinal(ctx, output, output_len);
-	}
-
-
+	using t = bufferize_t<int, char>;
+	meta::types<t> datas = { ((t)1) };
 
 	return 0;
 

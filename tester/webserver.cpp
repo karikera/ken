@@ -2,7 +2,7 @@
 #include <KR3/main.h>
 #include <KR3/initializer.h>
 
-#include <KRUtil/fs/path.h>
+#include <KR3/util/path.h>
 
 #ifdef WIN32
 

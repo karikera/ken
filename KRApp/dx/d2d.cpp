@@ -29,6 +29,7 @@
 #include "d3d11/texture.h"
 
 #pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "dwrite.lib")
 #pragma comment(lib, "dcomp.lib")
 #pragma comment(lib, "Windowscodecs.lib")
@@ -273,6 +274,7 @@ void ComMethod<ID2D1RenderTarget>::create(IDXGISurface * surface) throws(ErrorCo
 #pragma warning(disable: 4996)
 	FLOAT dpiX;
 	FLOAT dpiY;
+#pragma warning(disable: 4996)
 	s_d2dFactory->GetDesktopDpi(&dpiX, &dpiY);
 
 	D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
