@@ -2,6 +2,7 @@
 #include "cast.h"
 #include "rawdata.h"
 #include "news.h"
+#include "object.h"
 
 using namespace kr;
 
@@ -26,6 +27,10 @@ Text16 _pri_::JsCast::toInner(const AText16& _value) noexcept
 {
 	return _value;
 }
+Text16 _pri_::JsCast::toInner(const TText16& _value) noexcept
+{
+	return _value;
+}
 JsRawData _pri_::JsCast::toInner(JsNewObject_t) noexcept
 {
 	return (JsRawData)JsNewObject;
@@ -45,4 +50,8 @@ JsRawData _pri_::JsCast::toInner(JsNewTypedArray arr) noexcept
 JsRawData _pri_::JsCast::toInner(const JsPersistent& value) noexcept
 {
 	return (JsRawData)value;
+}
+JsRawData _pri_::JsCast::toInner(JsObject* object) noexcept
+{
+	return *object;
 }

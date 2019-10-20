@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <stdlib.h>
 
-constexpr int MINIMUM_MESSAGE_PROCESS_COUNT = 20;
+constexpr int MINIMUM_MESSAGE_PROCESS_COUNT = 10;
 
 void emscripten_set_main_loop(void(*func)(), int fps, int simulate_infinite_loop)
 {
@@ -37,19 +37,24 @@ void emscripten_set_main_loop(void(*func)(), int fps, int simulate_infinite_loop
 		long wait = next - now;
 		if (wait <= 0)
 		{
+			for (int i = 0; i < MINIMUM_MESSAGE_PROCESS_COUNT; i++)
+			{
+				if (SleepEx(0, true) != WAIT_IO_COMPLETION) break;
+			}
 			next = now;
 			continue;
 		}
-		do
+		for (;;)
 		{
-			if (MsgWaitForMultipleObjectsEx(0, NULL, wait, QS_ALLEVENTS, MWMO_ALERTABLE) != WAIT_OBJECT_0)
-				break;
+			DWORD res = MsgWaitForMultipleObjectsEx(0, NULL, wait, QS_ALLEVENTS, MWMO_ALERTABLE);
+			if (res == WAIT_IO_COMPLETION) continue;
+			if (res != WAIT_OBJECT_0) continue;
 			if (!GetMessage(&msg, nullptr, 0, 0)) return;
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 			wait = next - now;
+			if (wait <= 0) break;
 		}
-		while (wait > 0);
 	}
 }
 

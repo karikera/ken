@@ -1017,6 +1017,7 @@ win::Process::Pair win::Process::execute(pstr16 strCommand, pcstr16 strPath, Pro
 	DWORD flags = 0;
 	if (opts.suspended()) flags |= CREATE_SUSPENDED;
 	if (opts.console()) flags |= CREATE_NEW_CONSOLE;
+	if (opts.detached()) flags |= DETACHED_PROCESS;
 	if (!CreateProcessW(nullptr, wide(strCommand), nullptr, nullptr, false, flags, nullptr, wide(strPath), &si, &pi))
 	{
 		return { nullptr, nullptr };

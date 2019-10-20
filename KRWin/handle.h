@@ -43,6 +43,7 @@ namespace kr
 	{
 		OPTIONS_BEGIN(ProcessOptions)
 		OPTION(bool, console)
+		OPTION(bool, detached)
 		OPTION(bool, suspended)
 		OPTIONS_END()
 

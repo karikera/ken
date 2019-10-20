@@ -14,8 +14,11 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)ksign.bat" />
     <None Include="$(MSBuildThisFileDirectory)mkdir.bat" />
     <None Include="$(MSBuildThisFileDirectory)strlen.bat" />
+    <None Include="$(MSBuildThisFileDirectory)unzip.bat" />
     <None Include="$(MSBuildThisFileDirectory)waitfile.bat" />
+    <None Include="$(MSBuildThisFileDirectory)zip.bat" />
   </ItemGroup>
 </Project>

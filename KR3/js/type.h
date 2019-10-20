@@ -27,6 +27,7 @@ namespace kr
 
 	using std::nullptr_t;
 
+	class JsScope;
 	class JsRawData;
 	class JsPersistent;
 	class JsValue;

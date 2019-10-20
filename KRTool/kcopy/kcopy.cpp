@@ -23,12 +23,7 @@ int CT_CDECL wmain(int argn, char16 ** args)
 		cerr << "Need more parameters." << endl;
 		return EINVAL;
 	}
-
-	{
-		std::locale kor("korean");
-		std::wcout.imbue(kor);
-		std::wcerr.imbue(kor);
-	}
+	setlocale(LC_ALL, nullptr);
 
 	Text16 src = unwrapQuot(args[1]);
 	Text16 dest = unwrapQuot(args[2]);

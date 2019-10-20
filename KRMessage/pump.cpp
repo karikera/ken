@@ -222,54 +222,25 @@ dword EventPump::wait(View<EventHandle *> events) throws(QuitException)
 	for (;;)
 	{
 		DWORD sleep = _processTimer(INFINITE);
-		dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
+		dword index = MsgWaitForMultipleObjectsEx (count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 		_assert(index != WAIT_FAILED);
-		if (index != count - 1)
+		if (index == WAIT_IO_COMPLETION) continue;
+		if (index != WAIT_OBJECT_0 + count - 1)
 		{
-			if (index == count)
+			if (index == WAIT_OBJECT_0 + count)
 			{
 				_processMessage();
 			}
 			else
 			{
-				return index;
+				return index - WAIT_OBJECT_0;
 			}
 		}
 	}
 }
 dword EventPump::wait(View<EventHandle *> events, duration time) throws(QuitException)
 {
-	_assert(events.size() < MAXIMUM_WAIT);
-
-	TmpArray<EventHandle*> newevents = _makeEventArray(events);
-	dword count = intact<DWORD>(newevents.size());
-	if (time <= (duration)0)
-	{
-		return _tryProcess(newevents.begin(), count);
-	}
-
-	timepoint timeto = timepoint::now() + time;
-
-	for (;;)
-	{
-		DWORD sleep = _processTimer(time.value());
-		dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
-		_assert(index != WAIT_FAILED);
-		if (index != count - 1)
-		{
-			if (index == count)
-			{
-				_processMessage();
-			}
-			else
-			{
-				return index;
-			}
-		}
-		time = timeto - timepoint::now();
-		if (time <= (duration)0)
-			return WAIT_TIMEOUT;
-	}
+	return waitTo(events, timepoint::now() + time);
 }
 dword EventPump::waitTo(View<EventHandle *> events, timepoint timeto) throws(QuitException)
 {
@@ -285,21 +256,20 @@ dword EventPump::waitTo(View<EventHandle *> events, timepoint timeto) throws(Qui
 		return _tryProcess(newevents.begin(), count);
 	}
 
-
 	for (;;)
 	{
 		DWORD sleep = _processTimer(time.value());
 		dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 		_assert(index != WAIT_FAILED);
-		if (index != count - 1)
+		if (index != WAIT_IO_COMPLETION && index != WAIT_OBJECT_0 + count - 1)
 		{
-			if (index == count)
+			if (index == WAIT_OBJECT_0 + count)
 			{
 				_processMessage();
 			}
 			else
 			{
-				return index;
+				return index - WAIT_OBJECT_0;
 			}
 		}
 		time = timeto - timepoint::now();
@@ -320,7 +290,7 @@ int EventPump::messageLoop() noexcept
 				DWORD sleep = _processTimer(INFINITE);
 				dword index = MsgWaitForMultipleObjectsEx(1, (HANDLE*)&m_msgevent, sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 				_assert(index != WAIT_FAILED);
-				if (index == 1) _processMessage();
+				if (index == WAIT_OBJECT_0 + 1) _processMessage();
 			}
 		}
 	}
@@ -344,11 +314,15 @@ int EventPump::messageLoopWith(View<EventProcedure> proc) noexcept
 			DWORD cnt = intact<DWORD>(events.size());
 			dword index = MsgWaitForMultipleObjectsEx(cnt, (HANDLE*)events.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 			_assert(index != WAIT_FAILED);
-			if (index == cnt)
+			if (index == WAIT_IO_COMPLETION)
+			{
+				continue;
+			}
+			else if (index == WAIT_OBJECT_0 + cnt)
 			{
 				_processMessage();
 			}
-			else if (index < cnt - 1)
+			else if (index < WAIT_OBJECT_0 + cnt - 1)
 			{
 				const EventProcedure& p = proc[index];
 				p.callback(p.param);
@@ -373,18 +347,24 @@ dword EventPump::_tryProcess(EventHandle * const * events, dword count) throws(Q
 {
 	m_msgevent->reset();
 	_processTimer(0);
-	dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)events, 0, QS_ALLINPUT, MWMO_ALERTABLE);
-	_assert(index != WAIT_FAILED);
-	if (index != count - 1)
+	dword index;
+	for (int i = 0; i < 4; i++)
 	{
-		if (index == count)
+		index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)events, 0, QS_ALLINPUT, MWMO_ALERTABLE);
+		_assert(index != WAIT_FAILED);
+		if (index == WAIT_IO_COMPLETION) continue;
+		if (index != count - 1)
 		{
-			_processMessage();
+			if (index == count)
+			{
+				_processMessage();
+			}
+			else
+			{
+				return index;
+			}
 		}
-		else
-		{
-			return index;
-		}
+		break;
 	}
 	return WAIT_TIMEOUT;
 }

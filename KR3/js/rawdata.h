@@ -12,6 +12,9 @@ namespace kr
 		friend JsContext;
 		friend JsClass;
 		friend JsPersistent;
+		friend JsScope;
+		friend JsRuntime;
+		friend JsException;
 	public:
 		~JsRawData() noexcept;
 		JsRawData(const JsRawData& data) noexcept;
@@ -20,7 +23,7 @@ namespace kr
 		JsRawData& operator =(JsRawData&& data) noexcept;
 		JsRawData(Text text, Charset cs) noexcept;
 		KRJS_EXPORT JsRawData() noexcept;
-		KRJS_EXPORT explicit JsRawData(const JsPersistent &data) noexcept;
+		KRJS_EXPORT explicit JsRawData(const JsPersistent& data) noexcept;
 		KRJS_EXPORT explicit JsRawData(Text16 text) noexcept;
 		KRJS_EXPORT explicit JsRawData(const JsRawDataValue& data) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsRawDataValue&& data) noexcept;
@@ -45,7 +48,7 @@ namespace kr
 		KRJS_EXPORT WBuffer getDataViewBuffer() const noexcept;
 		KRJS_EXPORT WBuffer getTypedArrayBuffer(JsTypedArrayType * type) const noexcept;
 		WBuffer getTypedArrayBuffer() const noexcept;
-		KRJS_EXPORT JsRawData call(JsRawData _this, JsArgumentsIn arguments) const noexcept;
+		KRJS_EXPORT JsRawData call(JsRawData _this, JsArgumentsIn arguments) const throws(JsException);
 
 		// get value without any-cast
 		// need to match type

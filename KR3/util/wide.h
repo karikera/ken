@@ -21,6 +21,10 @@ namespace kr
 		static_assert(std::is_same<typename t::from, wchar_t>::value, "wchar type unmatch");
 		return (meta::retype_t<T, unicode_wchar_t>)v;
 	}
+	inline wchar_t* wide(TSZ16& tsz) noexcept
+	{
+		return wide(tsz.c_str());
+	}
 
 	namespace _pri_
 	{

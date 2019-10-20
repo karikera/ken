@@ -25,14 +25,14 @@ namespace
 		void start() noexcept
 		{
 			m_at = timepoint::now();
-			s_main->m_pump->post(this);
+			s_main->m_pump->attach(this);
 		}
 		void post() noexcept
 		{
 			m_at += 16_ms;
 			timepoint now = timepoint::now();
 			if (m_at < now) m_at = now;
-			EventPump::getInstance()->post(this);
+			EventPump::getInstance()->attach(this);
 		}
 		void call() noexcept override
 		{

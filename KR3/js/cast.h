@@ -81,11 +81,14 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static TText16 toInner(Text _value, Charset cs = Charset::Default) noexcept;
 			static TText16 toInner(const AText& _value, Charset cs = Charset::Default) noexcept;
 			static Text16 toInner(const AText16& _value) noexcept;
+			static Text16 toInner(const TText16& _value) noexcept;
 			static JsRawData toInner(JsNewObject_t) noexcept;
 			static JsRawData toInner(JsNewArray arr) noexcept;
 			static JsRawData toInner(JsNewArrayBuffer arr) noexcept;
 			static JsRawData toInner(JsNewTypedArray arr) noexcept;
 			static JsRawData toInner(const JsPersistent& value) noexcept;
+			static JsRawData toInner(void* object) noexcept = delete;
+			static JsRawData toInner(JsObject* object) noexcept;
 
 			template <typename T>
 			static T defaultValue() noexcept

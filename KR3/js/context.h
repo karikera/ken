@@ -20,6 +20,23 @@ namespace kr
 		KRJS_EXPORT static void gc() noexcept;
 	};
 
+	class JsScope
+	{
+		friend _pri_::InternalTools;
+	public:
+		KRJS_EXPORT JsScope() noexcept;
+		KRJS_EXPORT ~JsScope() noexcept;
+		KRJS_EXPORT void add(const JsRawData& ref) noexcept;
+		KRJS_EXPORT const JsRawData& returnValue(const JsRawData& value) noexcept;
+
+	private:
+#ifdef KRJS_USE_V8
+#else
+		kr::Array<JsValueRef> m_refs;
+		JsScope* m_prev;
+#endif
+	};
+
 	// 쉽게 V8 엔진을 사용할 수 있는 클래스이다.
 	// execute 를 호출하여 실행한다.
 	class JsContext
@@ -42,6 +59,6 @@ namespace kr
 		JsRawDataValue m_nullValue;
 		JsRawPropertyId m_prototypeId;
 		JsRawPropertyId m_constructorId;
-		Array<JsRawDataValue> m_classes;
+		Array<JsRawData> m_classes;
 	};
 }

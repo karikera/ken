@@ -230,11 +230,7 @@ Main::~Main() noexcept
 }
 int Main::main(int argn, const wchar_t ** args) noexcept
 {
-	{
-		std::locale kor("korean");
-		std::wcout.imbue(kor);
-		std::wcerr.imbue(kor);
-	}
+	setlocale(LC_ALL, nullptr);
 
 	if (argn < 2)
 	{

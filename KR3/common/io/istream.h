@@ -219,6 +219,10 @@ namespace kr
 			{
 				return readto_p(find(_needle), _skip);
 			}
+			inline Ref readto_e(const InternalComponent& _needle) noexcept
+			{
+				return readto_pe(find(_needle));
+			}
 			inline Ref readto_e(Ref _needle) noexcept
 			{
 				return readto_pe(find(_needle));
