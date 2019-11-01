@@ -191,7 +191,7 @@ namespace kr
 			void onRead() noexcept override;
 			void onClose() noexcept override;
 			
-			ReferenceMap<Text, Text> tags;
+			Map<Text, Text, true> tags;
 
 		protected:
 			BText<1024> m_data;

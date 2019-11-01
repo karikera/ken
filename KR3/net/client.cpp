@@ -2,8 +2,7 @@
 #ifdef WIN32
 #include "client.h"
 
-#include "../pool.h"
-
+#include <KR3/msg/pool.h>
 #include <KR3/net/socket.h>
 #include <WinSock2.h>
 
@@ -64,11 +63,7 @@ void Client::write(Buffer buff) noexcept
 {
 	m_writebuf.write(buff.begin(), buff.size());
 }
-void Client::writeRef(Buffer buff) noexcept
-{
-	m_writebuf.writeRef(buff.begin(), buff.size());
-}
-BufferQueueWithRef * Client::getWriteQueue() noexcept
+BufferQueue* Client::getWriteQueue() noexcept
 {
 	return &m_writebuf;
 }
@@ -83,7 +78,7 @@ void Client::flush() noexcept
 			try
 			{
 				size_t sz = buffer.size();
-				m_socket->writeImpl(buffer.data(), sz);
+				m_socket->$write(buffer.data(), sz);
 				m_writebuf.skip(sz);
 			}
 			catch (ThrowAbort&)
@@ -131,7 +126,7 @@ void Client::processEvent() noexcept
 				{
 					{
 						auto buf = m_receive.prepare();
-						size_t readed = m_socket->readImpl(buf.data(), buf.size());
+						size_t readed = m_socket->$read(buf.data(), buf.size());
 						if (readed == 0) break;
 						m_receive.commit(readed);
 					}
@@ -171,7 +166,7 @@ void Client::processEvent() noexcept
 					{
 						Buffer block = m_writebuf.getFirstBlock();
 						size_t size = block.size();
-						m_socket->writeImpl((char*)block.data(), size);
+						m_socket->$write((char*)block.data(), size);
 						m_writebuf.skip(size);
 					}
 					m_waitWriteEvent = false;
@@ -235,9 +230,16 @@ Promise<void>* Client::download(Progressor * progressor, AText16 filename, size_
 			progressor->checkPoint();
 
 			{
+				auto iter = m_receive.begin();
+				auto iter_end = m_receive.end();
+				while (iter != iter_end)
+				{
+					++iter;
+				}
+
 				for (Buffer buf : m_receive)
 				{
-					file->writeImpl(buf.data(), buf.size());
+					file->$write(buf.data(), buf.size());
 				}
 				m_receive.clear();
 			}
@@ -246,10 +248,10 @@ Promise<void>* Client::download(Progressor * progressor, AText16 filename, size_
 			TmpArray<char> buffer(TEMP_BUFFER);
 			while (sz != 0)
 			{
-				size_t r = m_socket->readImpl(buffer.data(), mint((size_t)TEMP_BUFFER, sz));
+				size_t r = m_socket->$read(buffer.data(), mint((size_t)TEMP_BUFFER, sz));
 				if (r == 0) continue;
 
-				file->writeImpl(buffer.data(), r);
+				file->$write(buffer.data(), r);
 				sz -= r;
 				progressor->checkPoint(progressor->getProgress() + r);
 				progressor->onProgress();

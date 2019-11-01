@@ -7,7 +7,7 @@
 
 #include <KR3/initializer.h>
 #include <KRWin/gdi.h>
-#include <KRMessage/msgloop.h>
+#include <KR3/msg/msgloop.h>
 #include <KR3/util/wide.h>
 
 #include <assert.h>

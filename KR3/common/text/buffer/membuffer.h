@@ -1,74 +1,96 @@
 #pragma once
 
+#include "commoncls.h"
+
 namespace kr
 {
+	template <typename T>
+	class ReversePointer :public MakePointerIterator<ReversePointer<T>, T>
+	{
+	public:
+		INHERIT_ITERATOR(MakePointerIterator<ReversePointer<T>, T>);
+	private:
+		using Super::m_pt;
+
+	public:
+
+		intptr_t operator -(const ReversePointer& o) const noexcept
+		{
+			return o.m_pt - m_pt;
+		}
+		ReversePointer& operator += (intptr_t v) noexcept
+		{
+			m_pt -= v;
+			return *this;
+		}
+		ReversePointer& operator -= (intptr_t v) noexcept
+		{
+			m_pt += v;
+			return *this;
+		}
+		ReversePointer operator + (intptr_t v) noexcept
+		{
+			ReversePointer n = *this;
+			n.m_pt -= v;
+			return n;
+		}
+		ReversePointer operator - (intptr_t v) noexcept
+		{
+			ReversePointer n = *this;
+			n.m_pt += v;
+			return n;
+		}
+		void next() noexcept
+		{
+			m_pt--;
+		}
+		void previous() noexcept
+		{
+			m_pt++;
+		}
+		T& operator [](size_t idx) const noexcept
+		{
+			return m_pt[-(intptr_t)idx];
+		}
+	};
+
 	template <typename C>
-	class ReverseIterable
+	class Reverse
 	{
 	private:
 		C * m_beg;
 		C * m_end;
 
 	public:
-		class Iterator :public TIterator<Iterator, C>
-		{
-		private:
-			using TIterator<Iterator, C>::m_pt;
-
-		public:
-			INHERIT_ITERATOR(TIterator<Iterator, C>);
-
-			intptr_t operator -(const Iterator & o) const noexcept
-			{
-				return o.m_pt - m_pt;
-			}
-			Iterator& operator += (intptr_t v) noexcept
-			{
-				m_pt -= v;
-				return *this;
-			}
-			Iterator& operator -= (intptr_t v) noexcept
-			{
-				m_pt += v;
-				return *this;
-			}
-			Iterator& operator ++() noexcept
-			{
-				m_pt--;
-				return *this;
-			}
-			Iterator& operator --() noexcept
-			{
-				m_pt++;
-				return *this;
-			}
-			C& operator [](size_t idx) const noexcept
-			{
-				return m_pt[-(intptr_t)idx];
-			}
-		};
-
-		ReverseIterable(C* beg, C* end) noexcept
+		Reverse(C* beg, C* end) noexcept
 		{
 			m_beg = end - 1;
 			m_end = beg - 1;
 		}
-		Iterator begin() const noexcept
+		C* data() const noexcept
 		{
 			return m_beg;
 		}
-		Iterator end() const noexcept
+		ReversePointer<C> begin() const noexcept
+		{
+			return m_beg;
+		}
+		ReversePointer<C> end() const noexcept
 		{
 			return m_end;
+		}
+		size_t size() const noexcept
+		{
+			return m_beg - m_end;
 		}
 	};
 
 	namespace buffer
 	{
 		template <typename Derived, typename Info>
-		class MemBuffer :public Info
+		class MemBuffer :public _pri_::CopyToOnlyImpl<Derived, typename Info::Component, Info>
 		{
-			CLASS_HEADER(MemBuffer, Info);
+			CLASS_HEADER(MemBuffer, _pri_::CopyToOnlyImpl<Derived, typename Info::Component, Info>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -78,36 +100,35 @@ namespace kr
 
 			ComponentRef* data() noexcept
 			{
-				return static_cast<Derived*>(this)->begin();
+				return static_cast<Derived*>(this)->$begin();
 			}
-			ComponentRef* begin() noexcept
+			InternalComponentRef* begin() noexcept
 			{
-				return static_cast<Derived*>(this)->begin();
+				return static_cast<Derived*>(this)->$begin();
 			}
-			ComponentRef* end() noexcept
+			InternalComponentRef* end() noexcept
 			{
-				return static_cast<Derived*>(this)->end();
+				return static_cast<Derived*>(this)->$end();
 			}
-			const ComponentRef* data() const noexcept
+			const Component * data() const noexcept
 			{
-				return static_cast<const Derived*>(this)->begin();
+				return static_cast<const Derived*>(this)->$begin();
 			}
-			const Component * begin() const noexcept
+			const InternalComponent* begin() const noexcept
 			{
-				return static_cast<const Derived*>(this)->begin();
+				return static_cast<const Derived*>(this)->$begin();
 			}
-			const Component * end() const noexcept
+			const InternalComponent* end() const noexcept
 			{
-				return static_cast<const Derived*>(this)->end();
+				return static_cast<const Derived*>(this)->$end();
 			}
 			size_t size() const noexcept
 			{
-				return static_cast<const Derived*>(this)->size();
+				return static_cast<const Derived*>(this)->$size();
 			}
 			bool empty() const noexcept
 			{
-				static_assert(&MemBuffer::empty != &Derived::empty, "This function need override");
-				return static_cast<const Derived*>(this)->empty();
+				return static_cast<const Derived*>(this)->emptyImpl();
 			}
 			template <typename T> size_t sizeAs() const noexcept
 			{
@@ -136,7 +157,7 @@ namespace kr
 			}
 			size_t hash() const noexcept
 			{
-				return mem::hash(begin(), size() * sizeof(ComponentRef));
+				return mem::hash(begin(), size() * sizeof(InternalComponent));
 			}
 			Ref beginIndex() const noexcept
 			{
@@ -148,56 +169,71 @@ namespace kr
 			}
 			size_t copyTo(Component * dest) const
 			{
-				mema::subs_copy((InternalComponent*)dest, (InternalComponent*)begin(), size());
+				mema::subs_copy((InternalComponent*)dest, begin(), size());
 				return size();
 			}
 			size_t sizeBytes() const noexcept
 			{
 				return size() * sizeof(InternalComponent);
 			}
-			bool contains_ptr(const ComponentRef * _v) const noexcept
+			bool contains_ptr(const Component* _v) const noexcept
 			{
 				return begin() <= _v && _v <= end();
 			}
+			bool contains_ptr_or_null(const Component* _v) const noexcept
+			{
+				return _v == nullptr || (begin() <= _v && _v <= end());
+			}
 			template <class _Derived, bool a, bool b, class _Parent>
-			bool contains_ptr(const Bufferable<_Derived, BufferInfo<Component, true, a, b, _Parent>>& _v) const noexcept
+			bool contains_ptr(const Bufferable<_Derived, BufferInfo<Component, false, false, a, b, _Parent>>& _v) const noexcept
 			{
 				return contains_ptr(_v.begin());
 			}
-			Ref cut(const ComponentRef* end) const noexcept
+			Ref cut(const Component* end) const noexcept
 			{
 				_assert(contains_ptr(end));
 				return Ref(begin(), end);
 			}
-			Ref cut(Ref _v) const noexcept
-			{
-				return cut(_v.begin());
-			}
 			Ref cut(size_t _len) const noexcept
 			{
-				return cut(mint((InternalComponentRef*)begin() + _len, (InternalComponentRef*)end()));
+				return cut(begin() + _len);
 			}
 
-			Ref subarr(size_t _left, size_t _count) const noexcept
+			Ref subarr(const Component* _ptr) const noexcept
 			{
-				return Ref((InternalComponentRef*)begin() + _left, (InternalComponentRef*)end()).cut(_count);
+				_assert(contains_ptr_or_null(_ptr));
+				return Ref(_ptr, end());
+			}
+			Ref subarray(const Component* _ptr) const noexcept
+			{
+				_assert(contains_ptr_or_null(_ptr));
+				return Ref(_ptr, end());
 			}
 			Ref subarr(size_t _left) const noexcept
 			{
-				return Ref((InternalComponentRef*)begin() + _left, (InternalComponentRef*)end());
+				_assert(_left <= size());
+				return Ref(begin() + _left, end());
 			}
 			Ref subarray(size_t _left) const noexcept
 			{
-				return Ref((InternalComponentRef*)begin() + _left, (InternalComponentRef*)end());
+				_assert(_left <= size());
+				return Ref(begin() + _left, end());
+			}
+			Ref subarr(size_t _left, size_t _count) const noexcept
+			{
+				_assert(_left <= size());
+				_assert(_left + _count <= size());
+				return Ref(begin() + _left, end()).cut(_count);
 			}
 			Ref subarray(size_t _left, size_t _right) const noexcept
 			{
 				_assert(_left <= _right);
-				return Ref((InternalComponentRef*)begin() + _left, (InternalComponentRef*)begin() + _right);
+				_assert(_right <= size());
+				return Ref(begin() + _left, begin() + _right);
 			}
 			Ref offsetBytes(size_t bytes) const noexcept
 			{
-				return Ref((InternalComponentRef*)((uint8_t*)begin() + bytes), (InternalComponentRef*)end());
+				return Ref((InternalComponent*)((uint8_t*)begin() + bytes), end());
 			}
 
 			bool startsWith(Ref _v) const noexcept
@@ -311,162 +347,149 @@ namespace kr
 				if (_len < _len2) return false;
 				return memm::find(data(), _v.data(), _len, _len2) != nullptr;
 			}
-			Ref find_n(const InternalComponent &_v) const noexcept
+			const Component* find_n(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_n(begin(), _v, size()), end());
+				return memm::find_n(begin(), _v, size());
 			}
-			Ref find_ne(const InternalComponent &_v) const noexcept
+			const Component* find_ne(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_ne(begin(), _v, size()), end());
+				return memm::find_ne(begin(), _v, size());
 			}
-			Ref find_ny(Ref _v) const noexcept
+			const Component* find_ny(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_ny(begin(), _v.begin(), size(), _v.size()), end());
+				return memm::find_ny(begin(), _v.begin(), size(), _v.size());
 			}
-			Ref find_nr(const InternalComponent &_v) const noexcept
+			const Component* find_nr(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_nr(begin(), _v, size()), end());
+				return memm::find_nr(begin(), _v, size());
 			}
-			Ref find_nry(Ref _v) const noexcept
+			const Component* find_nry(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_nry(begin(), _v.begin(), size(), _v.size()), end());
+				return memm::find_nry(begin(), _v.begin(), size(), _v.size());
 			}
-			Ref find_nye(Ref _v) const noexcept
+			const Component* find_nye(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_nye(begin(), _v.begin(), size(), _v.size()), end());
+				return memm::find_nye(begin(), _v.begin(), size(), _v.size());
 			}
-			Ref find(const InternalComponent &needle) const noexcept
+			const Component* find(const InternalComponent &needle) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find(begin(), needle, size()), end());
+				return memm::find(begin(), needle, size());
 			}
-			Ref find(Ref _v) const noexcept
+			const Component* find(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
 				size_t _len = size();
 				size_t _len2 = _v.size();
 				if (_len < _len2)
 					return nullptr;
-				return Ref(memm::find(begin(), _v.begin(), _len, _len2), end());
+				return memm::find(begin(), _v.begin(), _len, _len2);
 			}
-			Ref find_e(const InternalComponent &_v) const noexcept
+			const Component* find_e(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_e(begin(), _v, size()), end());
+				return memm::find_e(begin(), _v, size());
 			}
-			Ref find_e(Ref _v) const noexcept
+			const Component* find_e(Ref _v) const noexcept
 			{
-				Ref finded = find(_v);
-				if (finded == nullptr)
-					return endIndex();
+				const Component* finded = find(_v);
+				if (finded == nullptr) return end();
 				return finded;
 			}
-			Ref find_y(Ref _v) const noexcept
+			const Component* find_y(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_y(begin(), _v.begin(), size(), _v.size()), end());
+				return memm::find_y(begin(), _v.begin(), size(), _v.size());
 			}
-			Ref find_ye(Ref _v) const noexcept
+			const Component* find_ye(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_ye(begin(), _v.begin(), size(), _v.size()), end());
+				return memm::find_ye(begin(), _v.begin(), size(), _v.size());
 			}
-			Ref find_r(const InternalComponent &_v) const noexcept
+			const Component* find_r(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_r(begin(), _v, size()), end());
+				return memm::find_r(begin(), _v, size());
 			}
-			Ref find_r(Ref _v) const noexcept
+			const Component* find_r(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
 				size_t _len = size();
 				size_t _len2 = _v.size();
 				if (_len < _len2)
 					return nullptr;
-				return Ref(memm::find_r(begin(), _v.begin(), _len, _len2), end());
+				return memm::find_r(begin(), _v.begin(), _len, _len2);
 			}
-			Ref find_ry(Ref _v) const noexcept
+			const Component* find_ry(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_ry(begin(), _v.begin(), size(), _v.size()), end());
+				return memm::find_ry(begin(), _v.begin(), size(), _v.size());
 			}
-			Ref find_rye(Ref _v) const noexcept
+			const Component* find_rye(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_rye(begin(), _v.begin(), size(), _v.size()), end());
+				return memm::find_rye(begin(), _v.begin(), size(), _v.size());
 			}
-			Ref find_re(const InternalComponent &_v) const noexcept
+			const Component* find_re(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(memm::find_re(begin(), _v, size()), end());
+				return memm::find_re(begin(), _v, size());
 			}
-			Ref find_re(Ref _v) const noexcept
+			const Component* find_re(Ref _v) const noexcept
 			{
-				Ref finded = find_r(_v);
-				if (finded == nullptr)
-					return Ref(begin()-1, end());
+				const Component* finded = find_r(_v);
+				if (finded == nullptr) return begin() - 1;
 				return finded;
 			}
 			template <typename LAMBDA>
-			Ref find_L(const LAMBDA & lambda) const noexcept
+			const Component* find_L(const LAMBDA & lambda) const noexcept
 			{
 				InternalComponentRef * e = end();
 				InternalComponentRef * p = begin();
 				for (; p != e; p++)
 				{
-					if (lambda(*p)) return Ref(p, end());
+					if (lambda(*p)) return p;
 				}
-				return Ref(nullptr, end());
+				return nullptr;
 			}
 
-			Ref end_find_r(const InternalComponent &needle) noexcept
+			const Component* end_find_r(const InternalComponent &needle) noexcept
 			{
 				KR_DEFINE_MMEM();
-				const Component * _end = memm::find_r(begin(), needle, size());
+				const Component* _end = memm::find_r(begin(), needle, size());
 				if (_end == nullptr)
 				{
 					Ref out;
 					out.setEnd(nullptr);
 					return out;
 				}
-				return Ref(begin(), _end + 1);
+				return _end + 1;
 			}
-			Ref end_find_re(const InternalComponent &needle) noexcept
+			const Component* end_find_re(const InternalComponent &needle) noexcept
 			{
 				KR_DEFINE_MMEM();
-				return Ref(begin(), memm::find_re(begin(), needle, size()) + 1);
+				return memm::find_re(begin(), needle, size()) + 1;
 			}
-			Ref end_find_r(Ref needle) noexcept
+			const Component* end_find_r(Ref needle) noexcept
 			{
 				KR_DEFINE_MMEM();
 				size_t _len = size();
 				size_t _len2 = needle.size();
-				if (_len < _len2)
-				{
-					Ref out;
-					out.setEnd(nullptr);
-					return out;
-				}
-				const Component * _end = memm::find_r(begin(), needle.begin(), _len, _len2);
-				if (_end == nullptr)
-				{
-					Ref out;
-					out.setEnd(nullptr);
-					return out;
-				}
-				return Ref(begin(), _end + needle.size());
+				if (_len < _len2) return nullptr;
+				const Component* _end = memm::find_r(begin(), needle.begin(), _len, _len2);
+				if (_end == nullptr) return nullptr;
+				return _end + needle.size();
 			}
-			Ref end_find_re(Ref needle) noexcept
+			const Component* end_find_re(Ref needle) noexcept
 			{
-				Ref finded = end_find_r(needle);
-				if (finded.end() == nullptr)
-					return Ref(begin(), begin());
+				const Component* finded = end_find_r(needle);
+				if (finded.end() == nullptr) return begin();
 				return finded;
 			}
 
@@ -604,74 +627,67 @@ namespace kr
 				replace<Ref>(_out, _tar, _to);
 			}
 
-			class SplitIterator
+			class SplitIterator:public MakeIterableIterator<SplitIterator, Ref>
 			{
 			private:
 			public:
-				const Component * m_ref;
-				const Component * m_next;
-				const Component * m_end;
-				const Component * m_done;
+				const Component* m_ref;
+				const Component* m_next;
+				const Component* m_end;
+				const Component* m_done;
 				Component m_chr;
 
 			public:
 				SplitIterator() = default;
-				SplitIterator(const This * _this, const meta::types<Component> & params) noexcept
-					: m_chr(params.template get<0>())
+				SplitIterator(const This * _this, Component chr) noexcept
+					: m_chr(move(chr))
 				{
 					m_ref = _this->begin();
 					m_end = _this->end();
-					m_next = _this->find_e(m_chr).begin();
+					m_next = _this->find_e(m_chr);
 					m_done = m_end + 1;
 				}
 				bool isEnd() const noexcept
 				{
 					return m_ref == m_done;
 				}
-				SplitIterator& operator ++() noexcept
+				void next() noexcept
 				{
 					m_ref = m_next;
 					m_ref++;
-					if (m_ref == m_done) return *this;
-					m_next = Ref(m_ref, m_end).find_e(m_chr).begin();
-					return *this;
+					if (m_ref == m_done) return;
+					m_next = Ref(m_ref, m_end).find_e(m_chr);
 				}
-				SplitIterator operator ++(int) noexcept
-				{
-					SplitIterator old = *this;
-					++*this;
-					return old;
-				}
-				Ref operator *() const noexcept
+				Ref value() const noexcept
 				{
 					return Ref(m_ref, m_next);
 				}
 			};
 			
-			class TextSplitIterator
+			class TextSplitIterator :public MakeIterableIterator<TextSplitIterator, Ref>
 			{
 			private:
-				const Component * m_ref;
-				const Component * m_next;
-				const Component * m_end;
-				const Component * m_done;
+				const Component* m_ref;
+				const Component* m_next;
+				const Component* m_end;
+				const Component* m_done;
 				Ref m_chr;
 
 			public:
 				TextSplitIterator() = default;
-				TextSplitIterator(const This * _this, const meta::types<Ref> & params) noexcept
-					: m_chr(params.template get<0>())
+				TextSplitIterator(const This * _this, Ref chr) noexcept
+					: m_chr(chr)
 				{
 					m_ref = _this->begin();
 					m_end = _this->end();
-					m_next = _this->find_e(m_chr).begin();
+					m_next = _this->find_e(m_chr);
 					m_done = m_end + m_chr.size();
 				}
 				bool isEnd() const noexcept
 				{
 					return m_ref == m_done;
 				}
-				TextSplitIterator& operator ++() noexcept
+				void next() noexcept
 				{
 					m_ref = m_next;
 					m_ref += m_chr.size();
@@ -679,35 +695,29 @@ namespace kr
 					m_next = Ref(m_ref, m_end).find_e(m_chr).begin();
 					return *this;
 				}
-				TextSplitIterator operator ++(int) noexcept
-				{
-					TextSplitIterator old = *this;
-					++*this;
-					return old;
-				}
-				Ref operator *() const noexcept
+				Ref value() const noexcept
 				{
 					return Ref(m_ref, m_next);
 				}
 			};
 			
-			class ReverseSplitIterator
+			class ReverseSplitIterator :public MakeIterableIterator<ReverseSplitIterator, Ref>
 			{
 			private:
-				const Component * m_ref;
-				const Component * m_next;
-				const Component * m_begin;
-				const Component * m_done;
+				const Component* m_ref;
+				const Component* m_next;
+				const Component* m_begin;
+				const Component* m_done;
 				Component m_chr;
 
 			public:
 				ReverseSplitIterator() = default;
-				ReverseSplitIterator(const This * _this, const meta::types<Component> & params) noexcept 
-					: m_chr(params.template get<0>())
+				ReverseSplitIterator(const This * _this, Component chr) noexcept
+					: m_chr(move(chr))
 				{
 					m_begin = _this->begin();
 					m_ref = _this->end();
-					m_next = _this->find_r(m_chr).begin();
+					m_next = _this->find_r(m_chr);
 					if (m_next == nullptr) m_next = m_begin;
 					m_done = m_begin - 1;
 				}
@@ -715,7 +725,7 @@ namespace kr
 				{
 					return m_ref == m_done;
 				}
-				ReverseSplitIterator& operator ++() noexcept
+				void next() noexcept
 				{
 					m_ref = m_next;
 					m_ref--;
@@ -724,35 +734,29 @@ namespace kr
 					if (m_next == nullptr) m_next = m_begin;
 					return *this;
 				}
-				ReverseSplitIterator operator ++(int) noexcept
-				{
-					SplitIterator old = *this;
-					++*this;
-					return old;
-				}
-				Ref operator *() const noexcept
+				Ref value() const noexcept
 				{
 					return Ref(m_next, m_ref);
 				}
 			};
 
-			class ReverseTextSplitIterator
+			class ReverseTextSplitIterator:public MakeIterableIterator<ReverseTextSplitIterator, Ref>
 			{
 			private:
-				const Component * m_ref;
-				const Component * m_next;
-				const Component * m_begin;
-				const Component * m_done;
+				const Component* m_ref;
+				const Component* m_next;
+				const Component* m_begin;
+				const Component* m_done;
 				Ref m_chr;
 
 			public:
 				ReverseTextSplitIterator() = default;
-				ReverseTextSplitIterator(const This * _this, const meta::types<Ref> & params) noexcept
-					: m_chr(params.template get<0>())
+				ReverseTextSplitIterator(const This * _this, Ref chr) noexcept
+					: m_chr(chr)
 				{
 					m_begin = _this->begin();
 					m_ref = _this->end();
-					m_next = _this->find_r(m_chr).begin();
+					m_next = _this->find_r(m_chr);
 					if (m_next == nullptr) m_next = m_begin;
 					else m_next += m_chr.size();
 					m_done = m_begin - m_chr.size();
@@ -761,29 +765,22 @@ namespace kr
 				{
 					return m_ref == m_done;
 				}
-				ReverseTextSplitIterator& operator ++() noexcept
+				void next() noexcept
 				{
 					m_ref = m_next;
 					m_ref -= m_chr.size();
-					if (m_ref == m_done) return *this;
+					if (m_ref == m_done) return;
 					m_next = Ref(m_begin, m_ref).find_r(m_chr).begin();
 					if (m_next == nullptr) m_next = m_begin;
 					else m_next += m_chr.size();
-					return *this;
 				}
-				ReverseTextSplitIterator operator ++(int) noexcept
-				{
-					TextSplitIterator old = *this;
-					++*this;
-					return old;
-				}
-				Ref operator *() const noexcept
+				Ref value() const noexcept
 				{
 					return Ref(m_next, m_ref);
 				}
 			};
 
-			class LoopIterator
+			class LoopIterator:public MakeIterableIterator<LoopIterator, InternalComponent&>
 			{
 			private:
 				InternalComponent * m_ptr;
@@ -793,12 +790,12 @@ namespace kr
 
 			public:
 				LoopIterator() = default;
-				LoopIterator(const This * _this, const meta::types<InternalComponent*, InternalComponent *, InternalComponent *, InternalComponent *> & params) noexcept
+				LoopIterator(const This * _this, InternalComponent* ptr, InternalComponent* end, InternalComponent* ptr2, InternalComponent* end2) noexcept
 				{
-					m_ptr = params.template get<0>();
-					m_end = params.template get<1>();
-					m_ptr2 = params.template get<2>();
-					m_end2 = params.template get<3>();
+					m_ptr = ptr;
+					m_end = end;
+					m_ptr2 = ptr2;
+					m_end2 = end2;
 					if (m_ptr == m_end)
 					{
 						m_ptr = m_ptr2;
@@ -810,11 +807,7 @@ namespace kr
 						}
 					}
 				}
-				bool isEnd() const noexcept
-				{
-					return m_ptr == nullptr;
-				}
-				LoopIterator& operator ++() noexcept
+				void next() noexcept
 				{
 					m_ptr++;
 					if (m_ptr == m_end)
@@ -822,50 +815,42 @@ namespace kr
 						m_ptr = m_ptr2;
 						m_end = m_end2;
 						m_ptr2 = nullptr;
-						return *this;
 					}
-					return *this;
 				}
-				LoopIterator operator ++(int) noexcept
+				bool isEnd() const noexcept
 				{
-					LoopIterator old = *this;
-					++*this;
-					return old;
+					return m_ptr == nullptr;
 				}
-				InternalComponent & operator *() const noexcept
+				InternalComponent & value() const noexcept
 				{
 					return *m_ptr;
 				}
 			};
-			using SplitIterable = Iterable<This, SplitIterator, InternalComponent>;
-			using TextSplitIterable = Iterable<This, TextSplitIterator, Ref>;
-			using ReverseSplitIterable = Iterable<This, ReverseSplitIterator, InternalComponent>;
-			using ReverseTextSplitIterable = Iterable<This, ReverseTextSplitIterator, Ref>;
-			using LoopIterable = Iterable<This, LoopIterator, InternalComponent*, InternalComponent*, InternalComponent*, InternalComponent*>;
 
-			SplitIterable splitIterable(const InternalComponent &chr) const noexcept
+			SplitIterator splitIterable(const InternalComponent &chr) const noexcept
 			{
-				return SplitIterable(this, chr);
+				return { this, chr };
 			}
-			TextSplitIterable splitIterable(Ref chr) const noexcept
+			TextSplitIterator splitIterable(Ref chr) const noexcept
 			{
-				return TextSplitIterable(this, chr);
+				return { this, chr };
 			}
-			ReverseSplitIterable reverseSplitIterable(const InternalComponent &chr) const noexcept
+			ReverseSplitIterator reverseSplitIterable(const InternalComponent &chr) const noexcept
 			{
-				return ReverseSplitIterable(this, chr);
+				return { this, chr };
 			}
-			ReverseTextSplitIterable reverseSplitIterable(Ref chr) const noexcept
+			ReverseTextSplitIterator reverseSplitIterable(Ref chr) const noexcept
 			{
-				return ReverseTextSplitIterable(this, chr);
+				return { this, chr };
 			}
-			LoopIterable loopIterable(size_t offset) noexcept
+
+			LoopIterator loopIterable(size_t offset) noexcept
 			{
 				InternalComponent * _begin = begin();
 				InternalComponent * startAt = _begin + offset;
-				return LoopIterable(this, startAt, end(), _begin, startAt);
+				return LoopIterator(this, startAt, end(), _begin, startAt);
 			}
-			LoopIterable loopIterable(size_t offset, size_t length) noexcept
+			LoopIterator loopIterable(size_t offset, size_t length) noexcept
 			{
 				InternalComponent * _begin = begin();
 				InternalComponent * startAt = _begin + offset;
@@ -875,18 +860,18 @@ namespace kr
 
 				if (endAt > _end)
 				{
-					return LoopIterable(this, startAt, _end, _begin, endAt - sz);
+					return LoopIterator(this, startAt, _end, _begin, endAt - sz);
 				}
 				else
 				{
-					return LoopIterable(this, startAt, _end, nullptr, _end);
+					return LoopIterator(this, startAt, _end, nullptr, _end);
 				}
 			}
 			
 			size_t innerMaxSize() noexcept
 			{
-				const Component * iter = begin();
-				const Component * iend = end();
+				const Component* iter = begin();
+				const Component* iend = end();
 				if (iter == iend) return 0;
 
 				size_t sz = iter->size();
@@ -957,13 +942,13 @@ namespace kr
 				return split<Ref>(chr, chrin);
 			}
 
-			ReverseIterable<InternalComponentRef> reverse() noexcept
+			Reverse<InternalComponentRef> reverse() noexcept
 			{
-				return ReverseIterable<InternalComponentRef>(begin(), end());
+				return Reverse<InternalComponentRef>(begin(), end());
 			}
-			ReverseIterable<const InternalComponentRef> reverse() const noexcept
+			Reverse<const InternalComponentRef> reverse() const noexcept
 			{
-				return ReverseIterable<const InternalComponentRef>(begin(), end());
+				return Reverse<const InternalComponentRef>(begin(), end());
 			}
 
 			Ref operator +(intptr_t n) const noexcept
@@ -974,16 +959,16 @@ namespace kr
 			{
 				return Ref(begin() - n, end());
 			}
-			intptr_t operator -(const Component * ptr) const noexcept
+			intptr_t operator -(const Component* ptr) const noexcept
 			{
 				return data() - ptr;
 			}
-			friend intptr_t operator -(const Component * ptr, const MemBuffer& ori) noexcept
+			friend intptr_t operator -(const Component* ptr, const MemBuffer& ori) noexcept
 			{
 				return ptr - ori.data();
 			}
 			template <typename _Derived, bool _szable, bool _readonly, typename _Parent> 
-			intptr_t operator -(const MemBuffer<_Derived, BufferInfo<Component, true, _szable, _readonly, _Parent>>& ptr) const noexcept
+			intptr_t operator -(const MemBuffer<_Derived, BufferInfo<Component, false, false, _szable, _readonly, _Parent>>& ptr) const noexcept
 			{
 				return data() - ptr.data();
 			}
@@ -1011,10 +996,10 @@ namespace kr
 			using Super::subarray;
 			using Super::contains_ptr;
 
-			WRef cut(const ComponentRef* end) noexcept
+			WRef cut(const Component* end) noexcept
 			{
 				_assert(contains_ptr(end));
-				return WRef(begin(), const_cast<ComponentRef*>(end));
+				return WRef(begin(), (Component*)end);
 			}
 			WRef cut(Ref _v) noexcept
 			{
@@ -1022,7 +1007,7 @@ namespace kr
 			}
 			WRef cut(size_t _len) noexcept
 			{
-				return cut(mint(begin() + _len, end()));
+				return cut(begin() + _len);
 			}
 			WRef subarr(size_t _left, size_t _count) noexcept
 			{
@@ -1068,12 +1053,12 @@ namespace kr
 			void subfill(const InternalComponent& chr, size_t sz, size_t offset) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_fill((InternalComponent*)begin() + offset, chr, sz);
+				mema::subs_fill(begin() + offset, chr, sz);
 			}
 			void subcopy(const Component* arr, size_t sz, size_t offset = 0) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_copy((InternalComponent*)begin() + offset, (InternalComponent*)arr, sz);
+				mema::subs_copy(begin() + offset, (InternalComponent*)arr, sz);
 			}
 			void subcopy(View<Component> arr, size_t offset = 0) noexcept
 			{

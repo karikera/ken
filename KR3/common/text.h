@@ -14,6 +14,7 @@
 #include "text/nullterm.h"
 #include "text/join.h"
 #include "text/encoder.h"
+#include "text/writablemethod.h"
 
 namespace kr
 {

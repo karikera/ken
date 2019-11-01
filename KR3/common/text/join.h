@@ -5,7 +5,7 @@
 namespace kr
 {
 	template <typename Buffer2D>
-	class Join : public Bufferable<Join<Buffer2D>, BufferInfo<typename Buffer2D::Component::Component, false, false, true>>
+	class Join : public Bufferable<Join<Buffer2D>, BufferInfo<typename Buffer2D::Component::Component>>
 	{
 	public:
 		using InnerArray = typename Buffer2D::Component;
@@ -35,11 +35,11 @@ namespace kr
 
 			m_size = sz;
 		}
-		size_t size() const noexcept
+		size_t $size() const noexcept
 		{
 			return m_size;
 		}
-		size_t copyTo(Component * dest) const noexcept
+		size_t $copyTo(Component * dest) const noexcept
 		{
 			if (m_size == 0) return 0;
 
@@ -65,7 +65,7 @@ namespace kr
 	};
 
 	template <typename Buffer3D>
-	class Join2D : public Bufferable<Join2D<Buffer3D>, BufferInfo<typename Buffer3D::Component::Component::Component, false, false, true>>
+	class Join2D : public Bufferable<Join2D<Buffer3D>, BufferInfo<typename Buffer3D::Component::Component::Component>>
 	{
 	public:
 		using Buffer2D = typename Buffer3D::Component;
@@ -96,11 +96,11 @@ namespace kr
 
 			m_size = sz;
 		}
-		size_t size() const noexcept
+		size_t $size() const noexcept
 		{
 			return m_size;
 		}
-		size_t copyTo(typename Text::Component * dest) const noexcept
+		size_t $copyTo(typename Text::Component * dest) const noexcept
 		{
 			if (m_size == 0) return 0;
 

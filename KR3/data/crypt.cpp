@@ -13,9 +13,9 @@ using namespace encoder;
 
 namespace
 {
-	ReferenceMap<Text, Text> * getEntities() noexcept
-	{
-		static ReferenceMap<Text, Text> entities = {
+	Map<Text, Text, true> * getEntities() noexcept
+	{	
+		static Map<Text, Text, true> entities = {
 			{ "gt", ">" },
 			{ "lt", "<" },
 			{ "quot", "\"" },
@@ -365,14 +365,14 @@ size_t Uri::encode(char * out, Text text) noexcept
 	return dest - out;
 }
 
-size_t Hex::length(Text text) noexcept
+size_t Hex::length(Buffer text) noexcept
 {
 	return text.size() * 2;
 }
-void Hex::encode(Writer * out, Text * text) noexcept
+void Hex::encode(Writer * out, Buffer* text) noexcept
 {
-	const char * src = text->begin();
-	const char * send = text->end();
+	const byte * src = (byte*)text->begin();
+	const byte * send = (byte*)text->end();
 	char * dest = out->end();
 	char * dend = out->limit();
 
@@ -389,12 +389,12 @@ void Hex::encode(Writer * out, Text * text) noexcept
 	}
 
 	*out = Writer(dest, dend);
-	*text = Text(src, send);
+	*text = Buffer(src, send);
 }
-size_t Hex::encode(char * out, Text text) noexcept
+size_t Hex::encode(char * out, Buffer text) noexcept
 {
-	const char * src = text.begin();
-	const char * send = text.end();
+	const byte * src = (byte*)text.begin();
+	const byte * send = (byte*)text.end();
 	char * dest = out;
 
 	while (src != send)
@@ -412,7 +412,7 @@ size_t Base64::length(Text text) noexcept
 }
 void Base64::encode(Writer *out, Text * text) noexcept
 {
-	size_t writed = encode64(out->end(), out->left(), text->begin(), text->size());
+	size_t writed = encode64(out->end(), out->remaining(), text->begin(), text->size());
 	out->commit(writed);
 }
 size_t Base64::encode(char *out, Text text) noexcept
@@ -429,81 +429,73 @@ size_t Base64::decode(char *out, Text text) noexcept
 }
 void Base64::decode(Writer *out, Text * text) noexcept
 {
-	size_t writed = decode64(out->end(), out->left(), text->begin(), text->size());
+	size_t writed = decode64(out->end(), out->remaining(), text->begin(), text->size());
 	out->commit(writed);
 }
 
-size_t Sha1::length(Text text) noexcept
-{
-	static_assert(SIZE == SHA1HashSize, "Invalid size");
-	return SIZE;
-}
-size_t Sha1::encode(char *out, Text text) noexcept
-{
-	CHashSHA1 sha1;
-	sha1.Reset();
-	sha1.Input((const byte *)text.begin(), text.size());
-	sha1.Result((byte*)out);
-	return SIZE;
-}
-void Sha1::encode(Writer *out, Text * text) noexcept
-{
-	if (out->left() < SIZE)
-		return;
-	encode(out->prepareForce(SIZE), *text);
-}
-void Sha1::encode2(Writer *out, Text * text) noexcept
-{
-	size_t sz = out->left();
-	if (sz < SHA1HashSize)
-		return;
+static_assert(sizeof(Sha1Context) == sizeof(Sha1Context), "sha1 context size unmatch");
+static_assert(Sha1Context::SIZE == SHA1HashSize, "Sha1 hash size unmatch");
+static_assert(sizeof(Sha256Context) == sizeof(SHA256_CTX), "sha256 context size unmatch");
+static_assert(Sha256Context::SIZE == SHA256_BLOCK_SIZE, "sha256 hash size unmatch");
+static_assert(sizeof(Md5Context) == sizeof(md5_context), "md5 context size unmatch");
 
-	byte* dest = (byte*)out->end();
-	CHashSHA1 sha1;
-	sha1.Reset();
-	sha1.Input((const byte *)text->begin(), text->size());
-	sha1.Result(dest);
-	sha1.Reset();
-	sha1.Input(dest, SHA1HashSize);
-	sha1.Result(dest);
-	out->commit(SHA1HashSize);
+Sha1Context::Sha1Context() noexcept
+{
+	SHA256_BLOCK_SIZE;
+	reset();
+}
+void Sha1Context::reset() noexcept
+{
+	CHashSHA1* ctx = (CHashSHA1*)this;
+	ctx->Reset();
+}
+void Sha1Context::update(Buffer input) noexcept
+{
+	CHashSHA1* ctx = (CHashSHA1*)this;
+	ctx->Input((const byte*)input.begin(), input.size());
+}
+void Sha1Context::finish(void* out) const noexcept
+{
+	CHashSHA1* ctx = (CHashSHA1*)this;
+	ctx->Result((byte*)out);
 }
 
-size_t Sha256::length(Text text) noexcept
+Sha256Context::Sha256Context() noexcept
 {
-	static_assert(SIZE == SHA256_BLOCK_SIZE, "Invalid size");
-	return SIZE;
+	reset();
 }
-size_t Sha256::encode(char *out, Text text) noexcept
+void Sha256Context::reset() noexcept
 {
-	SHA256_CTX ctx;
-	sha256_init(&ctx);
-	sha256_update(&ctx, (const byte *)text.data(), text.size());
-	sha256_final(&ctx, (byte*)out);
-	return SIZE;
+	SHA256_CTX* ctx = (SHA256_CTX*)this;
+	sha256_init(ctx);
 }
-void Sha256::encode(Writer *out, Text * text) noexcept
+void Sha256Context::update(Buffer input) noexcept
 {
-	if (out->left() < SIZE)
-		return;
-	encode(out->prepareForce(SIZE), *text);
+	SHA256_CTX* ctx = (SHA256_CTX*)this;
+	sha256_update(ctx, (const byte*)input.data(), input.size());
+}
+void Sha256Context::finish(void* out) const noexcept
+{
+	SHA256_CTX* ctx = (SHA256_CTX*)this;
+	sha256_final(ctx, (byte*)out);
 }
 
-size_t Md5::length(Text text) noexcept
+Md5Context::Md5Context() noexcept
 {
-	return SIZE;
+	reset();
 }
-size_t Md5::encode(char * out, Text text) noexcept
+void Md5Context::reset() noexcept
 {
-	md5_context ctx;
-	md5_starts(&ctx);
-	md5_update(&ctx, (uint8_t*)text.begin(), intact<uint32_t>(text.size()));
-	md5_finish(&ctx, (uint8_t*)out);
-	return SIZE;
+	md5_context* ctx = (md5_context*)this;
+	md5_starts(ctx);
 }
-void Md5::encode(Writer * out, Text * text) noexcept
+void Md5Context::update(Buffer input) noexcept
 {
-	if (out->left() < SIZE)
-		return;
-	encode(out->prepareForce(SIZE), *text);
+	md5_context* ctx = (md5_context*)this;
+	md5_update(ctx, (uint8_t*)input.begin(), intact<uint32_t>(input.size()));
+}
+void Md5Context::finish(void* out) const noexcept
+{
+	md5_context* ctx = (md5_context*)this;
+	md5_finish(ctx, (uint8_t*)out);
 }

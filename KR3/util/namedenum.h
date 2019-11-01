@@ -30,16 +30,16 @@ namespace kr
 		};
 	}
 	template <typename ENUM>
-	class EnumClass:public Bufferable<EnumClass<ENUM>, BufferInfo<char, true, true, true>>
+	class EnumClass:public Bufferable<EnumClass<ENUM>, BufferInfo<char, false, false, true, true>>
 	{
 	public:
 		EnumClass() noexcept = default;
 		inline EnumClass(ENUM value) noexcept;
 		inline operator ENUM() const noexcept;
 		inline Text getText() const noexcept;
-		inline const char * begin() const noexcept;
-		inline const char * end() const noexcept;
-		inline size_t size() const noexcept;
+		inline const char * $begin() const noexcept;
+		inline const char * $end() const noexcept;
+		inline size_t $size() const noexcept;
 
 	private:
 		template <size_t sz>
@@ -71,17 +71,17 @@ namespace kr
 		return m_value;
 	}
 	template<typename ENUM>
-	inline const char * EnumClass<ENUM>::begin() const noexcept
+	inline const char * EnumClass<ENUM>::$begin() const noexcept
 	{
 		return getText().begin();
 	}
 	template<typename ENUM>
-	inline const char * EnumClass<ENUM>::end() const noexcept
+	inline const char * EnumClass<ENUM>::$end() const noexcept
 	{
 		return getText().end();
 	}
 	template<typename ENUM>
-	inline size_t EnumClass<ENUM>::size() const noexcept
+	inline size_t EnumClass<ENUM>::$size() const noexcept
 	{
 		return getText().size();
 	}
@@ -98,7 +98,7 @@ inline kr::Text kr::EnumClass<name>::getText() const noexcept { \
 template <> \
 struct kr::Bufferize<name, char> { using type = name##Class; };\
 template <> \
-struct kr::Bufferize<name, char16> { using type = meta::Caster<name##Class,AcpToUtf16>; };
+struct kr::Bufferize<name, char16> { using type = meta::Caster<name##Class,AnsiToUtf16>; };
 
 #define named_enum(name, ...) \
 enum name{__VA_ARGS__} ;  \

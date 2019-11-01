@@ -38,7 +38,7 @@ public:
 	MyFOStream() noexcept;
 	MyFOStream(Text16 fn);
 	~MyFOStream() noexcept;
-	void writeImpl(const char * str, size_t sz) noexcept;
+	void $write(const char * str, size_t sz) noexcept;
 
 	void flush() noexcept;
 	void open(Text16 filename);
@@ -119,11 +119,11 @@ MyFOStream::~MyFOStream() noexcept
 	close();
 }
 
-void MyFOStream::writeImpl(const char * str, size_t sz) noexcept
+void MyFOStream::$write(const char * str, size_t sz) noexcept
 {
 	if (base() == nullptr)
 		return;
-	return Super::writeImpl(str, sz);
+	return Super::$write(str, sz);
 }
 void MyFOStream::flush() noexcept
 {
@@ -261,7 +261,7 @@ int Main::main(int argn, const wchar_t ** args) noexcept
 
 			// remove comment
 			{
-				Text comment = line.find("//");
+				pcstr comment = line.find("//");
 				if (comment != nullptr) line.cut_self(comment);
 			}
 
@@ -660,15 +660,15 @@ Text Main::getColumn(Text & line) throws(EofException)
 {
 	if (line.empty())
 		throw EofException();
-	Text next = line.find('\t');
+	pcstr next = line.find('\t');
 	if (next == nullptr)
 	{
 		Text out = line;
 		line = line.endIndex();
 		return out;
 	}
-	Text out = line.readto(next);
-	line = line.find_ne('\t');
+	Text out = line.readto_p(next);
+	line = line.readto_n('\t');
 	return out;
 }
 void Main::warning(Text16 message) noexcept
@@ -707,7 +707,7 @@ File * Main::createFile(Text16 text) throws(Error)
 			iter.first->second = FileState::Writed;
 			ucout << ttext << u"\n";
 
-			Text16 folderCut = ttext.find_r(u'\\');
+			pcstr16 folderCut = ttext.find_r(u'\\');
 			if (folderCut != nullptr)
 				File::createFullDirectory(ttext.cut(folderCut));
 
@@ -758,8 +758,8 @@ void Main::modifyTest(Text16 filename) noexcept
 		{
 			for (;;)
 			{
-				size_t sz1 = file1->readImpl(buffer1.begin(), SIZE);
-				size_t sz2 = file2->readImpl(buffer2.begin(), SIZE);
+				size_t sz1 = file1->$read(buffer1.begin(), SIZE);
+				size_t sz2 = file2->$read(buffer2.begin(), SIZE);
 				if (sz1 != sz2)
 					goto _change;
 				if (memcmp(buffer1.begin(), buffer2.begin(), sz1) != 0)

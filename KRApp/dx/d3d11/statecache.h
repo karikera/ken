@@ -77,7 +77,7 @@ namespace kr
 			ID3D11DepthStencilState *m_depthStencil[
 				StateConst<ComparationFunc>::count * StateConst<DepthWriteMask>::count + 1
 			];
-			ReferenceMap<Text16, CachedTexture*> m_textures;
+			Map<Text16, CachedTexture*, true> m_textures;
 
 		};
 	}

@@ -5,7 +5,7 @@ using namespace fbx;
 
 
 FBXNodeList::Filter::Filter(const LinkedList<FBXNode> * list, Text name) noexcept
-	:FilterIterable(list), m_name(name)
+	:FilterIterableIterator(list), m_name(name)
 {
 }
 bool FBXNodeList::Filter::test(FBXNode & node) noexcept

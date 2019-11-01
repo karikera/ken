@@ -17,7 +17,7 @@ namespace kr
 		struct numunwrap<meta::numlist<idx ...> >
 		{
 			template <typename FUNC>
-			static JsValue call(FUNC func, const JsArguments & args);
+			static JsValue call(FUNC func, const JsArguments & args) throws(JsException);
 		};
 		using ccfunc = JsFunctionT<RET(ARGS ...)>;
 		using counter = meta::make_numlist_counter<sizeof ... (ARGS)>;
@@ -32,7 +32,7 @@ namespace kr
 		struct numunwrap<meta::numlist<idx ...> >
 		{
 			template <typename FUNC>
-			static JsValue call(FUNC func, const JsArguments & args);
+			static JsValue call(FUNC func, const JsArguments & args) throws(JsException);
 		};
 		using ccfunc = JsFunctionT<void(ARGS ...)>;
 		using counter = meta::make_numlist_counter<(sizeof... (ARGS))>;
@@ -55,7 +55,7 @@ namespace kr
 		template <size_t ... idx>
 		struct numunwrap<meta::numlist<idx ...> >
 		{
-			static JsValue call(RET(*fn)(ARGS ...), const JsArguments & args);
+			static JsValue call(RET(*fn)(ARGS ...), const JsArguments & args) throws(JsException);
 		};
 		using ccfunc = JsFunctionT<RET(ARGS ...)>;
 		using counter = meta::make_numlist_counter<sizeof ... (ARGS)>;
@@ -69,7 +69,7 @@ namespace kr
 		template <size_t ... idx>
 		struct numunwrap<meta::numlist<idx ...> >
 		{
-			static JsValue call(void(*fn)(ARGS ...), const JsArguments & args);
+			static JsValue call(void(*fn)(ARGS ...), const JsArguments & args) throws(JsException);
 		};
 		using ccfunc = JsFunctionT<void(ARGS ...)>;
 		using counter = meta::make_numlist_counter<sizeof ... (ARGS)>;
@@ -83,7 +83,7 @@ namespace kr
 		template <size_t ... idx>
 		struct numunwrap<meta::numlist<idx ...> >
 		{
-			static JsValue call(RET(CLASS::*fn)(ARGS ...), const JsArguments & args);
+			static JsValue call(RET(CLASS::*fn)(ARGS ...), const JsArguments & args) throws(JsException);
 		};
 		using ccfunc = JsFunctionT<RET(ARGS ...)>;
 		using counter = meta::make_numlist_counter<sizeof ... (ARGS)>;
@@ -97,7 +97,7 @@ namespace kr
 		template <size_t ... idx>
 		struct numunwrap<meta::numlist<idx ...> >
 		{
-			static JsValue call(void(CLASS::*fn)(ARGS ...), const JsArguments & args);
+			static JsValue call(void(CLASS::*fn)(ARGS ...), const JsArguments & args) throws(JsException);
 		};
 		using ccfunc = JsFunctionT<void(ARGS ...)>;
 		using counter = meta::make_numlist_counter<sizeof ... (ARGS)>;

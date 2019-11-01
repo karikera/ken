@@ -30,7 +30,7 @@ namespace kr
 			static const vector make(const T * ptr) noexcept;
 
 			template <class _Derived, class _Info>
-			void writeTo(OutStream<_Derived, _Info> *str) const; // NotEnoughSpaceException
+			void writeTo(OutStream<_Derived, _Info>* str) const throws(NotEnoughSpaceException);
 
 			void get(T * ptr) const noexcept;
 			const vector movs(const vector & o) const noexcept;

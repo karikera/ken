@@ -32,24 +32,24 @@ namespace kr
 			m_map[key] = value;
 		}
 
-		void writeImpl(const Component * data, size_t sz) noexcept
+		void $write(const Component * data, size_t sz) noexcept
 		{
 			Text text(data, sz);
 			for (;;)
 			{
-				Text next = text.find(m_open);
+				const Component * next = text.find(m_open);
 				if (next == nullptr)
 				{
 					*base() << text;
 					return;
 				}
 				*base() << text.cut(next);
-				next += 2;
-				Text next2 = next.find(m_close);
-				auto iter = m_map.find(next.cut(next2));
+				text.subarr_self(next + 2);
+				const Component * next2 = text.find(m_close);
+				auto iter = m_map.find(text.cut(next2));
 				if (iter != m_map.end())
 					*base() << iter->second;
-				text = next2 + 2;
+				text.subarr_self(next2 + 2);
 			}
 		}
 

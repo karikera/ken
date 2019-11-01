@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KRMessage/net/client.h>
+#include <KR3/net/client.h>
 
 namespace kr
 {

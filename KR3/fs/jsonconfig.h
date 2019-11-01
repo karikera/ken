@@ -19,7 +19,7 @@ namespace kr
 		class ValLinkLambda;
 
 		Array<ValLink*> m_linkList;
-		ReferenceMap<AText, ValLink*> m_nameMap;
+		Map<AText, ValLink*, true> m_nameMap;
 	public:
 
 		JsonConfig() noexcept;

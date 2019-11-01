@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KR3/mt/thread.h>
-#include <KRMessage/promise.h>
+#include <KR3/msg/promise.h>
 #include "httpstatus.h"
 
 #ifdef __EMSCRIPTEN__

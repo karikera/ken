@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KR3/net/socket.h>
-#include <KRMessage/net/mtnet.h>
+#include <KR3/net/mtnet.h>
 
 namespace kr
 {

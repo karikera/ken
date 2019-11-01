@@ -12,14 +12,16 @@
 
 namespace kr
 {
-	template <typename C, bool _accessable, bool _szable, bool _readonly, class Parent>
+	template <typename C, bool copyTo, bool writeTo, bool _szable, bool _readonly, class Parent>
 	class BufferInfo : public AddContainer<C, _readonly, Parent>
 	{
 		CLASS_HEADER(BufferInfo, AddContainer<C, _readonly, Parent>);
 	public:
 		INHERIT_COMPONENT();
 		using Super::Super;
-		static constexpr bool accessable = _accessable;
+		static constexpr bool accessable = !copyTo && !writeTo;
+		static constexpr bool copyToDefined = copyTo;
+		static constexpr bool writeToDefined = writeTo;
 		static constexpr bool readonly = _readonly;
 		static constexpr bool szable = _szable;
 	};
@@ -41,12 +43,12 @@ namespace kr
 		template <class Derived, typename Component, typename Info>
 		struct Bufferable_next<Derived, Component, true, true, true, Info>
 		{
-			using type = buffer::TextBuffer<Derived, Info, buffer::MemBuffer<Derived, Info>>;
+			using type = buffer::TextBuffer<Derived, buffer::MemBuffer<Derived, Info>>;
 		};
 		template <class Derived, typename Component, typename Info>
 		struct Bufferable_next<Derived, Component, true, true, false, Info>
 		{
-			using type = buffer::WTextBuffer<Derived, Info, buffer::WMemBuffer<Derived, Info>>;
+			using type = buffer::WTextBuffer<Derived, buffer::WMemBuffer<Derived, Info>>;
 		};
 		template <class Derived, typename Component, bool _string, bool _readonly, typename Info>
 		struct Bufferable_next<Derived, Component, false, _string, _readonly, Info>
@@ -74,103 +76,23 @@ namespace kr
 		using Super::Super;
 	};
 
-	template <class Derived, typename Component, typename Parent>
-	class Printable :public AddBufferable<Derived, BufferInfo<Component, false, false, true, Parent> >
-	{
-		CLASS_HEADER(Printable, AddBufferable<Derived, BufferInfo<Component, false, false, true, Parent> >);
-	public:
-		INHERIT_COMPONENT();
-
-		using Super::Super;
-
-		size_t copyTo(Component * dest) const noexcept
-		{
-			ArrayWriter<Component> out(dest, (Component*)(size_t)-1);
-			static_cast<const Derived*>(this)->onWriteTo(&out);
-			return out.end() - dest;
-		}
-
-		size_t size() const noexcept
-		{
-			io::SizeOStream<Component> size;
-			static_cast<const Derived*>(this)->onWriteTo(&size);
-			return size.size();
-		}
-
-		template <class _Derived, typename _Info>
-		void onWriteTo(OutStream<_Derived, Component, _Info> * os) const
-		{
-			return static_cast<const Derived*>(this)->writeTo(os);
-		}
-	};
-
-	template <class Derived, typename Parent>
-	class Printable<Derived, AutoComponent, Parent>
-		:public AddBufferable<Derived, BufferInfo<AutoComponent, false, false, true, Parent> >
-	{
-		CLASS_HEADER(Printable, AddBufferable<Derived, BufferInfo<AutoComponent, false, false, true, Parent> >);
-	public:
-		INHERIT_COMPONENT();
-
-		using Super::Super;
-
-		template <class _Derived, typename C, class _Info>
-		void writeTo(OutStream<_Derived, C, _Info> *str) const = delete;
-
-		template <typename C>
-		size_t copyTo(C * dest) const
-		{
-			ArrayWriter<C> out(dest, dest + 4096);
-			try
-			{
-				static_cast<Derived*>(this)->onWriteTo(&out);
-			}
-			catch (...)
-			{
-				out = ArrayWriter<C>(dest, dest + sizeAs<C>());
-				static_cast<Derived*>(this)->onWriteTo(&out);
-			}
-			return out.end() - dest;
-		}
-
-		template <typename C> size_t sizeAs() const noexcept
-		{
-			io::SizeOStream<C> size;
-			static_cast<Derived*>(this)->onWriteTo(&size);
-			return size.size();
-		}
-
-		template <class _Derived, typename _Info>
-		void onWriteTo(OutStream<_Derived, Component, _Info> * os) const
-		{
-			static_assert(&Derived::writeTo != &Printable::writeTo, "Need to override writeTo Method");
-			return static_cast<const Derived*>(this)->writeTo(os);
-		}
-	};
-
-	class nullterm_t : public Bufferable<nullterm_t, BufferInfo<AutoComponent, false, true>>
+	class nullterm_t : public Bufferable<nullterm_t, BufferInfo<AutoComponent, true, true, true, true> >
 	{
 	public:
 		template <class _Derived, typename _Component, class _Parent>
-		inline void writeTo(OutStream<_Derived, _Component, StreamInfo<true, _Parent>>* os) const
+		inline void $writeTo(OutStream<_Derived, _Component, StreamInfo<true, _Parent>>* os) const
 		{
 			raw(*os->padding(1)) = (_Component)'\0';
 		}
 		template <typename C>
-		inline size_t copyTo(C * dest) const noexcept
+		inline size_t $copyTo(C * dest) const noexcept
 		{
 			*dest = (C)'\0';
 			return 0;
 		}
 
-		// concat 함수에서 총합 버퍼 사이즈를 계산하는 데 사용된다.
-		// 1을 반환한다.
-		inline size_t size() noexcept
-		{
-			return 1;
-		}
 		template <typename C>
-		inline size_t sizeAs() const
+		inline size_t $sizeAs() const
 		{
 			return 0;
 		}
@@ -179,31 +101,32 @@ namespace kr
 	namespace _pri_
 	{
 		template <typename C> 
-		class SingleWrite:public Bufferable<SingleWrite<C>, BufferInfo<C, true, false, true>>
+		class SingleWrite:public Bufferable<SingleWrite<C>, BufferInfo<C, false, false, false, true>>
 		{
 		private:
 			const C m_value;
 
 		public:
+
 			inline SingleWrite(C _value) noexcept
 				: m_value(_value)
 			{
 			}
 
-			inline size_t size() const noexcept
+			inline size_t $size() const noexcept
 			{
 				return 1;
 			}
-			inline const C * begin() const noexcept
+			inline const internal_component_t<C>* $begin() const noexcept
 			{
 				return &m_value;
 			}
-			inline const C * end() const noexcept
+			inline const internal_component_t<C>* $end() const noexcept
 			{
 				return &m_value+1;
 			}
 		};
-		class BooleanWrite :public Bufferable<BooleanWrite, BufferInfo<AutoComponent, false, false, true>>
+		class BooleanWrite :public Bufferable<BooleanWrite, BufferInfo<AutoComponent>>
 		{
 		private:
 			const bool m_value;
@@ -215,12 +138,12 @@ namespace kr
 			}
 
 			template <typename T>
-			inline size_t sizeAs() const noexcept
+			inline size_t $sizeAs() const noexcept
 			{
 				return m_value ? 4 : 5;
 			}
 			template <typename T>
-			inline size_t copyTo(T * dest) const noexcept
+			inline size_t $copyTo(T * dest) const noexcept
 			{
 				if (m_value)
 				{
@@ -241,7 +164,7 @@ namespace kr
 				}
 			}
 		};
-		class NullPointerWrite :public Bufferable<NullPointerWrite, BufferInfo<AutoComponent, false, false, true>>
+		class NullPointerWrite :public Bufferable<NullPointerWrite, BufferInfo<AutoComponent>>
 		{
 		public:
 			inline NullPointerWrite(nullptr_t) noexcept
@@ -249,12 +172,12 @@ namespace kr
 			}
 
 			template <typename T>
-			inline size_t sizeAs() const noexcept
+			inline size_t $sizeAs() const noexcept
 			{
 				return 7;
 			}
 			template <typename T>
-			inline size_t copyTo(T* dest) const noexcept
+			inline size_t $copyTo(T* dest) const noexcept
 			{
 				*dest++ = 'n';
 				*dest++ = 'u';
@@ -299,6 +222,7 @@ namespace kr
 	{
 	};
 	template <typename T, typename C> struct Bufferize<const T*, C> { using type = View<T>; };
+	template <typename T, size_t count, typename C> struct Bufferize<const T[count], C> { using type = View<T>; };
 	template <typename T, typename C> struct Bufferize<T*, C> { using type = View<T>; };
 	template <typename C> struct Bufferize<const void*, C> { using type = NumberAddress; };
 	template <typename C> struct Bufferize<void*, C> { using type = NumberAddress; };

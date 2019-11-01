@@ -153,15 +153,15 @@ void _pri_::EventListImpl::pop() noexcept
 	_assert(m_size != 0);
 	m_size--;
 }
-EventHandle * const * _pri_::EventListImpl::begin() const noexcept
+EventHandle * const * _pri_::EventListImpl::$begin() const noexcept
 {
 	return _ptr();
 }
-EventHandle * const * _pri_::EventListImpl::end() const noexcept
+EventHandle * const * _pri_::EventListImpl::$end() const noexcept
 {
 	return _ptr() + size();
 }
-size_t _pri_::EventListImpl::size() const noexcept
+size_t _pri_::EventListImpl::$size() const noexcept
 {
 	return m_size;
 }

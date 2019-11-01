@@ -59,7 +59,7 @@ namespace kr
 		}
 
 		template <class _Derived, typename _Info>
-		void writeTo(OutStream<_Derived, C, _Info> * os) const
+		void $writeTo(OutStream<_Derived, C, _Info> * os) const
 		{
 			for (C s : m_text)
 			{
@@ -90,7 +90,7 @@ namespace kr
 		}
 
 		template <class _Derived, typename _Info>
-		void writeTo(OutStream<_Derived, C, _Info> * os) const
+		void $writeTo(OutStream<_Derived, C, _Info> * os) const
 		{
 			for (C s : m_text)
 			{
@@ -122,7 +122,7 @@ namespace kr
 		}
 
 		template <class _Derived, typename _Info>
-		void writeTo(OutStream<_Derived, C, _Info> * os) const
+		void $writeTo(OutStream<_Derived, C, _Info> * os) const
 		{
 			View<C> text = m_text;
 			while (!text.empty())

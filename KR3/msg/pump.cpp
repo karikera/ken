@@ -196,7 +196,7 @@ Promise<void> * EventPump::promiseTo(timepoint at) noexcept
 }
 void EventPump::sleep(duration dura) throws(QuitException)
 {
-	wait(View<EventHandle*>(nullptr, nullptr), dura);
+	wait(zerolen, dura);
 }
 void EventPump::sleepTo(timepoint time) throws(QuitException)
 {

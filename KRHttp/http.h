@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KRMessage/net/wsevent.h>
+#include <KR3/net/wsevent.h>
 #include <KR3/io/protocol.h>
 #include <KR3/io/selfbufferedstream.h>
 #include <KR3/data/crypt.h>
@@ -66,7 +66,7 @@ namespace kr
 		bool next() throws(SocketException);
 		void download(pcstr16 filename) throws(Error);
 
-		size_t readImpl(char * dest, size_t size);
+		size_t $read(char * dest, size_t size);
 
 	private:
 		io::SelfBufferedIStream<io::SocketStream<char>> m_socket;

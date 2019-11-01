@@ -77,13 +77,16 @@ void WebSocketClient::onConnectFail(int code) noexcept
 }
 void WebSocketClient::onRead() throws(...)
 {
+	auto * receive = m_receive.retype<char>();
 	if (!m_handShaked)
 	{
+		HashTester<char> needle("\r\n", HashTester<char>::NoReset);
 		TText tbuf;
 		for (;;)
 		{
+			needle.reset();
 			// "ws://echo.websocket.org"
-			Text buf = m_receive.readwith("\r\n", &tbuf);
+			Text buf = receive->readwith(needle, &tbuf);
 			if (buf == nullptr) return;
 			if (buf.empty())
 			{
@@ -94,10 +97,6 @@ void WebSocketClient::onRead() throws(...)
 			dout.flush();
 		}
 	}
-
-	TBuffer tbuf;
-	Buffer buf = m_receive.read(32, &tbuf);
-	int a = 0;
 }
 void WebSocketClient::onClose() noexcept
 {

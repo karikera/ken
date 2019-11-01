@@ -105,7 +105,7 @@ namespace kr
 			{
 
 				template <size_t ... counter>
-				struct data:Bufferable < data<counter ...>, BufferInfo<T, true, true, true> >
+				struct data:Bufferable < data<counter ...>, BufferInfo<T, false, false, true, true> >
 				{
 					T value[sizeof ... (counter) + 1];
 
@@ -125,15 +125,15 @@ namespace kr
 					{
 					}
 
-					constexpr const T* begin() const noexcept
+					constexpr const T* $begin() const noexcept
 					{
 						return value;
 					}
-					constexpr const T* end() const noexcept
+					constexpr const T* $end() const noexcept
 					{
 						return value + sizeof ... (counter);
 					}
-					constexpr size_t size() const noexcept
+					constexpr size_t $size() const noexcept
 					{
 						return sizeof ... (counter);
 					}

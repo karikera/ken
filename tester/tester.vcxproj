@@ -163,6 +163,9 @@
     <ProjectReference Include="..\empolyfill\empolyfill.vcxproj">
       <Project>{c41350bc-2fc5-4346-8ade-328e13cfc60d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\K2D\K2D.vcxproj">
+      <Project>{cc68c111-ca4b-42f6-b2a1-956420ce5d0f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\KR3\KR3.vcxproj">
       <Project>{f5212e7b-4791-4488-a23a-57af3023e7d3}</Project>
       <Private>false</Private>
@@ -176,9 +179,6 @@
     </ProjectReference>
     <ProjectReference Include="..\KRHttp\KRHttp.vcxproj">
       <Project>{d7aa1504-0276-4ef1-9647-753c57ad3df3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\KRMessage\KRMessage.vcxproj">
-      <Project>{93820a74-de22-4f69-83a8-0b848f7d798f}</Project>
     </ProjectReference>
     <ProjectReference Include="..\KRNew\KRNew.vcxproj">
       <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>

@@ -3,8 +3,8 @@
 #include <KR3/mt/thread.h>
 #include <KR3/mt/criticalsection.h>
 #include <KRWin/winx.h>
-#include <KRMessage/promise.h>
-#include <KRMessage/pool.h>
+#include <KR3/msg/promise.h>
+#include <KR3/msg/pool.h>
 
 namespace kr
 {

@@ -4,7 +4,7 @@
 #include <KR3/net/socket.h>
 #include <KR3/net/ipaddr.h>
 #include <KR3/wl/eventhandle.h>
-#include "../promise.h"
+#include <KR3/msg/promise.h>
 
 namespace kr
 {
@@ -112,7 +112,7 @@ namespace kr
 			push(ev);
 			return sock;
 		}
-		inline size_t left() noexcept
+		inline size_t remaining() noexcept
 		{
 			return SIZE - m_size;
 		}

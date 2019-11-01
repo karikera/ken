@@ -16,10 +16,14 @@ TText16 _pri_::JsCast::toInner(Text _value, Charset cs) noexcept
 	TText16 utf16;
 	CHARSET_CONSTLIZE(cs, {
 		utf16 << (MultiByteToUtf16<cs>)_value;
-		});
+	});
 	return utf16;
 }
 TText16 _pri_::JsCast::toInner(const AText& _value, Charset cs) noexcept
+{
+	return toInner((Text)_value, cs);
+}
+TText16 _pri_::JsCast::toInner(const TText& _value, Charset cs) noexcept
 {
 	return toInner((Text)_value, cs);
 }
@@ -54,4 +58,10 @@ JsRawData _pri_::JsCast::toInner(const JsPersistent& value) noexcept
 JsRawData _pri_::JsCast::toInner(JsObject* object) noexcept
 {
 	return *object;
+}
+
+template <>
+JsRawData _pri_::JsCast::defaultValue<JsRawData>() noexcept
+{
+	return (JsRawData)undefined;
 }

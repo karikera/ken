@@ -53,7 +53,7 @@ bool kr::ResourceFile::toFile(pcstr16 str, bool temp) throws(Error)
 	Must<File> file = File::create(str);
 	m_strFileName << Text16(str) <<nullterm;
 	byte* data = (byte*)m_resource;
-	file->writeImpl(data, size);
+	file->$write(data, size);
 	m_isTemp=temp;
 	return true;
 }

@@ -55,30 +55,12 @@ namespace kr
 			Process * process;
 			Module * module;
 
-			class ModuleName : public Bufferable<ModuleName, BufferInfo<AutoComponent, false, true, true>>
-			{
-			private:
-				ProcessAndModule * const m_owner;
-			public:
-				inline ModuleName(ProcessAndModule * owner) noexcept : m_owner(owner)
-				{
-				}
+			KR_WRITABLE_METHOD(ProcessAndModule, name,
+				(m_this->getName<C>(dest, m_this->getNameLength<C>() + 1)),
+				(m_this->getNameLength<C>()));
 
-				template <typename C>
-				inline size_t sizeAs() const noexcept
-				{
-					return m_owner->getNameLength<C>();
-				}
-				template <typename C>
-				inline size_t copyTo(C * dest) const noexcept
-				{
-					return m_owner->getName<C>(dest, module->getNameLength<C>() + 1);
-				}
-			};
-
-			const ModuleName name() noexcept;
-			template <typename T> size_t getName(T* dest, size_t capacity) noexcept;
-			template <typename T> size_t getNameLength() noexcept;
+			template <typename T> size_t getName(T* dest, size_t capacity) const noexcept;
+			template <typename T> size_t getNameLength() const noexcept;
 		};
 
 		class Library:public Handle<HINSTANCE__>
@@ -176,27 +158,6 @@ namespace kr
 			static const Window * TOPMOST;
 			static const Window * NOTOPMOST;
 
-			class WindowText : public Bufferable<WindowText, BufferInfo<AutoComponent, false, true, true>>
-			{
-			private:
-				Window * const m_window;
-			public:
-				inline WindowText(Window * owner) noexcept : m_window(owner)
-				{
-				}
-
-				template <typename C>
-				inline size_t sizeAs() const noexcept
-				{
-					return m_window->getTextLength<C>();
-				}
-				template <typename C>
-				inline size_t copyTo(C * dest) const noexcept
-				{
-					return m_window->getText<C>(dest, m_window->getTextLength<C>() +1);
-				}
-			};
-		
 			void operator delete(void * p) noexcept;
 			static bool adjustRect(irect * rc, int style, bool menu) noexcept;
 			bool adjustRect(irect * rc) noexcept;
@@ -240,10 +201,11 @@ namespace kr
 			irect getClientRect() noexcept;
 			Monitor* getMonitor() noexcept;
 			ivec2 getPos() noexcept;
-			inline WindowText text() noexcept
-			{
-				return this;
-			}
+
+			KR_WRITABLE_METHOD(Window, text,
+				(m_this->getText<C>(dest, m_this->getTextLength<C>() + 1)),
+				(m_this->getTextLength<C>())
+			);
 
 			DrawContext* beginPaint(PAINTSTRUCT *ps) noexcept;
 			BOOL endPaint(PAINTSTRUCT *ps) noexcept;
@@ -271,8 +233,8 @@ namespace kr
 			int errorBox(pcstr16 strMessage) noexcept;
 			int informationBox(pcstr16 strMessage) noexcept;
 
-			template <typename T> size_t getText(T* dest, size_t capacity) noexcept;
-			template <typename T> size_t getTextLength() noexcept;
+			template <typename T> size_t getText(T* dest, size_t capacity) const noexcept;
+			template <typename T> size_t getTextLength() const noexcept;
 			int setText(pcstr src) noexcept;
 			int setText(pcstr16 src) noexcept;
 

@@ -49,6 +49,9 @@ namespace kr
 		KRJS_EXPORT WBuffer getTypedArrayBuffer(JsTypedArrayType * type) const noexcept;
 		WBuffer getTypedArrayBuffer() const noexcept;
 		KRJS_EXPORT JsRawData call(JsRawData _this, JsArgumentsIn arguments) const throws(JsException);
+		KRJS_EXPORT bool equals(const JsRawData & other) const noexcept;
+		KRJS_EXPORT bool abstractEquals(const JsRawData& other) const noexcept;
+		KRJS_EXPORT JsRawData toString() const throws(JsException);
 
 		// get value without any-cast
 		// need to match type

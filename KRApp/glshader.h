@@ -2,7 +2,7 @@
 
 #include "globject.h"
 #include <KR3/math/coord.h>
-#include <KRMessage/promise.h>
+#include <KR3/msg/promise.h>
 
 namespace kr
 {

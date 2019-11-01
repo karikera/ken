@@ -52,7 +52,7 @@ float JsonParser::floatNumber() throws(InvalidSourceException)
 		negative = false;
 
 	TText tx((size_t)0, 256);
-	m_is.readto_F(&tx, [&](Text text)->const char* {
+	m_is.readto_L(&tx, [&](Text text)->const char* {
 		const char * src = text.begin();
 		const char * esrc = text.end();
 		for (; src != esrc; src++)
@@ -333,7 +333,7 @@ void JsonParser::_readNumber(TText * dest, uint * radix, bool * negative) throws
 	char maxchr = *radix >= 10 ? ('9' + 1) : (char)('0' + *radix);
 	char maxchrUpper = 'A' + (*radix - 10);
 	char maxchrLower = 'a' + (*radix - 10);
-	m_is.readto_F(dest, [&](Text text)->const char* {
+	m_is.readto_L(dest, [&](Text text)->const char* {
 		const char * src = text.begin();
 		const char * esrc = text.end();
 		for (; src != esrc; src++)
@@ -436,7 +436,7 @@ void JsonParser::_skipNumber() throws(InvalidSourceException)
 		char maxchr = radix >= 10 ? ('9' + 1) : (char)('0' + radix);
 		char maxchrUpper = 'A' + (radix - 10);
 		char maxchrLower = 'a' + (radix - 10);
-		m_is.skipto_F([&](Text text)->const char* {
+		m_is.skipto_L([&](Text text)->const char* {
 			const char * src = text.begin();
 			const char * esrc = text.end();
 			for (; src != esrc; src++)
@@ -455,7 +455,7 @@ void JsonParser::_skipNumber() throws(InvalidSourceException)
 		{
 			if (m_is.nextIs('.'))
 			{
-				m_is.skipto_F([&](Text text)->const char* {
+				m_is.skipto_L([&](Text text)->const char* {
 					const char * src = text.begin();
 					const char * esrc = text.end();
 					for (; src != esrc; src++)

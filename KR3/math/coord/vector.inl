@@ -33,7 +33,7 @@ namespace kr
 	{
 		template<typename T, size_t _size, bool aligned, typename order>
 		template <class _Derived, class _Info>
-		void vector<T, _size, aligned, order>::writeTo(OutStream<_Derived, _Info> *str) const // NotEnoughSpaceException
+		void vector<T, _size, aligned, order>::writeTo(OutStream<_Derived, _Info> *str) const throws(NotEnoughSpaceException)
 		{
 			*str << '{' << m_data[0];
 			for (size_t i = 1; i < _size; i++)

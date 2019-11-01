@@ -2,7 +2,7 @@
 
 #include <KR3/main.h>
 #include <KR3/io/bufferedstream.h>
-#include "../cascader.h"
+#include <KR3/msg/cascader.h>
 
 namespace kr
 {
@@ -12,7 +12,7 @@ namespace kr
 		AsyncFile() noexcept;
 		AsyncFile(AText16 filename) noexcept;
 		~AsyncFile() noexcept;
-		void writeImpl(const void * data, size_t size) noexcept;
+		void $write(const void * data, size_t size) noexcept;
 		void create(AText16 filename) noexcept;
 		void close() noexcept;
 		

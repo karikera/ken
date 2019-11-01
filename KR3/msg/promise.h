@@ -14,6 +14,8 @@ namespace kr
 	template <typename InType, typename OutType, typename LAMBDA>
 	class PromiseKatch;
 	using PromiseVoid = Promise<void>;
+	template <typename T>
+	class DeferredPromise;
 
 	template <typename T>
 	struct unwrap_promise
@@ -34,6 +36,60 @@ namespace kr
 	using unwrap_promise_t = typename unwrap_promise<T>::type;
 
 	class PromiseRaw;
+
+	namespace promise_meta
+	{
+		template <typename In, typename Out>
+		struct with
+		{
+			template <typename LAMBDA>
+			static void call(Out* dest, LAMBDA& lambda, In* value)
+			{
+				new(dest) Out(lambda(*value));
+			}
+			static void substitution(Out* dest, In* value)
+			{
+				new(dest) Out(move(*value));
+			}
+		};
+		template <typename Out>
+		struct with<void, Out>
+		{
+			template <typename LAMBDA>
+			static void call(Out* dest, LAMBDA& lambda, void*)
+			{
+				new(dest) Out(lambda());
+			}
+			//static void substitution(Out * dest, void *)
+			//{
+			//	new(dest) Out();
+			//}
+		};
+		template <typename In>
+		struct with<In, void>
+		{
+			template <typename LAMBDA>
+			static void call(void*, LAMBDA& lambda, In* value)
+			{
+				lambda(*value);
+			}
+			//static void substitution(void * dest, In * value)
+			//{
+			//}
+		};
+		template <>
+		struct with<void, void>
+		{
+			template <typename LAMBDA>
+			static void call(void*, LAMBDA& lambda, void*)
+			{
+				lambda();
+			}
+			static void substitution(void*, void*)
+			{
+			}
+		};
+	}
 
 	class PromiseManager
 	{
@@ -64,6 +120,8 @@ namespace kr
 		friend class PromiseThen;
 		template <typename InType, typename OutType, typename LAMBDA>
 		friend class PromiseKatch;
+		template <typename T>
+		friend class DeferredPromise;
 	public:
 		enum State
 		{
@@ -78,6 +136,14 @@ namespace kr
 		template <typename ... ARGS>
 		static Promise<void>* all(Promise<ARGS>* ... proms) noexcept;
 	protected:
+		std::exception_ptr* _rejectValue() noexcept;
+		void _rejectException(std::exception_ptr data) noexcept;
+
+		// same with rejectException(std::current_exception())
+		void _reject() noexcept;
+		template <typename REJTYPE>
+		void _reject(REJTYPE rej) noexcept;
+
 		void _resolveCommit() noexcept;
 		void _rejectCommit() noexcept;
 		virtual void onThen(PromiseRaw * from) noexcept;
@@ -105,13 +171,16 @@ namespace kr
 		friend class PromiseKatch;
 		template <typename T2>
 		friend class PromisePass;
+		template <typename T>
+		friend class DeferredPromise;
 	public:
 		using ResultType = T;
 		virtual ~Promise() noexcept override;
 		template <typename LAMBDA>
 		auto then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda((T&)*(T*)0))> >*;
 		template <typename LAMBDA>
-		auto katch(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda(nullref))>>*;
+		auto katch(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda(nullref))> >*;
+		void connect(DeferredPromise<T>* prom) noexcept;
 		static Promise<T> * resolve(T data) noexcept;
 		static Promise<T> * rejectException(std::exception_ptr data) noexcept;
 		static Promise<T> * reject() noexcept;
@@ -122,15 +191,8 @@ namespace kr
 	protected:
 		void _resolve(const T & data) noexcept;
 		void _resolve(T && data) noexcept;
-		void _rejectException(std::exception_ptr data) noexcept;
-
-		// same with rejectException(std::current_exception())
-		void _reject() noexcept;
-		template <typename REJTYPE>
-		void _reject(REJTYPE rej) noexcept;
 
 		T * _resolveValue() noexcept;
-		std::exception_ptr * _rejectValue() noexcept;
 
 	private:
 		alignas(meta::maxt(alignof(T), alignof(std::exception_ptr))) struct {
@@ -147,12 +209,15 @@ namespace kr
 		friend class PromiseKatch;
 		template <typename T>
 		friend class PromisePass;
+		template <typename T>
+		friend class DeferredPromise;
 	public:
 		using ResultType = void;
 		template <typename LAMBDA>
 		auto then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda())>>*;
 		template <typename LAMBDA>
 		auto katch(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda(nullref))>>*;
+		void connect(DeferredPromise<void>* prom) noexcept;
 		static PromiseVoid * resolve() noexcept;
 		static PromiseVoid * rejectException(std::exception_ptr data) noexcept;
 		static PromiseVoid * reject() noexcept;
@@ -162,13 +227,8 @@ namespace kr
 
 	protected:
 		void _resolve() noexcept;
-		void _rejectException(std::exception_ptr data) noexcept;
-		void _reject() noexcept;
-		template <typename REJTYPE>
-		void _reject(REJTYPE rej) noexcept;
 
 		void * _resolveValue() noexcept;
-		std::exception_ptr * _rejectValue() noexcept;
 
 	private:
 
@@ -176,60 +236,6 @@ namespace kr
 			byte buffer[sizeof(std::exception_ptr)]; 
 		} m_data;
 	};
-
-	namespace promise_meta
-	{
-		template <typename In, typename Out>
-		struct with
-		{
-			template <typename LAMBDA>
-			static void call(Out * dest, LAMBDA & lambda, In * value)
-			{
-				new(dest) Out(lambda(*value));
-			}
-			static void substitution(Out * dest, In * value)
-			{
-				new(dest) Out(move(*value));
-			}
-		};
-		template <typename Out>
-		struct with<void, Out>
-		{
-			template <typename LAMBDA>
-			static void call(Out * dest, LAMBDA & lambda, void *)
-			{
-				new(dest) Out(lambda());
-			}
-			//static void substitution(Out * dest, void *)
-			//{
-			//	new(dest) Out();
-			//}
-		};
-		template <typename In>
-		struct with<In, void>
-		{
-			template <typename LAMBDA>
-			static void call(void *, LAMBDA & lambda, In * value)
-			{
-				lambda(*value);
-			}
-			//static void substitution(void * dest, In * value)
-			//{
-			//}
-		};
-		template <>
-		struct with<void, void>
-		{
-			template <typename LAMBDA>
-			static void call(void *, LAMBDA & lambda, void *)
-			{
-				lambda();
-			}
-			static void substitution(void *, void *)
-			{
-			}
-		};
-	}
 
 	template <typename InType, typename OutType, typename LAMBDA>
 	class PromiseWithLambda : public Promise<unwrap_promise_t<OutType>>
@@ -244,10 +250,6 @@ namespace kr
 		}
 
 	protected:
-		static void _substitution(OutType * dest, InType * value)
-		{
-			return promise_meta::with<InType, OutType>::substitution(dest, value);
-		}
 		void _callLambda(OutType * dest, InType * value)
 		{
 			return promise_meta::with<InType, OutType>::call(dest, m_lambda, value);
@@ -291,8 +293,7 @@ namespace kr
 		}
 		virtual void onKatch(PromiseRaw * from) noexcept override
 		{
-			std::exception_ptr *data = static_cast<Promise<InType>*>(from)->_rejectValue();
-			return _rejectException(*data);
+			return _rejectException(*from->_rejectValue());
 		}
 	};
 
@@ -303,7 +304,6 @@ namespace kr
 	private:
 		using PromiseRaw::_resolveCommit;
 		using Super::_reject;
-		using Super::_substitution;
 		using Super::_callLambdaKatch;
 		using Super::_resolveValue;
 
@@ -318,7 +318,7 @@ namespace kr
 			try
 			{
 				InType * data = static_cast<Promise<InType>*>(from)->_resolveValue();
-				_substitution(_resolveValue(), data);
+				promise_meta::with<InType, OutType>::substitution(_resolveValue(), data);
 				return _resolveCommit();
 			}
 			catch (...)
@@ -334,7 +334,7 @@ namespace kr
 				using ExTypeBasic = remove_const_t<remove_reference_t<ExType>>;
 				if (is_same_v<ExTypeBasic, exception_ptr>)
 				{
-					exception_ptr * data = static_cast<Promise<InType>*>(from)->_rejectValue();
+					exception_ptr * data = from->_rejectValue();
 					_callLambdaKatch(_resolveValue(), (ExTypeBasic*)data);
 					return _resolveCommit();
 				}
@@ -342,8 +342,7 @@ namespace kr
 				{
 					try
 					{
-						exception_ptr * data = static_cast<Promise<InType>*>(from)->_rejectValue();
-						std::rethrow_exception(*data);
+						std::rethrow_exception(*from->_rejectValue());
 					}
 					catch (ExType& ex)
 					{
@@ -386,8 +385,7 @@ namespace kr
 				using RealOutType = unwrap_promise_t<OutType>;
 				RealOutType * data = static_cast<Promise<RealOutType>*>(from)->_resolveValue();
 				promise_meta::with<RealOutType, RealOutType>::substitution(_resolveValue(), data);
-				_resolveCommit();
-				return;
+				return _resolveCommit();
 			}
 			try
 			{
@@ -404,7 +402,7 @@ namespace kr
 		}
 		virtual void onKatch(PromiseRaw * from) noexcept override
 		{
-			std::exception_ptr * data = static_cast<Promise<InType>*>(from)->_rejectValue();
+			std::exception_ptr * data = from->_rejectValue();
 			return _rejectException(*data);
 		}
 	};
@@ -435,7 +433,7 @@ namespace kr
 			try
 			{
 				InType * data = static_cast<Promise<InType>*>(from)->_resolveValue();
-				_substitution(_resolveValue(), data);
+				promise_meta::with<InType, OutType>::substitution(_resolveValue(), data);
 				return _resolveCommit();
 			}
 			catch (...)
@@ -448,25 +446,23 @@ namespace kr
 			if (m_reposted)
 			{
 				using RealOutType = unwrap_promise_t<OutType>;
-				*_rejectValue() = *static_cast<Promise<RealOutType>*>(from)->_rejectValue();
+				*_rejectValue() = *from->_rejectValue();
 				_rejectCommit();
 				return;
 			}
 			try
 			{
-				exception_ptr * data = static_cast<Promise<InType>*>(from)->_rejectValue();
 				using ExType = meta::typeAt<typename meta::function<LAMBDA>::args_t, 0>;
 				if (is_same_v<remove_const_t<remove_reference_t<ExType>>, exception_ptr>)
 				{
-					exception_ptr * data = static_cast<Promise<InType>*>(from)->_rejectValue();
-					_callLambdaKatch(_resolveValue(), data);
+					_callLambdaKatch(_resolveValue(), from->_rejectValue());
 					return _resolveCommit();
 				}
 				else
 				{
 					try
 					{
-						std::rethrow_exception(*data);
+						std::rethrow_exception(*from->_rejectValue());
 					}
 					catch (ExType& ex)
 					{
@@ -580,6 +576,11 @@ namespace kr
 		return next;
 	}
 	template <typename T>
+	void Promise<T>::connect(DeferredPromise<T>* prom) noexcept
+	{
+		_addNext(prom);
+	}
+	template <typename T>
 	void Promise<T>::_resolve(const T & data) noexcept
 	{
 		new((T*)_resolveValue()) T(data);
@@ -591,20 +592,8 @@ namespace kr
 		new((T*)_resolveValue()) T(move(data));
 		PromiseRaw::_resolveCommit();
 	}
-	template <typename T>
-	void Promise<T>::_rejectException(std::exception_ptr data) noexcept
-	{
-		new(_rejectValue()) std::exception_ptr(move(data));
-		PromiseRaw::_rejectCommit();
-	}
-	template <typename T>
-	void Promise<T>::_reject() noexcept
-	{
-		_rejectException(std::current_exception());
-	}
-	template <typename T>
 	template <typename REJTYPE>
-	void Promise<T>::_reject(REJTYPE rej) noexcept
+	void PromiseRaw::_reject(REJTYPE rej) noexcept
 	{
 		_rejectException(make_exception_ptr(rej));
 	}
@@ -613,17 +602,7 @@ namespace kr
 	{
 		return (T*)&m_data;
 	}
-	template <typename T>
-	std::exception_ptr * Promise<T>::_rejectValue() noexcept
-	{
-		return (std::exception_ptr*)&m_data;
-	}
 
-	template <typename REJTYPE>
-	void Promise<void>::_reject(REJTYPE rej) noexcept
-	{
-		_rejectException(make_exception_ptr(rej));
-	}
 	template <typename LAMBDA>
 	auto Promise<void>::then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda())> >*
 	{
@@ -655,6 +634,26 @@ namespace kr
 	public:
 		using Promise<T>::_resolve;
 		using Promise<T>::_reject;
+		using Promise<T>::_resolveValue;
 		using Promise<T>::_rejectException;
+		using Promise<T>::_resolveCommit;
+
+		virtual void onThen(PromiseRaw* from) noexcept override
+		{
+			try
+			{
+				T* data = static_cast<Promise<T>*>(from)->_resolveValue();
+				promise_meta::with<T, T>::substitution(_resolveValue(), data);
+				return _resolveCommit();
+			}
+			catch (...)
+			{
+				return _reject();
+			}
+		}
+		virtual void onKatch(PromiseRaw* from) noexcept override
+		{
+			return _rejectException(*from->_rejectValue());
+		}
 	};
 }

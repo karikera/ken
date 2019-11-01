@@ -16,9 +16,6 @@ void JsObject::initMethods(JsClassT<JsObject>* cls) noexcept
 {
 }
 
-JsObjectT<JsObject>::JsObjectT(const JsArguments& args) throws(JsObjectT)
-{
-}
 JsObjectT<JsObject>::~JsObjectT() noexcept
 {
 }

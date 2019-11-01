@@ -51,7 +51,7 @@ namespace kr
 	{
 	public:
 		void flush() noexcept;
-		void writeImpl(const C *chr, size_t sz) noexcept;
+		void $write(const C *chr, size_t sz) noexcept;
 
 		static ConsoleOutputStream out;
 	};
@@ -61,7 +61,7 @@ namespace kr
 		public FlushOutStream<ConsoleOutputStream<ConsoleType::Debug, C>, C>
 	{
 	public:
-		void writeImpl(const C *chr, size_t sz) noexcept;
+		void $write(const C *chr, size_t sz) noexcept;
 		void putSourceLine(const C * src, int line) noexcept;
 		void flush() noexcept;
 
@@ -75,7 +75,7 @@ namespace kr
 	public:
 		ConsoleOutputStream() noexcept;
 		~ConsoleOutputStream() noexcept;
-		void writeImpl(const char16 * chr, size_t sz) noexcept;
+		void $write(const char16 * chr, size_t sz) noexcept;
 		void putSourceLine(pcstr16 src, int line) noexcept;
 		void flush() noexcept;
 
@@ -110,23 +110,23 @@ namespace kr
 	ConsoleOutputStream<ConsoleType::Debug, C> ConsoleOutputStream<ConsoleType::Debug, C>::out;
 
 	template <>
-	void DebugOutput::writeImpl(const char *chr, size_t sz) noexcept;
+	void DebugOutput::$write(const char *chr, size_t sz) noexcept;
 	template <>
 	void StandardOutput::flush() noexcept;
 	template <>
-	void StandardOutput::writeImpl(const char * chr, size_t sz) noexcept;
+	void StandardOutput::$write(const char * chr, size_t sz) noexcept;
 	template <>
 	void StandardOutput16::flush() noexcept;
 	template <>
-	void StandardOutput16::writeImpl(const char16 * chr, size_t sz) noexcept;
+	void StandardOutput16::$write(const char16 * chr, size_t sz) noexcept;
 	template <>
 	void StandardErrorOutput::flush() noexcept;
 	template <>
-	void StandardErrorOutput::writeImpl(const char * chr, size_t sz) noexcept;
+	void StandardErrorOutput::$write(const char * chr, size_t sz) noexcept;
 	template <>
 	void StandardErrorOutput16::flush() noexcept;
 	template <>
-	void StandardErrorOutput16::writeImpl(const char16 * chr, size_t sz) noexcept;
+	void StandardErrorOutput16::$write(const char16 * chr, size_t sz) noexcept;
 
 	template <ConsoleType type, typename C>
 	inline void ConsoleOutputStream<type, C>::flush() noexcept
@@ -134,12 +134,12 @@ namespace kr
 		ConsoleOutputStream<type, char>::flush();
 	}
 	template <ConsoleType type, typename C>
-	inline void ConsoleOutputStream<type, C>::writeImpl(const C *chr, size_t sz) noexcept
+	inline void ConsoleOutputStream<type, C>::$write(const C *chr, size_t sz) noexcept
 	{
 		ConsoleOutputStream<type, char>::out << (ToAcp<C>)View<C>(chr, sz);
 	}
 	template <typename C>
-	inline void ConsoleOutputStream<ConsoleType::Debug, C>::writeImpl(const C *chr, size_t sz) noexcept
+	inline void ConsoleOutputStream<ConsoleType::Debug, C>::$write(const C *chr, size_t sz) noexcept
 	{
 #ifdef WIN32
 		if (sizeof(C) == sizeof(char16))

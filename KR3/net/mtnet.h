@@ -21,8 +21,6 @@ namespace kr
 		MTClient(Socket * socket) noexcept;
 		virtual ~MTClient() noexcept;
 
-
-		void clear() noexcept;
 		void reset(Socket * socket) noexcept;
 		Socket * getSocket() noexcept;
 		void connect(Ipv4Address v4addr, int port) throws(SocketException);
@@ -30,6 +28,7 @@ namespace kr
 		void requestReceive() noexcept;
 		void flush() noexcept;
 		void write(Buffer data) noexcept;
+		void writes(View<Buffer> datas) noexcept;
 		void writeLock() noexcept;
 		void writeWithoutLock(Buffer data) noexcept;
 		void writeUnlock() noexcept;
@@ -59,15 +58,22 @@ namespace kr
 		void _callOnRead() noexcept;
 
 		Socket * m_socket;
-		CriticalSection m_cs, m_csRead;
+		CriticalSection m_cs;
+		CriticalSection m_csRead; // for m_receive buffer
 		MTClient * m_switchClient;
-		BufferQueueWithRef m_writeQueue;
+		BufferQueue m_writeQueue;
 		Operation * m_flushOperation;
 		Operation * m_receiveOperation;
-		bool m_receiving;
+		enum class RState :byte
+		{
+			Closed,
+			Receiving,
+			Preparing,
+		};
+		RState m_receiving;
 		bool m_flushing;
+		bool m_starting;
 		atomic<bool> m_closing;
-		atomic<bool> m_closed;
 		
 	};
 
@@ -92,6 +98,7 @@ namespace kr
 		BufferQueue m_receive;
 
 	private:
+		AText m_htmlPath;
 		Socket * m_serverSocket;
 		Socket * m_clientSocket;
 		Operation * m_acceptOperation;
@@ -102,10 +109,7 @@ namespace kr
 template <typename T, typename ... ARGS>
 T* kr::MTClient::switchClient(ARGS && ... args) noexcept
 {
-	Args spargs;
-	spargs.pool = m_pool;
-	spargs.socket = m_socket;
-	T * newclient = _new T(move(args) ... , &spargs);
+	T * newclient = _new T(move(args) ... , m_socket);
 	_switchClient(newclient);
 	return newclient;
 }

@@ -7,7 +7,7 @@ using namespace kr;
 void FSLPolicyClient::onRead() noexcept
 {
 	TText temp;
-	Text text = m_receive.readwith('>', &temp);
+	Text text = m_receive.retype<char>()->readwith('>', &temp);
 	if (text == nullptr) return;
 	if (text == "<policy-file-request/>")
 	{
@@ -15,6 +15,7 @@ void FSLPolicyClient::onRead() noexcept
 		write(text.cast<void>());
 		flush();
 	}
+	close();
 }
 void FSLPolicyClient::onError(Text func, int code) noexcept
 {

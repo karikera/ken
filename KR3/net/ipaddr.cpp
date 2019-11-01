@@ -27,7 +27,16 @@ kr::Ipv4Address::Ipv4Address(kr::Text str) noexcept
 	d = (byte)num;
 }
 
-size_t kr::Ipv4Address::size() const noexcept
+bool kr::Ipv4Address::operator ==(const Ipv4Address& v) const noexcept
+{
+	return value == v.value;
+}
+bool kr::Ipv4Address::operator !=(const Ipv4Address& v) const noexcept
+{
+	return value != v.value;
+}
+
+size_t kr::Ipv4Address::$size() const noexcept
 {
 	size_t sz = 3;
 	for (byte v : arr)
@@ -36,13 +45,18 @@ size_t kr::Ipv4Address::size() const noexcept
 	}
 	return sz;
 }
-template <typename CHR> size_t kr::Ipv4Address::copyTo(CHR * dest) const noexcept
+template <typename CHR> size_t kr::Ipv4Address::$copyTo(CHR * dest) const noexcept
 {
 	ArrayWriter<CHR> writer(dest, dest + 16);
 	writer << a << '.' << b << '.' << c << '.' << d;
 	return writer.end() - dest;
 }
 
-template size_t kr::Ipv4Address::copyTo<char>(char *) const noexcept;
-template size_t kr::Ipv4Address::copyTo<char16>(char16 *) const noexcept;
-template size_t kr::Ipv4Address::copyTo<char32>(char32 *) const noexcept;
+size_t std::hash<kr::Ipv4Address>::operator ()(const kr::Ipv4Address& ip) const noexcept
+{
+	return ip.value;
+}
+
+template size_t kr::Ipv4Address::$copyTo<char>(char *) const noexcept;
+template size_t kr::Ipv4Address::$copyTo<char16>(char16 *) const noexcept;
+template size_t kr::Ipv4Address::$copyTo<char32>(char32 *) const noexcept;

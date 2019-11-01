@@ -5,32 +5,32 @@
 
 thread_local const kr::image::Palette * kr::image::Palette::defaultPalette;
 
-kr::color * kr::image::Palette::begin() noexcept
+kr::color * kr::image::Palette::$begin() noexcept
 {
 	return (kr::color*)color;
 }
 
-const kr::color * kr::image::Palette::begin() const noexcept
+const kr::color * kr::image::Palette::$begin() const noexcept
 {
 	return (kr::color*)color;
 }
 
-kr::color * kr::image::Palette::end() noexcept
+kr::color * kr::image::Palette::$end() noexcept
 {
 	return (kr::color*)color + size();
 }
 
-const kr::color * kr::image::Palette::end() const noexcept
+const kr::color * kr::image::Palette::$end() const noexcept
 {
 	return (kr::color*)color + size();
 }
 
-size_t kr::image::Palette::size() const noexcept
+size_t kr::image::Palette::$size() const noexcept
 {
 	return countof(color);
 }
 
-bool kr::image::Palette::empty() const noexcept
+bool kr::image::Palette::$empty() const noexcept
 {
 	return false;
 }

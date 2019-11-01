@@ -67,7 +67,7 @@ kr::gl::ImageCanvas::~ImageCanvas() noexcept
 void kr::gl::ImageCanvas::setFont(Text name, float size) noexcept
 {
 	delete m_font;
-	m_font = new Gdiplus::Font(wide((pcstr16)(TSZ16)(AcpToUtf16)name), size);
+	m_font = new Gdiplus::Font(wide((pcstr16)(TSZ16)(AnsiToUtf16)name), size);
 }
 void kr::gl::ImageCanvas::setComposite(Composite comp) noexcept
 {
@@ -111,7 +111,7 @@ void kr::gl::ImageCanvas::strokeOval(const frectwh &rect) noexcept
 }
 void kr::gl::ImageCanvas::fillText(Text text, vec2 pt) noexcept
 {
-	fillText((TText16)(AcpToUtf16)text, pt);
+	fillText((TText16)(AnsiToUtf16)text, pt);
 }
 void kr::gl::ImageCanvas::fillText(Text16 text, vec2 pt) noexcept
 {

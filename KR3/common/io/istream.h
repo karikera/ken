@@ -6,6 +6,121 @@ namespace kr
 {
 	namespace _pri_
 	{
+		template <typename T>
+		class PointableContainer
+		{
+		private:
+			T m_data;
+
+		public:
+			using Component = typename T::Component;
+
+			PointableContainer(T&& data) noexcept
+				:m_data(move(data))
+			{
+			}
+			PointableContainer(const T& data) noexcept
+				:m_data(data)
+			{
+			}
+			const T* operator ->() const noexcept
+			{
+				return &m_data;
+			}
+			T* operator ->() noexcept
+			{
+				return &m_data;
+			}
+		};
+		template <typename T>
+		class PointableContainer<T*>
+		{
+		private:
+			T* m_data;
+
+		public:
+			using Component = typename T::Component;
+
+			PointableContainer(T* data) noexcept
+				:m_data(data)
+			{
+			}
+			T* operator ->() const noexcept
+			{
+				return m_data;
+			}
+		};
+	}
+	template <typename C, typename Wrapped, bool sized = false>
+	class Writable
+	{
+		using Container = _pri_::PointableContainer<Wrapped>;
+		static_assert(is_same<C, typename Container::Component>::value, "component type unmatch");
+	protected:
+		mutable Container m_wrapped;
+
+	public:
+
+		Writable(Wrapped && wrapped) noexcept
+			:m_wrapped(move(wrapped))
+		{
+		}
+		Writable(const Wrapped& wrapped) noexcept
+			:m_wrapped(wrapped)
+		{
+		}
+
+		template <class _Derived, class _Parent>
+		void writeTo(OutStream<_Derived, C, StreamInfo<true, _Parent> >* os) const throws(...)
+		{
+			try
+			{
+				for (;;)
+				{
+					size_t sz = m_wrapped->$read(os->padding(4096), 4096);
+					os->commit(sz);
+				}
+			}
+			catch (EofException&)
+			{
+			}
+		}
+	};
+
+	template <typename C, typename Wrapped>
+	class Writable<C, Wrapped, true>:public Writable<C, Wrapped, false>
+	{
+		using Super = Writable<C, Wrapped, false>;
+	protected:
+		using Super::m_wrapped;
+		mutable size_t m_size;
+
+	public:
+
+		Writable(const Wrapped &wrapped, size_t size) noexcept
+			:Writable<C, Wrapped, false>(wrapped), m_size(size)
+		{
+		}
+		Writable(Wrapped&& wrapped, size_t size) noexcept
+			:Writable<C, Wrapped, false>(move(wrapped)), m_size(size)
+		{
+		}
+
+		size_t size() const noexcept
+		{
+			return m_size;
+		}
+		template <class _Derived, class _Parent>
+		void writeTo(OutStream<_Derived, C, StreamInfo<true, _Parent>>* os) const noexcept
+		{
+			size_t sz = m_wrapped->read(os->padding(m_size), m_size);
+			m_size -= sz;
+			os->commit(sz);
+		}
+	};
+
+	namespace _pri_
+	{
 		template <class Derived, typename C, class Info>
 		class IStream_cmpAccessable<Derived, C, StreamInfo<false, Info>>
 			: public AddContainer<C, true, StreamInfo<false, Info>>
@@ -13,12 +128,13 @@ namespace kr
 			CLASS_HEADER(IStream_cmpAccessable, AddContainer<C, true, StreamInfo<false, Info>>);
 		public:
 			INHERIT_COMPONENT();
+
 			using Super::Super;
 			using TSZ = TempSzText<C>;
-
+			
 			inline size_t read(Component * dest, size_t sz) throws(...)
 			{
-				return static_cast<Derived*>(this)->readImpl(dest, sz);
+				return static_cast<Derived*>(this)->$read(dest, sz);
 			}
 			inline InternalComponent read() throws(...)
 			{
@@ -26,14 +142,14 @@ namespace kr
 				read((Component*)&out, 1);
 				return out;
 			}
-			inline size_t skipImpl(size_t size) throws(...)
+			inline size_t $skip(size_t size) throws(...)
 			{
 				TmpArray<InternalComponent> tempbuffer(size);
-				return static_cast<Derived*>(this)->readImpl(tempbuffer.data(), size);
+				return static_cast<Derived*>(this)->$read(tempbuffer.data(), size);
 			}
 			inline size_t skip(size_t sz) throws(...)
 			{
-				return static_cast<Derived*>(this)->skipImpl(sz);
+				return static_cast<Derived*>(this)->$skip(sz);
 			}
 			inline size_t skipAll() throws(...)
 			{
@@ -42,7 +158,7 @@ namespace kr
 				{
 					for (;;)
 					{
-						skipped += static_cast<Derived*>(this)->skipImpl(4096);
+						skipped += static_cast<Derived*>(this)->$skip(4096);
 					}
 				}
 				catch (EofException&)
@@ -50,40 +166,7 @@ namespace kr
 				}
 				return skipped;
 			}
-
-			template <class _Derived, class _Parent>
-			inline void readAll(OutStream<_Derived, Component, StreamInfo<true, _Parent>> * os) throws(...)
-			{
-				try
-				{
-					for (;;)
-					{
-						static_cast<Derived*>(this)->read(os, 4096);
-					}
-				}
-				catch (EofException&)
-				{
-				}
-			}
-			inline Alc readAll() throws(...)
-			{
-				Alc out;
-				readAll(&out);
-				return out;
-			}
-			inline TmpArray<C> readAllTemp() throws(...)
-			{
-				TmpArray<C> out;
-				readAll(&out);
-				return out;
-			}
-			inline TSZ read(size_t size) throws(...)
-			{
-				TSZ tsz;
-				static_cast<Derived*>(this)->read(&tsz, size);
-				return tsz;
-			}
-
+			
 			template <typename T> T readas() throws(...)
 			{
 				T value;
@@ -95,20 +178,29 @@ namespace kr
 
 		template <class Derived, typename C, class Info>
 		class IStream_cmpAccessable<Derived, C, StreamInfo<true, Info>> :
-			public AddBufferable<Derived, BufferInfo<C, true, false, !Info::writable, StreamInfo<true, Info>>>
+			public StreamInfo<true, Info>
 		{
-			CLASS_HEADER(IStream_cmpAccessable, AddBufferable<Derived, BufferInfo<C, true, false, !Info::writable, StreamInfo<true, Info>>>);
+			CLASS_HEADER(IStream_cmpAccessable, StreamInfo<true, Info>);
 		public:
 			INHERIT_COMPONENT();
 			using Super::Super;
-			using Super::size;
-			using Super::begin;
-			using Super::end;
-			using Super::find;
-			using Super::find_n;
-			using Super::find_ny;
-			using Super::find_y;
-			using Super::find_L;
+			
+			inline const InternalComponent* begin() const noexcept
+			{
+				return static_cast<const Derived*>(this)->$begin();
+			}
+			inline const InternalComponent* end() const noexcept
+			{
+				return static_cast<const Derived*>(this)->$end();
+			}
+			inline size_t size() const noexcept
+			{
+				return static_cast<const Derived*>(this)->$size();
+			}
+			inline bool empty() const noexcept
+			{
+				return static_cast<const Derived*>(this)->emptyImpl();
+			}
 
 		private:
 			inline Derived* derived() noexcept
@@ -117,9 +209,15 @@ namespace kr
 			}
 
 		public:
-			inline ComponentRef * read(size_t * psize) throws(EofException)
+			using Buffer = AddBufferable<Super, BufferInfo<C, false, false, false, true, Super> >;
+			inline Buffer* buffer() noexcept
 			{
-				return derived()->readImpl(psize);
+				return static_cast<Buffer*>(static_cast<Super*>(this));
+			}
+
+			inline ComponentRef* read(size_t * psize) throws(EofException)
+			{
+				return derived()->$read(psize);
 			}
 			inline size_t skip(size_t sz) throws(EofException)
 			{
@@ -134,7 +232,7 @@ namespace kr
 			}
 			inline size_t read(Component * dest, size_t sz) throws(EofException)
 			{
-				const Component * src = read(&sz);
+				const Component* src = read(&sz);
 				mema::subs_copy((InternalComponent*)dest, (InternalComponent*)src, sz);
 				return sz;
 			}
@@ -142,7 +240,7 @@ namespace kr
 			// 예외 검사 없이, 강제로 읽는다, 
 			inline InternalComponent readForce() noexcept
 			{
-				const InternalComponent * p = (InternalComponent*)begin();
+				const InternalComponent * p = begin();
 				derived()->addBegin(1);
 				return *p;
 			}
@@ -150,7 +248,7 @@ namespace kr
 			{
 				if (size() == 0)
 					throw EofException();
-				const InternalComponent * p = (InternalComponent*)begin();
+				const InternalComponent * p = begin();
 				derived()->addBegin(1);
 				return *p;
 			}
@@ -169,109 +267,107 @@ namespace kr
 				Ref ref = read(sizeof(T) / sizeof(InternalComponent));
 				return *(T*)ref.begin();
 			}
-			inline Ref _readto_p(Ref _idx) noexcept
+			inline Ref _readto_p(const Component* p) noexcept
 			{
-				const Component * b = begin();
-				const Component * e = end();
+				const InternalComponent* b = begin();
+				const InternalComponent* e = end();
 
-				const Component * p = _idx.begin();
 				_assert(b <= p && p <= e);
 				Ref out(b, p);
-				derived()->setBegin(p);
+				derived()->setBegin((InternalComponent*)p);
 				return out;
 			}
-			inline Ref _readto_p(Ref _idx, size_t skip) noexcept
+			inline Ref _readto_p(const Component* p, size_t skip) noexcept
 			{
-				const Component * p = _idx.begin();
-				const Component * b = begin();
-				const Component * e = end();
-				_assert(b <= p && p + skip <= e);
+				const InternalComponent* b = begin();
+				const InternalComponent* e = end();
+				_assert(b <= p && (InternalComponent*)p + skip <= e);
 				Ref out(b, p);
-				derived()->setBegin(p + skip);
+				derived()->setBegin((InternalComponent*)p + skip);
 				return out;
 			}
-			inline Ref readto_p(Ref _idx) noexcept
+			inline Ref readto_p(const Component* _idx) noexcept
 			{
 				return _idx == nullptr ? (Ref)nullptr : _readto_p(_idx);
 			}
-			inline Ref readto_p(Ref _idx, size_t _skip) noexcept
+			inline Ref readto_p(const Component* _idx, size_t _skip) noexcept
 			{
 				return _idx == nullptr ? (Ref)nullptr : _readto_p(_idx, _skip);
 			}
-			inline Ref readto_pe(Ref _idx) noexcept
+			inline Ref readto_pe(const Component* _idx) noexcept
 			{
 				return _idx == nullptr ? (Ref)readAll() : _readto_p(_idx);
 			}
-			inline Ref readto_pe(Ref _idx, size_t _skip) noexcept
+			inline Ref readto_pe(const Component* _idx, size_t _skip) noexcept
 			{
 				return _idx == nullptr ? (Ref)readAll() : _readto_p(_idx, _skip);
 			}
 
 			inline Ref readto(const InternalComponent&_needle) noexcept
 			{
-				return readto_p(find(_needle));
+				return readto_p(buffer()->find(_needle));
 			}
 			inline Ref readto(Ref _needle) noexcept
 			{
-				return readto_p(find(_needle));
+				return readto_p(buffer()->find(_needle));
 			}
 			inline Ref readto(Ref _needle, size_t _skip) noexcept
 			{
-				return readto_p(find(_needle), _skip);
+				return readto_p(buffer()->find(_needle), _skip);
 			}
 			inline Ref readto_e(const InternalComponent& _needle) noexcept
 			{
-				return readto_pe(find(_needle));
+				return readto_pe(buffer()->find(_needle));
 			}
 			inline Ref readto_e(Ref _needle) noexcept
 			{
-				return readto_pe(find(_needle));
+				return readto_pe(buffer()->find(_needle));
 			}
 			inline Ref readto_e(Ref _needle, size_t _skip) noexcept
 			{
-				return readto_pe(find(_needle), _skip);
+				return readto_pe(buffer()->find(_needle), _skip);
 			}
 			inline Ref readto_y(Ref _cut) noexcept
 			{
-				return readto_p(find_y(_cut));
+				return readto_p(buffer()->find_y(_cut));
 			}
 			inline Ref readto_y(Ref _cut, size_t _skip) noexcept
 			{
-				return readto_p(find_y(_cut), _skip);
+				return readto_p(buffer()->find_y(_cut), _skip);
 			}
 			inline Ref readto_ye(Ref _cut) noexcept
 			{
-				return readto_pe(find_y(_cut));
+				return readto_pe(buffer()->find_y(_cut));
 			}
 			inline Ref readto_ye(Ref _cut, size_t _skip) noexcept
 			{
-				return readto_pe(find_y(_cut), _skip);
+				return readto_pe(buffer()->find_y(_cut), _skip);
 			}
 			inline Ref readto_n(const InternalComponent &_cut) noexcept
 			{
-				return readto_pe(find_n(_cut));
+				return readto_pe(buffer()->find_n(_cut));
 			}
 			inline Ref readto_n(const InternalComponent &_cut, size_t _skip) noexcept
 			{
-				return readto_pe(find_n(_cut), _skip);
+				return readto_pe(buffer()->find_n(_cut), _skip);
 			}
 			inline Ref readto_ny(Ref _cut) noexcept
 			{
-				return readto_pe(find_ny(_cut));
+				return readto_pe(buffer()->find_ny(_cut));
 			}
 			inline Ref readto_ny(Ref _cut, size_t _skip) noexcept
 			{
-				return readto_pe(find_ny(_cut), _skip);
+				return readto_pe(buffer()->find_ny(_cut), _skip);
 			}
 			template <typename LAMBDA>
 			inline Ref readto_L(const LAMBDA &lambda)
 			{
-				return readto_pe(find_L(lambda));
+				return readto_pe(buffer()->find_L(lambda));
 			}
 			template <typename LAMBDA>
 			inline Ref readto_eL(const LAMBDA &lambda)
 			{
-				return readto_pe(find_L(lambda));
+				return readto_pe(buffer()->find_L(lambda));
 			}
 			inline Ref skipspace()
 			{
@@ -279,11 +375,11 @@ namespace kr
 			}
 			inline Ref readwith(const InternalComponent &_cut) noexcept
 			{
-				return readto_p(find(_cut), 1);
+				return readto_p(buffer()->find(_cut), 1);
 			}
 			inline Ref readwith_e(const InternalComponent &_cut) noexcept
 			{
-				return readto_pe(find(_cut), 1);
+				return readto_pe(buffer()->find(_cut), 1);
 			}
 			inline Ref readwith(Ref _cut) noexcept
 			{
@@ -312,12 +408,12 @@ namespace kr
 			template <typename LAMBDA>
 			inline Ref readwith_L(const LAMBDA & lambda)
 			{
-				return readto_p(find_L(lambda), 1);
+				return readto_p(buffer()->find_L(lambda), 1);
 			}
 			template <typename LAMBDA>
 			inline Ref readwith_eL(const LAMBDA & lambda)
 			{
-				return readto_pe(find_L(lambda), 1);
+				return readto_pe(buffer()->find_L(lambda), 1);
 			}
 			template <class _Derived, class _Parent>
 			inline void readAll(OutStream<_Derived, Component, StreamInfo<true, _Parent>> * os) noexcept
@@ -364,7 +460,6 @@ namespace kr
 					derived()->addBegin(1);
 				return i;
 			}
-
 		};
 
 		template <class Derived, typename C, class Info>
@@ -439,12 +534,13 @@ namespace kr
 		using Super::Super;
 		using Super::read;
 
-		template <class _Derived, class _Parent>
-		inline size_t read(OutStream<_Derived, Component, StreamInfo<true, _Parent>> * os, size_t size)
+		inline Writable<Component, Derived*> readAll() throws(...)
 		{
-			size_t sz = read(os->padding(size), size);
-			os->commit(sz);
-			return sz;
+			return static_cast<Derived*>(this);
+		}
+		inline Writable<Component, Derived*, true> read(size_t size) throws(...)
+		{
+			return { static_cast<Derived*>(this), size };
 		}
 
 		inline dword readLeb128() throws(...)

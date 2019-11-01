@@ -53,12 +53,12 @@ void Parser::skipWithUnslash(char needle)
 {
 	for (;;)
 	{
-		m_is.skipto_F([&](Text text) {
+		m_is.skipto_L([&](Text text) {
 			const char needles[] = { (char)'\\', needle };
-			Text finded = text.find_y(Text(needles, countof(needles)));
+			pcstr finded = text.find_y(Text(needles, countof(needles)));
 			if (finded != nullptr)
 				m_line += (int)text.cut(finded).count('\n');
-			return finded.begin();
+			return finded;
 		});
 
 		if (m_is.read() == '\\')

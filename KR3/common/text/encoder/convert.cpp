@@ -122,6 +122,65 @@ size_t Utf16ToUtf32::decode(char16 * out, Text32 text) noexcept
 }
 
 template <>
+size_t ToConvert<Charset::None, char16>::length(Text text) noexcept
+{
+	return text.size();
+}
+template <>
+size_t ToConvert<Charset::None, char16>::encode(char16* out, Text text) noexcept
+{
+	for (char chr : text)
+	{
+		*out++ = chr;
+	}
+	return text.size();
+}
+template <>
+size_t ToConvert<Charset::None, char16>::delength(Text16 text) noexcept
+{
+	return text.size();
+}
+template <>
+size_t ToConvert<Charset::None, char16>::decode(char* out, Text16 text) noexcept
+{
+	for (char16 chr : text)
+	{
+		*out++ = (char)chr;
+	}
+	return text.size();
+}
+
+template <>
+size_t ToConvert<Charset::None, char32>::length(Text text) noexcept
+{
+	return text.size();
+}
+template <>
+size_t ToConvert<Charset::None, char32>::encode(char32* out, Text text) noexcept
+{
+	for (char chr : text)
+	{
+		*out++ = chr;
+	}
+	return text.size();
+}
+template <>
+size_t ToConvert<Charset::None, char32>::delength(Text32 text) noexcept
+{
+	return text.size();
+}
+template <>
+size_t ToConvert<Charset::None, char32>::decode(char* out, Text32 text) noexcept
+{
+	for (char32 chr : text)
+	{
+		*out++ = (char)chr;
+	}
+	return text.size();
+}
+
+
+template <>
 size_t ToConvert<Charset::Utf8, char16>::length(Text text) noexcept
 {
 	size_t sz = 0;
@@ -541,10 +600,12 @@ namespace
 	CPINFO MsCodePageImpl<cp>::cpinfo;
 
 	template <Charset cs> struct MsCodePage : MsCodePageImpl<0> {};
+	template <> struct MsCodePage<Charset::Ansi> : MsCodePageImpl<0> {};
 	template <> struct MsCodePage<Charset::EucKr> : MsCodePageImpl<949> {};
 
 	staticCode
 	{
+		MsCodePage<Charset::Ansi>::initCpInfo();
 		MsCodePage<Charset::EucKr>::initCpInfo();
 	};
 
@@ -660,17 +721,21 @@ bool meml<charset>::isDbcs(char chr) noexcept
 	return false;
 }
 
-template size_t ToConvert<Charset::EucKr, char32>::delength(Text32 text) noexcept;
-template size_t ToConvert<Charset::EucKr, char32>::decode(char * out, Text32 text) noexcept;
-template size_t ToConvert<Charset::EucKr, char32>::length(Text text) noexcept;
-template size_t ToConvert<Charset::EucKr, char32>::encode(char32 * out, Text text) noexcept;
+#define EXPORT_CHARSET(charset) \
+template size_t ToConvert<charset, char32>::delength(Text32 text) noexcept; \
+template size_t ToConvert<charset, char32>::decode(char * out, Text32 text) noexcept; \
+template size_t ToConvert<charset, char32>::length(Text text) noexcept; \
+template size_t ToConvert<charset, char32>::encode(char32 * out, Text text) noexcept; \
+\
+template size_t ToConvert<charset, char16>::delength(Text16 text) noexcept; \
+template size_t ToConvert<charset, char16>::decode(char * out, Text16 text) noexcept; \
+template size_t ToConvert<charset, char16>::length(Text text) noexcept; \
+template size_t ToConvert<charset, char16>::encode(char16 * out, Text text) noexcept; \
+\
+template bool meml<charset>::isDbcs(char chr) noexcept;
 
-template size_t ToConvert<Charset::EucKr, char16>::delength(Text16 text) noexcept;
-template size_t ToConvert<Charset::EucKr, char16>::decode(char * out, Text16 text) noexcept;
-template size_t ToConvert<Charset::EucKr, char16>::length(Text text) noexcept;
-template size_t ToConvert<Charset::EucKr, char16>::encode(char16 * out, Text text) noexcept;
-
-template bool meml<Charset::EucKr>::isDbcs(char chr) noexcept;
+EXPORT_CHARSET(Charset::Ansi);
+EXPORT_CHARSET(Charset::EucKr);
 
 #else
 

@@ -289,7 +289,7 @@ void IRC::onRead() noexcept
 		for (;;)
 		{
 			TText temp;
-			Text line = m_receive.readwith('\n', &temp);
+			Text line = m_receive.retype<char>()->readwith('\n', &temp);
 			if (line == nullptr) return;
 			if (line.endsWith('\r')) line.addEnd(-1);
 

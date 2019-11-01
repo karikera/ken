@@ -37,7 +37,7 @@ namespace kr
 				friend void * getAllocatedPointer(AllocatedData & data) noexcept
 				{
 					if(data.isNull()) return nullptr;
-					return (void*)((size_t*)data.begin() - 1);
+					return (void*)((size_t*)data.$begin() - 1);
 				}
 			};
 			template <typename C, class Parent> 
@@ -93,23 +93,23 @@ namespace kr
 				void _init(const C* beg, const C * end) noexcept
 				{
 					m_begin = (InternalComponent*)beg;
-					m_end = (InternalComponent*)end;
+					m_end = end;
 				}
 
-				const InternalComponent* begin() const noexcept
+				const InternalComponent* $begin() const noexcept
 				{
 					return m_begin;
 				}
-				const InternalComponent* end() const noexcept
+				const InternalComponent* $end() const noexcept
 				{
 					return m_end;
 				}
-				size_t size() const noexcept
+				size_t $size() const noexcept
 				{
-					_assert(m_begin != nullptr);
+					_assert((m_begin == nullptr) == (m_end == nullptr));
 					return ((byte*)m_end - (byte*)m_begin) / sizeof(InternalComponent);
 				}
-				bool empty() const noexcept
+				bool emptyImpl() const noexcept
 				{
 					return m_begin == m_end;
 				}
@@ -119,7 +119,7 @@ namespace kr
 				}
 
 				// InStream
-				const C* readImpl(size_t *_len) throws(EofException)
+				const C* $read(size_t *_len) throws(EofException)
 				{
 					const InternalComponent* out = (InternalComponent*)m_begin;
 					if (out == m_end)
@@ -139,6 +139,7 @@ namespace kr
 				constexpr ReadableData() noexcept = default;
 				constexpr ReadableData(const ReadableData&) noexcept = default;
 				ReadableData(nullptr_t) noexcept : m_begin(nullptr) {}
+				ReadableData(const zerolen_t&) noexcept : m_begin(nullptr), m_end(nullptr) {}
 				constexpr ReadableData(const C* str, size_t _len) noexcept
 					:m_begin((InternalComponent*)str), m_end((InternalComponent*)str + _len)
 				{
@@ -182,7 +183,7 @@ namespace kr
 				template <typename T>
 				void print(const T & v) = delete;
 
-				void setBegin(InternalComponentRef* _beg) noexcept
+				void setBegin(InternalComponent* _beg) noexcept
 				{
 					m_begin = _beg;
 				}
@@ -190,7 +191,7 @@ namespace kr
 				{
 					m_begin += n;
 				}
-				void setEnd(InternalComponentRef* end) noexcept
+				void setEnd(InternalComponent* end) noexcept
 				{
 					m_end = end;
 				}
@@ -205,19 +206,19 @@ namespace kr
 					m_end = (InternalComponent*)end;
 				}
 
-				InternalComponentRef* begin() const noexcept
+				InternalComponent* $begin() const noexcept
 				{
 					return m_begin;
 				}
-				InternalComponentRef* end() const noexcept
+				InternalComponent* $end() const noexcept
 				{
 					return m_end;
 				}
-				size_t size() const noexcept
+				size_t $size() const noexcept
 				{
 					return ((byte*)m_end - (byte*)m_begin) / sizeof(InternalComponent);
 				}
-				bool empty() const noexcept
+				bool emptyImpl() const noexcept
 				{
 					return m_begin == m_end;
 				}
@@ -227,7 +228,7 @@ namespace kr
 				}
 
 				// InStream
-				C* readImpl(size_t *_len) throws(EofException)
+				C* $read(size_t *_len) throws(EofException)
 				{
 					const C* out = m_begin;
 					if (out + *_len > m_end) throw EofException();
@@ -253,46 +254,46 @@ namespace kr
 				INHERIT_COMPONENT();
 
 			private:
-				C* m_end;
-				C* m_limit;
+				InternalComponent* m_end;
+				InternalComponent* m_limit;
 
 			public:
 				void _setEnd(C* str) noexcept
 				{
-					m_end = str;
+					m_end = (InternalComponent*)str;
 				}
-				void _addEnd(size_t inc) noexcept
+				void $_addEnd(size_t inc) noexcept
 				{
 					m_end += inc;
 				}
 				void _setLimit(C* str) noexcept
 				{
-					m_limit = str;
+					m_limit = (InternalComponent*)str;
 				}
-				C* _extend(size_t inc) throws(NotEnoughSpaceException)
+				C* $_extend(size_t inc) throws(NotEnoughSpaceException)
 				{
-					C* out = m_end;
-					C* nptr = out + inc;
+					InternalComponent* out = m_end;
+					InternalComponent* nptr = out + inc;
 					if (nptr > m_limit) throw NotEnoughSpaceException();
 					m_end = nptr;
 					return out;
 				}
-				C* _padding(size_t inc) throws(NotEnoughSpaceException)
+				C* $_padding(size_t inc) throws(NotEnoughSpaceException)
 				{
 					if (m_end + inc > m_limit) throw NotEnoughSpaceException();
 					return m_end;
 				}
 				void _init() = delete;
 
-				InternalComponentRef* end() const noexcept
+				InternalComponentRef* $end() const noexcept
 				{
 					return m_end;
 				}
-				size_t left() const noexcept
+				size_t $remaining() const noexcept
 				{
 					return m_limit-m_end;
 				}
-				InternalComponentRef* limit() const noexcept
+				InternalComponentRef* $limit() const noexcept
 				{
 					return m_limit;
 				}
@@ -313,11 +314,11 @@ namespace kr
 
 				WritableData() noexcept {}
 				WritableData(nullptr_t) noexcept : m_end(nullptr) {}
-				WritableData(C* str, size_t _len) noexcept : m_end(str), m_limit(str + _len) {}
-				WritableData(C* str, C* end) noexcept : m_end(str), m_limit(end) {}
-				template <size_t _size> WritableData(C(&buffer)[_size]) noexcept : WritableData(buffer, _size) {}
+				WritableData(C* str, size_t _len) noexcept : m_end((InternalComponent*)str), m_limit(str + _len) {}
+				WritableData(C* str, C* end) noexcept : m_end((InternalComponent*)str), m_limit((InternalComponent*)end) {}
+				template <size_t _size> WritableData(InternalComponent(&buffer)[_size]) noexcept : WritableData(buffer, _size) {}
 				template <size_t _size, class _Parent> WritableData(const BufferedData<_size, C, _Parent>& data) noexcept
-					:WritableData(data.end(), data.limit())
+					:WritableData(data.$end(), data.$limit())
 				{
 				}
 			};

@@ -144,11 +144,11 @@ typename ParameterT<Component>::Value ParameterT<Component>::next() throws(EofEx
 		if (str.size() >= 1 && (str[1] == '-')) // --name [value]
 		{
 			str += 2;
-			Text value = str.find('=');
+			const Component * value = str.find('=');
 			if (value != nullptr)
 			{
 				v.name = str.cut(value);
-				v.value = value + 1;
+				v.value = str.subarr(value + 1);
 			}
 			else
 			{
@@ -189,18 +189,18 @@ typename ParameterT<Component>::Value ParameterT<Component>::next() throws(EofEx
 
 			try
 			{
-				Text next = m_prefix.find(paramName);
-				Text name = paramName.cut(next);
+				View<Component> next = m_prefix.find(paramName);
+				Text name = paramName.cut(next.data());
 				str = next;
 				v.name = name;
 			}
 			catch (NotFoundException&)
 			{
-				Text value = paramName.find(':');
+				const Component * value = paramName.find(':');
 				if (value != nullptr)
 				{
 					v.name = paramName.cut(value);
-					str = value + 1;
+					str.subarr_self(value+1);
 				}
 				else
 				{

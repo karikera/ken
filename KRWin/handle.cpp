@@ -44,23 +44,19 @@ const autovar<sizeof(ptr)> Library::get(pcstr str) noexcept
 	FARPROC t = GetProcAddress(this, str);
 	return t;
 }
-const ProcessAndModule::ModuleName ProcessAndModule::name() noexcept
-{
-	return this;
-}
-template <> size_t ProcessAndModule::getName<char>(char* dest, size_t capacity) noexcept
+template <> size_t ProcessAndModule::getName<char>(char* dest, size_t capacity) const noexcept
 {
 	return GetModuleBaseNameA(process, module, dest, intact<DWORD>(capacity));
 }
-template <> size_t ProcessAndModule::getNameLength<char>() noexcept
+template <> size_t ProcessAndModule::getNameLength<char>() const noexcept
 {
 	return GetModuleBaseNameA(process, module, nullptr, 0);
 }
-template <> size_t ProcessAndModule::getName<char16>(char16* dest, size_t capacity) noexcept
+template <> size_t ProcessAndModule::getName<char16>(char16* dest, size_t capacity) const noexcept
 {
 	return GetModuleBaseNameW(process, module, wide(dest), intact<DWORD>(capacity));
 }
-template <> size_t ProcessAndModule::getNameLength<char16>() noexcept
+template <> size_t ProcessAndModule::getNameLength<char16>() const noexcept
 {
 	return GetModuleBaseNameW(process, module, nullptr, 0);
 }
@@ -469,21 +465,21 @@ int Window::informationBox(pcstr16 strMessage) noexcept
 {
 	return msgBox(strMessage, nullptr, MB_OK | MB_ICONINFORMATION);
 }
-template <> size_t Window::getText<char>(char * dest,size_t capacity) noexcept
+template <> size_t Window::getText<char>(char * dest,size_t capacity) const noexcept
 {
-	return GetWindowTextA(this, dest, intact<int>(capacity));
+	return GetWindowTextA((Window*)this, dest, intact<int>(capacity));
 }
-template <> size_t Window::getText<char16>(char16 * dest,size_t capacity) noexcept
+template <> size_t Window::getText<char16>(char16 * dest,size_t capacity) const noexcept
 {
-	return GetWindowTextW(this, wide(dest), intact<int>(capacity));
+	return GetWindowTextW((Window*)this, wide(dest), intact<int>(capacity));
 }
-template <> size_t Window::getTextLength<char>() noexcept
+template <> size_t Window::getTextLength<char>() const noexcept
 {
-	return GetWindowTextLengthA(this);
+	return GetWindowTextLengthA((Window*)this);
 }
-template <> size_t Window::getTextLength<char16>() noexcept
+template <> size_t Window::getTextLength<char16>() const noexcept
 {
-	return GetWindowTextLengthW(this);
+	return GetWindowTextLengthW((Window*)this);
 }
 int Window::setText(pcstr src) noexcept
 {
@@ -1004,6 +1000,7 @@ win::Process::Pair win::Process::execute(pstr strCommand, pcstr strPath, Process
 	DWORD flags = 0;
 	if (opts.suspended()) flags |= CREATE_SUSPENDED;
 	if (opts.console()) flags |= CREATE_NEW_CONSOLE;
+	if (opts.detached()) flags |= DETACHED_PROCESS;
 	if (!CreateProcessA(nullptr, strCommand, nullptr, nullptr, false, flags, nullptr, strPath, &si, &pi))
 	{
 		return { nullptr, nullptr };

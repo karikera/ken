@@ -23,12 +23,25 @@ namespace kr
 				(Component)'\n',
 				(Component)'\0',
 			};
+
+			template <typename Derived, typename Parent>
+			class MemBuffer_c_str :public Parent
+			{
+				using Super = Parent;
+			public:
+				INHERIT_COMPONENT();
+
+				const Component* c_str() const
+				{
+					return static_cast<const Derived*>(this)->$begin();
+				}
+			};
 		}
 
-		template <class Derived, class Info, class Next>
-		class TextBuffer : public Next
+		template <class Derived, class Next>
+		class TextBuffer : public meta::if_t<Next::szable, _pri_::MemBuffer_c_str<Derived, Next>, Next>
 		{
-			CLASS_HEADER(TextBuffer, Next);
+			CLASS_HEADER(TextBuffer, meta::if_t<Next::szable, _pri_::MemBuffer_c_str<Derived, Next>, Next>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -39,8 +52,9 @@ namespace kr
 			using Super::size;
 			using Super::find_ny;
 			using Super::find_nry;
+			using Super::endIndex;
 
-			static const typename Info::Component (&WHITE_SPACE)[5];
+			static const typename Component (&WHITE_SPACE)[5];
 
 			friend std::basic_ostream<Component>& operator <<(std::basic_ostream<Component>& os, const TextBuffer& method)
 			{
@@ -81,8 +95,8 @@ namespace kr
 			float to_ufloat_x(size_t _len) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				const ComponentRef * beg = begin();
-				const ComponentRef * finded = memm::find(beg, '.', _len);
+				const Component* beg = begin();
+				const Component* finded = memm::find(beg, '.', _len);
 				if (finded == nullptr) return (float)to_uint_x(10, _len);
 				size_t len2 = finded - beg;
 				_len = _len - len2 - 1;
@@ -253,11 +267,11 @@ namespace kr
 
 			Ref trim() const noexcept
 			{
-				Ref beg = find_ny(WHITE_SPACE);
+				const Component* beg = find_ny(WHITE_SPACE);
 				if (beg == nullptr)
-					return Ref(end(), end());
-				Ref end = find_nry(WHITE_SPACE);
-				return beg.cut(end+1);
+					return endIndex();
+				const Component* end = find_nry(WHITE_SPACE);
+				return Ref(beg, end+1);
 			}
 
 			constexpr TextBuffer() noexcept = default;
@@ -274,10 +288,10 @@ namespace kr
 			}
 		};
 
-		template <class Derived, class Info, class Next>
-		class WTextBuffer:public TextBuffer<Derived, Info, Next>
+		template <class Derived, class Next>
+		class WTextBuffer:public TextBuffer<Derived, Next>
 		{
-			CLASS_HEADER(WTextBuffer, TextBuffer<Derived, Info, Next>);
+			CLASS_HEADER(WTextBuffer, TextBuffer<Derived, Next>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -300,7 +314,7 @@ namespace kr
 			}
 		};
 
-		template <class Derived, class Info, typename Next>
-		const typename Info::Component (&TextBuffer<Derived, Info, Next>::WHITE_SPACE)[5] = _pri_::StaticText<typename Info::Component>::WHITE_SPACE;
+		template <class Derived, typename Next>
+		const typename Next::Component (&TextBuffer<Derived, Next>::WHITE_SPACE)[5] = _pri_::StaticText<Component>::WHITE_SPACE;
 	}
 }

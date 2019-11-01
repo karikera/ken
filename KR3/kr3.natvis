@@ -327,4 +327,19 @@
       <ExpandedItem>m_children</ExpandedItem>
     </Expand>
   </Type>
+  <Type Name="testaa">
+    <Expand></Expand>
+  </Type>
+  <Type Name="kr::JsRawData">
+    <DisplayString Condition="((size_t)m_data &gt;&gt; 48) == 1">JS {(int&amp;)m_data}</DisplayString>
+    <DisplayString Condition="((size_t)m_data) >= ((size_t)1 &lt;&lt; 50)">JS (double){((size_t)m_data ^ 0x0FFFC000000000000)}</DisplayString>
+    <DisplayString Condition="*((uint32_t**)m_data)[1] == 0">JS undefined</DisplayString>
+    <DisplayString Condition="*((uint32_t**)m_data)[1] == 1">JS null</DisplayString>
+    <DisplayString Condition="*((uint32_t**)m_data)[1] == 27">JS [object Object]</DisplayString>
+    <DisplayString Condition="*((uint32_t**)m_data)[1] == 26">JS [object Function]</DisplayString>
+    <DisplayString Condition="*((uint32_t**)m_data)[1] == 2">JS {(bool)((uint32_t**)m_data)[2]}</DisplayString>
+    <DisplayString>JS {{ [type]={*((uint32_t**)m_data)[1]} }}</DisplayString>
+    <Expand HideRawView="true">
+    </Expand>
+  </Type>
 </AutoVisualizer>

@@ -248,10 +248,12 @@ namespace kr
 		class ChainData
 		{
 		public:
-			class Iterator :public TIterator<Iterator, NodeLinkData>
+			class Iterator :public MakePointerIterator<Iterator, NodeLinkData>
 			{
+				using Super = MakePointerIterator<Iterator, NodeLinkData>;
 			public:
-				INHERIT_ITERATOR(TIterator<Iterator, NodeLinkData>);
+				using Super::Super;
+				// INHERIT_ITERATOR(TIterator<Iterator, NodeLinkData>);
 				Iterator& operator ++() noexcept;
 				Iterator& operator --() noexcept;
 
@@ -334,7 +336,7 @@ namespace kr
 		};
 
 		template <typename Base, typename Node>
-		class ChainMethod:public Base
+		class ChainMethod:public MakeReverseIterable<ChainMethod<Base, Node>, Base>
 		{
 			// static_assert(is_base_of_v<NodeLinkData, Node>, "Node must inherit NodeLinkData"); // error when node contains linkedlist
 			using Super = Base;
@@ -476,24 +478,22 @@ namespace kr
 		public:
 			using Super::empty;
 
-			class Iterator :public TIterator<Iterator, Node>
+			class Iterator :public MakePointerIterator<Iterator, Node>
 			{
 			public:
-				INHERIT_ITERATOR(TIterator<Iterator, Node>);
+				INHERIT_ITERATOR(MakePointerIterator<Iterator, Node>);
 
 			protected:
 				using Super::m_pt;
 
 			public:
-				Iterator& operator ++() noexcept
+				void next() noexcept
 				{
 					m_pt = static_cast<Node*>(m_pt->getNext());
-					return *this;
 				}
-				Iterator& operator --() noexcept
+				void previous() noexcept
 				{
 					m_pt = static_cast<Node*>(m_pt->getPrevious());
-					return *this;
 				}
 			};
 
@@ -795,10 +795,6 @@ namespace kr
 				return nullptr;
 			}
 
-			ReverseIterable<ChainMethod> reverse() noexcept
-			{
-				return ReverseIterable<ChainMethod>(this);
-			}
 			Iterator begin() const noexcept
 			{
 				return static_cast<Node*>(m_axis.m_next);
@@ -837,6 +833,7 @@ namespace kr
 
 		public:
 			using typename Super::Iterator;
+
 			using ReverseIterator = typename Super::Iterator::Reverse;
 
 			using Super::getNode;
@@ -914,9 +911,9 @@ namespace kr
 
 	// 길이를 가지지 않은 링크드 리스트이다.
 	template <typename Node> 
-	class Chain:public TIterable<Chain<Node>, _pri_::ChainMethod<_pri_::ChainData, Node>>
+	class Chain:public _pri_::ChainMethod<_pri_::ChainData, Node>
 	{
-		using Super = TIterable<Chain<Node>, _pri_::ChainMethod<_pri_::ChainData, Node>>;
+		using Super = _pri_::ChainMethod<_pri_::ChainData, Node>;
 	protected:
 		using Super::_moveList;
 

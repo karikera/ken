@@ -6,9 +6,11 @@ namespace kr
 	class autoptr final
 	{
 	public:
-		autoptr() noexcept;
+		autoptr() = default;
 		autoptr(nullptr_t) noexcept;
 		autoptr& operator =(nullptr_t) noexcept;
+		explicit autoptr(intptr_t dat) noexcept;
+		explicit autoptr(uintptr_t dat) noexcept;
 		template <typename T> autoptr(T* dat) noexcept;
 		template <typename T> operator T*() const noexcept;
 		template <typename T> autoptr& operator =(T* dat) noexcept;

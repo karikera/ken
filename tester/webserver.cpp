@@ -38,7 +38,7 @@ public:
 void webServerMain() noexcept
 {
 	Initializer<Socket> _init;
-	HttpServer g_server;
+	HttpServer g_server(u".");
 
 	currentDirectory.set(L"D:\\Projects\\git\\k-square");
 	g_server.open(80);

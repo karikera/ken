@@ -357,18 +357,6 @@
     <ClInclude Include="common\text\encoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="data\crypt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="data\crypt\base64.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="data\crypt\md5.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="data\crypt\sha1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="math\geom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -406,9 +394,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="data\set.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="data\crypt\sha256.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util\singleinstance.h">
@@ -540,6 +525,138 @@
     <ClInclude Include="mt\task.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="js\arguments.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\cast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\class.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\external.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\function.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\js.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\lambda.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\meta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\news.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\persistent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\propertyid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\rawdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\string.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\undefined.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="js\value.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\writablemethod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\sha1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt\sha256.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\crypt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\buffer\commoncls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\asyncfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs\watcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\IRC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\mtnet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\server.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\wsevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\cascader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\eventdispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\minidb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\msgloop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\poster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\progressor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\promise.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\pump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msg\timeout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\autovar\autoptr.cpp">
@@ -629,18 +746,6 @@
     <ClCompile Include="common\text\encoder\convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="data\crypt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="data\crypt\base64.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="data\crypt\md5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="data\crypt\sha1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="math\coord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -672,9 +777,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\process.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="data\crypt\sha256.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\singleinstance.cpp">
@@ -773,6 +875,114 @@
     <ClCompile Include="mt\task.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="js\arguments.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\cast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\chakra.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\class.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\external.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\news.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\persistent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\rawdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\string.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="js\value.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\md5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\sha1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt\sha256.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\crypt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\asyncfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fs\watcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\IRC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\mtnet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="net\wsevent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\cascader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\eventdispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\minidb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\msgloop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\pool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\poster.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\progressor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\promise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\pump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="msg\timeout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="math\coord\vector_data.inl">
@@ -800,6 +1010,12 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="common\random.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="js\class.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="js\meta.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

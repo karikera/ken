@@ -78,8 +78,16 @@ namespace kr
 			return &t != nullptr;
 		}
 	};
+	class zerolen_t
+	{
+	public:
+		zerolen_t() = delete;
+		zerolen_t(const zerolen_t&) = delete;
+		~zerolen_t() = delete;
+	};
 	
 	static const nullref_t &nullref = *(nullref_t*)(1-1);
+	static const zerolen_t& zerolen = *(zerolen_t*)(1 - 1);
 
 	using std::endl;
 

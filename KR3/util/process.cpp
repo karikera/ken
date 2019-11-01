@@ -11,20 +11,31 @@
 
 using namespace kr;
 
-kr::Process::Process() noexcept
+Process::Process() noexcept
 {
 	m_stdout_read = nullptr;
 	m_process = nullptr;
+}
+Process::Process(Process&& _move) noexcept
+{
+	m_stdout_read = _move.m_stdout_read;
+	_move.m_stdout_read = nullptr;
+	m_process = _move.m_process;
+	_move.m_process = nullptr;
 }
 Process::Process(Shell_t, Text16 cmd) noexcept
 	:Process()
 {
 	shell(cmd);
 }
-Process::Process(pcstr16 fileName, pstr16 parameter) noexcept
+Process::Process(pstr16 command) noexcept
+{
+	exec(command);
+}
+Process::Process(pcstr16 fileName, pstr16 parameter, pcstr16 curdir) noexcept
 	: Process()
 {
-	exec(fileName, parameter);
+	exec(fileName, parameter, curdir);
 }
 Process::~Process() noexcept
 {
@@ -85,7 +96,7 @@ void Process::exec(pstr16 commandLine) throws(Error)
 {
 	exec(nullptr, commandLine, nullptr);
 }
-size_t Process::readImpl(char * dest, size_t sz) throws(EofException)
+size_t Process::$read(char * dest, size_t sz) throws(EofException)
 {
 	DWORD willRead = sz > (DWORD)-1 ? (DWORD)-1 : (DWORD)sz;
 	DWORD readed;
@@ -213,7 +224,7 @@ void Process::exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir)
 {
 	notImplementedYet();
 }
-size_t Process::readImpl(char * dest, size_t sz)
+size_t Process::$read(char * dest, size_t sz)
 {
 	notImplementedYet();
 }
@@ -293,4 +304,31 @@ TmpArray<ProcessId> ProcessId::findsByName(Text16 name) noexcept
 dword ProcessId::value() noexcept
 {
 	return m_id;
+}
+
+Writable<char, Process> kr::shell(Text16 command, pcstr16 curdir) throws(Error)
+{
+	Process process;
+	process.shell(command, curdir);
+	process.wait();
+	return Writable<char, Process>(move(process));
+}
+Writable<char, Process> kr::exec(pcstr16 file, pstr16 parameter, pcstr16 curdir) noexcept
+{
+	Process process;
+	process.exec(file, parameter, curdir);
+	process.wait();
+	return Writable<char, Process>(move(process));
+}
+Writable<char, Process> kr::exec(Text16 command) noexcept
+{
+	Process process;
+	process.exec(TSZ16() << command);
+	return Writable<char, Process>(move(process));
+}
+Writable<char, Process> kr::exec(pstr16 command) noexcept
+{
+	Process process;
+	process.exec(command);
+	return Writable<char, Process>(move(process));
 }

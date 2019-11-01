@@ -140,7 +140,7 @@ namespace kr
 
 	namespace _pri_
 	{
-		class EventListImpl:public Bufferable<EventListImpl, BufferInfo<EventHandle*, true, false, true>>
+		class EventListImpl:public Bufferable<EventListImpl, BufferInfo<EventHandle*> >
 		{
 		public:
 			EventListImpl() noexcept;
@@ -148,9 +148,9 @@ namespace kr
 			dword wait(dword time) noexcept;
 			EventHandle * pickOut(size_t idx) noexcept;
 			void pop() noexcept;
-			EventHandle * const * begin() const noexcept;
-			EventHandle * const * end() const noexcept;
-			size_t size() const noexcept;
+			EventHandle * const * $begin() const noexcept;
+			EventHandle * const * $end() const noexcept;
+			size_t $size() const noexcept;
 			void clear() noexcept;
 
 		protected:

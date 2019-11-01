@@ -4,7 +4,7 @@
 
 namespace kr
 {
-	struct Ipv4Address:public Bufferable<Ipv4Address, BufferInfo<AutoComponent, false, false, true>>
+	struct Ipv4Address:public Bufferable<Ipv4Address, BufferInfo<AutoComponent>>
 	{
 		union
 		{
@@ -19,16 +19,25 @@ namespace kr
 		Ipv4Address(byte a, byte b, byte c, byte d) noexcept;
 		explicit Ipv4Address(kr::Text str) noexcept;
 
-		size_t size() const noexcept;
+		bool operator ==(const Ipv4Address& v) const noexcept;
+		bool operator !=(const Ipv4Address& v) const noexcept;
+
+		size_t $size() const noexcept;
 		template <typename CHR>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return size();
 		}
 		template <typename CHR>
-		size_t copyTo(CHR * dest) const noexcept;
+		size_t $copyTo(CHR * dest) const noexcept;
 
 		static const Ipv4Address loopBack;
 	};
 
 }
+
+template<>
+struct std::hash<kr::Ipv4Address>
+{
+	size_t operator ()(const kr::Ipv4Address& ip) const noexcept;
+};

@@ -8,7 +8,7 @@ typedef struct st_mysql MYSQL;
 
 namespace kr
 {
-	enum HttpStatus :uint;
+	enum class HttpStatus :int;
 
 	using std::current_exception;
 	using std::exception_ptr;

@@ -154,7 +154,7 @@ bool EventDispatcher::_add(DispatchedEvent * event) noexcept
 	m_dispatched[idx - 1] = event;
 	m_events.push(event->m_event);
 	m_references[0] = 0;
-	bool isEnd = m_events.left() == 0;
+	bool isEnd = m_events.remaining() == 0;
 
 	m_insert.leave();
 

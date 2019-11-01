@@ -7,7 +7,7 @@
 #include <Windows.h>
 
 #include "mtnet.h"
-#include "../msgloop.h"
+#include <KR3/msg/msgloop.h>
 #include <KR3/util/keeper.h>
 
 using namespace kr;
@@ -60,7 +60,7 @@ namespace
 	public:
 		IOCP() noexcept;
 
-		Socket* createSocket(ULONG_PTR attachment);
+		Socket* createSocket(ULONG_PTR attachment) throws(FunctionError);
 		void close() noexcept;
 		static IOCP * getInstance() noexcept;
 	};
@@ -97,7 +97,7 @@ namespace
 		static IOCP iocp;
 		return &iocp;
 	}
-	Socket* IOCP::createSocket(ULONG_PTR attachment)
+	Socket* IOCP::createSocket(ULONG_PTR attachment) throws(FunctionError)
 	{
 		if (m_iocp == nullptr) throw FunctionError("", ERROR_NOT_READY);
 		SOCKET socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -206,8 +206,7 @@ MTClient::MTClient(Socket * socket) noexcept
 	m_receiveOperation = overlapes.alloc(this, OperationType::Read);
 	m_closing = false;
 	m_flushing = false;
-	m_receiving = false;
-	m_closed = false;
+	m_receiving = RState::Preparing;
 }
 MTClient::MTClient() noexcept
 	:MTClient(IOCP::getInstance()->createSocket(3))
@@ -215,12 +214,12 @@ MTClient::MTClient() noexcept
 }
 MTClient::~MTClient() noexcept
 {
+	_assert(!m_socket);
 	_assert(!m_flushing);
-	_assert(!m_receiving);
-	_close();
+	_assert(m_receiving == RState::Closed);
 	_assert(!m_switchClient);
 }
-void MTClient::clear() noexcept
+void MTClient::reset(Socket * socket) noexcept
 {
 	if (m_socket)
 	{
@@ -228,13 +227,10 @@ void MTClient::clear() noexcept
 		m_socket = nullptr;
 	}
 	m_receive.clear();
-	m_closing = false;
-	m_flushing = false;
-	m_receiving = false;
-}
-void MTClient::reset(Socket * socket) noexcept
-{
-	clear();
+
+	_assert(!m_flushing);
+	_assert(!m_closing);
+	_assert(m_receiving == RState::Preparing);
 	m_socket = socket;
 }
 Socket * MTClient::getSocket() noexcept
@@ -267,13 +263,14 @@ void MTClient::requestReceive() noexcept
 	{
 		CsLock __lock(m_cs);
 		CsLock __lock2(m_csRead);
-		_assert(!m_receiving);
+		_assert(m_receiving == RState::Preparing);
 		if (m_switchClient)
 		{
 			m_switchClient->readSetBuffer(move(m_receive));
 
 			if (!m_flushing)
 			{
+				m_receiving = RState::Closed;
 				m_switchClient = nullptr;
 				goto __delete;
 			}
@@ -284,6 +281,7 @@ void MTClient::requestReceive() noexcept
 		{
 			if (!m_flushing)
 			{
+				m_receiving = RState::Closed;
 				goto __delete;
 			}
 			return;
@@ -295,6 +293,7 @@ void MTClient::requestReceive() noexcept
 		buf.len = intact<ULONG>(buffer.size());
 		if (buf.len == 0)
 		{
+			m_receiving = RState::Closed;
 			onError("buffer prepare", ERROR_NOT_ENOUGH_MEMORY);
 			close();
 			if (!m_flushing)
@@ -304,7 +303,7 @@ void MTClient::requestReceive() noexcept
 			return;
 		}
 
-		m_receiving = true;
+		m_receiving = RState::Receiving;
 		
 		DWORD flags = 0;
 		DWORD received;
@@ -315,7 +314,7 @@ void MTClient::requestReceive() noexcept
 			int err = WSAGetLastError();
 			if (err != WSA_IO_PENDING)
 			{
-				m_receiving = false;
+				m_receiving = RState::Closed;
 				close();
 				onError("WSARecv", err);
 				if (!m_flushing)
@@ -370,6 +369,30 @@ void MTClient::write(Buffer data) noexcept
 	writeWithoutLock(data);
 	writeUnlock();
 }
+void MTClient::writes(View<Buffer> datas) noexcept
+{
+	CsLock __lock(m_cs);
+	if (m_switchClient)
+	{
+		for (Buffer data : datas)
+		{
+			m_switchClient->write(data);
+		}
+		return;
+	}
+	if (!m_closing)
+	{
+		for (Buffer data : datas)
+		{
+			m_writeQueue.write(data.data(), data.size());
+		}
+
+		if (m_writeQueue.size() >= 8192)
+		{
+			flush();
+		}
+	}
+}
 void MTClient::writeLock() noexcept
 {
 	m_cs.enter();
@@ -382,16 +405,14 @@ void MTClient::writeWithoutLock(Buffer data) noexcept
 		return;
 	}
 	if (m_closing) return;
-
 	m_writeQueue.write(data.data(), data.size());
-
+}
+void MTClient::writeUnlock() noexcept
+{
 	if (m_writeQueue.size() >= 8192)
 	{
 		flush();
 	}
-}
-void MTClient::writeUnlock() noexcept
-{
 	m_cs.leave();
 }
 void MTClient::close() noexcept
@@ -405,20 +426,27 @@ bool MTClient::isClosed() noexcept
 void MTClient::readSetBuffer(BufferQueue receiver) noexcept
 {
 	{
+		CsLock __lock(m_csRead);
+		if (!m_closing)
+		{
+			m_receive = move(receiver);
+			_callOnRead();
+		}
+	}
+
+	{
 		CsLock __lock(m_cs);
+		_assert(m_starting);
+		m_starting = false;
 		if (m_closing)
 		{
+			m_receiving = RState::Closed;
 			if (!m_flushing)
 			{
 				goto __delete;
 			}
 			return;
 		}
-	}
-	{
-		CsLock __lock(m_csRead);
-		m_receive = move(receiver);
-		_callOnRead();
 		requestReceive();
 		return;
 	}
@@ -429,12 +457,13 @@ void MTClient::readCommit(size_t size) noexcept
 {
 	{
 		CsLock __lock(m_cs);
-		_assert(m_receiving);
-		m_receiving = false;
+		_assert(m_receiving == RState::Receiving);
+		m_receiving = RState::Preparing;
 
 		if (m_switchClient)
 		{
 			m_switchClient->readSetBuffer(move(m_receive));
+			m_receiving = RState::Closed;
 
 			if (!m_flushing)
 			{
@@ -447,9 +476,9 @@ void MTClient::readCommit(size_t size) noexcept
 
 		if (m_closing)
 		{
+			m_receiving = RState::Closed;
 			if (!m_flushing)
 			{
-				close();
 				goto __delete;
 			}
 			return;
@@ -476,7 +505,7 @@ void MTClient::writeCommit(size_t size) noexcept
 		{
 			m_switchClient->writeCommit(size);
 
-			if (!m_receiving)
+			if (m_receiving == RState::Closed)
 			{
 				m_switchClient = nullptr;
 				_close();
@@ -492,17 +521,14 @@ void MTClient::writeCommit(size_t size) noexcept
 			onSendDone();
 			if (m_closing)
 			{
-				if (!m_flushing)
+				switch (m_receiving)
 				{
-					if (m_receiving)
-					{
-						CancelIo(m_socket);
-						// CancelIoEx(m_socket, m_receiveOperation);
-					}
-					else
-					{
-						goto __delete;
-					}
+				case RState::Closed: goto __delete;
+				case RState::Preparing: break;
+				case RState::Receiving:
+					CancelIo(m_socket);
+					// CancelIoEx(m_socket, m_receiveOperation);
+					break;
 				}
 			}
 		}
@@ -528,9 +554,6 @@ void MTClient::onSendDone() noexcept
 }
 void MTClient::onClose() noexcept
 {
-	m_closing = true;
-	m_closed = true;
-	Release();
 }
 void MTClient::switchClient(MTClient * client) noexcept
 {
@@ -540,7 +563,7 @@ void MTClient::switchClient(MTClient * client) noexcept
 	m_switchClient = client;
 	m_switchClient->m_flushing = true;
 	client->m_writeQueue = move(m_writeQueue);
-	if (m_receiving)
+	if (m_receiving == RState::Receiving)
 	{
 		CancelIo(m_socket);
 		// CancelIoEx(m_socket, m_receiveOperation);
@@ -558,6 +581,7 @@ void MTClient::_close() noexcept
 	}
 	overlapes.free(m_receiveOperation);
 	overlapes.free(m_flushOperation);
+	Release();
 }
 void MTClient::_callOnRead() noexcept
 {

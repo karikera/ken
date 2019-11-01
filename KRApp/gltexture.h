@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KRMessage/promise.h>
+#include <KR3/msg/promise.h>
 #include <K2D/image.h>
 
 #include "globject.h"

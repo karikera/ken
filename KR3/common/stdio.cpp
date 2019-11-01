@@ -57,7 +57,7 @@ void StandardOutput::flush() noexcept
 	std::cout.flush();
 }
 template <>
-void StandardOutput::writeImpl(const char *chr, size_t sz) noexcept
+void StandardOutput::$write(const char *chr, size_t sz) noexcept
 {
 	std::cout.write(chr, sz);
 }
@@ -67,7 +67,7 @@ void StandardErrorOutput::flush() noexcept
 	std::cerr.flush();
 }
 template <>
-void StandardErrorOutput::writeImpl(const char *chr, size_t sz) noexcept
+void StandardErrorOutput::$write(const char *chr, size_t sz) noexcept
 {
 	std::cerr.write(chr, sz);
 }
@@ -77,7 +77,7 @@ void StandardOutput16::flush() noexcept
 	std::wcout.flush();
 }
 template <>
-void StandardOutput16::writeImpl(const char16 *chr, size_t sz) noexcept
+void StandardOutput16::$write(const char16 *chr, size_t sz) noexcept
 {
 	auto tmp = wide_tmp(chr, sz);
 	std::wcout.write(tmp.data(), tmp.size());
@@ -88,7 +88,7 @@ void StandardErrorOutput16::flush() noexcept
 	std::wcerr.flush();
 }
 template <>
-void StandardErrorOutput16::writeImpl(const char16 *chr, size_t sz) noexcept
+void StandardErrorOutput16::$write(const char16 *chr, size_t sz) noexcept
 {
 	auto tmp = wide_tmp(chr, sz);
 	std::wcerr.write(tmp.data(), tmp.size());
@@ -99,7 +99,7 @@ void StandardErrorOutput16::writeImpl(const char16 *chr, size_t sz) noexcept
 ConsoleOutputStream<ConsoleType::Debug, char16> ConsoleOutputStream<ConsoleType::Debug, char16>::out;
 
 template <>
-void DebugOutput::writeImpl(const char *chr, size_t sz) noexcept
+void DebugOutput::$write(const char *chr, size_t sz) noexcept
 {
 	udout << acpToUtf16(Text(chr, sz));
 }
@@ -120,11 +120,11 @@ DebugOutput16::~ConsoleOutputStream() noexcept
 	}
 #endif
 }
-void DebugOutput16::writeImpl(const char16 * chr, size_t sz) noexcept
+void DebugOutput16::$write(const char16 * chr, size_t sz) noexcept
 {
 #ifndef NDEBUG
 	s_cs.enter();
-	size_t remaining = s_buffer.left() - 1;
+	size_t remaining = s_buffer.remaining() - 1;
 	size_t left = sz;
 	if (left <= remaining)
 	{
@@ -159,6 +159,9 @@ void DebugOutput16::writeImpl(const char16 * chr, size_t sz) noexcept
 }
 void DebugOutput16::putSourceLine(pcstr16 src, int line) noexcept
 {
+	pcstr16 text = u"asd";
+	Text16 aaa = (Text16)text;
+
 	*this << src << u'(' << line << u")\r\n";
 }
 void DebugOutput16::flush() noexcept
@@ -194,7 +197,7 @@ int DebugOutput16::_thread() noexcept
 #else
 
 template <>
-void DebugOutput::writeImpl(const char *chr, size_t sz) noexcept
+void DebugOutput::$write(const char *chr, size_t sz) noexcept
 {
 	cout.write(chr, sz);
 }

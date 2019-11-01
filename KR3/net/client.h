@@ -5,10 +5,10 @@
 #include <KR3/net/socket.h>
 #include <KR3/util/bufferqueue.h>
 #include <KR3/util/serializer.h>
+#include <KR3/msg/progressor.h>
+#include <KR3/msg/promise.h>
+#include <KR3/msg/eventdispatcher.h>
 #include "wsevent.h"
-#include "../progressor.h"
-#include "../promise.h"
-#include "../eventdispatcher.h"
 
 namespace kr
 {
@@ -28,10 +28,9 @@ namespace kr
 		void setSocket(Socket * socket) noexcept;
 		Socket * getSocket() noexcept;
 		SocketEventHandle * getSocketEvent() noexcept;
-		BufferQueueWithRef * getWriteQueue() noexcept;
+		BufferQueue* getWriteQueue() noexcept;
 		void moveNetwork(Client * watcher) noexcept;
 		void write(Buffer buff) noexcept;
-		void writeRef(Buffer buff) noexcept;
 		Promise<void>* download(Progressor * progressor, AText16 filename, size_t size) noexcept;
 		void flush() noexcept;
 		void close() noexcept;
@@ -66,7 +65,7 @@ namespace kr
 		template <typename T> 
 		void sendPacket(T & value) noexcept
 		{
-			constexpr size_t opcode = SPackets::index_of<T>::value;
+			constexpr size_t opcode = SPackets::template index_of<T>::value;
 			static_assert(opcode <= 0xff, "packet opcode overflow");
 			byte bopcode = (byte)opcode;
 			serializeWrite(bopcode);
@@ -79,7 +78,7 @@ namespace kr
 	private:
 		SocketEvent m_event;
 		Socket * m_socket;
-		BufferQueueWithRef m_writebuf;
+		BufferQueue m_writebuf;
 		bool m_waitWriteEvent;
 	};
 

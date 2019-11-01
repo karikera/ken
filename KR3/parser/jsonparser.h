@@ -231,6 +231,16 @@ namespace kr
 		}
 	};
 
+	// It's impossible to use, because of TText order problem
+	//template <>
+	//struct JsonParsable<TText>
+	//{
+	//	static void parse(JsonParser& parser, TText* dest) noexcept
+	//	{
+	//		*dest = parser.ttext();
+	//	}
+	//};
+
 	template <>
 	struct JsonParsable<AText16>
 	{
@@ -250,7 +260,7 @@ namespace kr
 	};
 
 	template <typename Value>
-	struct JsonParsable<MapWrapper<Text, ABuffer, Value>>
+	struct JsonParsable<Map<Text, Value>>
 	{
 		static void parse(JsonParser & parser, Map<Text, Value> * dest) noexcept
 		{
@@ -339,7 +349,10 @@ namespace kr
 			TText text = parser->_getName();
 			try
 			{
-				lambda(JsonField(parser, text));
+				{
+					JsonField field(parser, text);
+					lambda(field);
+				}
 				parser->skipValue();
 			}
 			catch (JsonFieldDone&)

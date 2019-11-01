@@ -7,9 +7,9 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#include "../pump.h"
-#include "../eventdispatcher.h"
 #include <KR3/net/socket.h>
+#include <KR3/msg/pump.h>
+#include <KR3/msg/eventdispatcher.h>
 
 using namespace kr;
 
@@ -265,7 +265,7 @@ Promise<size_t>* EventedSocket::readWithPromise(void * data, size_t size) noexce
 				NetworkState ne = getState();
 				if (ne.read)
 				{
-					size_t readed = m_socket->readImpl(data, left);
+					size_t readed = m_socket->$read(data, left);
 					(byte*&)data += readed;
 					left -= readed;
 					if (left == 0)
@@ -311,7 +311,7 @@ Promise<void>* EventedSocket::writeWithPromise(ABuffer buffer) noexcept
 		m_event->select(m_socket, FNetworkEvent(false, true, false, true, false));
 		try
 		{
-			m_socket->writeImpl(buffer.data(), buffer.size());
+			m_socket->$write(buffer.data(), buffer.size());
 		}
 		catch (ThrowAbort&)
 		{
@@ -329,7 +329,7 @@ Promise<void>* EventedSocket::writeWithPromise(ABuffer buffer) noexcept
 					{
 						try
 						{
-							m_socket->writeImpl(buffer.data(), buffer.size());
+							m_socket->$write(buffer.data(), buffer.size());
 							ev->detach();
 							prom->_resolve();
 						}
@@ -360,7 +360,7 @@ void EventedSocket::writeWithMsgLoop(const void * data, size_t sz) throws(Socket
 	m_event->select(m_socket, FNetworkEvent(true, false, false, true, false));
 	try
 	{
-		m_socket->writeImpl(data, sz);
+		m_socket->$write(data, sz);
 	}
 	catch (ThrowAbort&)
 	{
@@ -377,7 +377,7 @@ void EventedSocket::writeWithMsgLoop(const void * data, size_t sz) throws(Socket
 			}
 			if (state.write)
 			{
-				m_socket->writeImpl(data, sz);
+				m_socket->$write(data, sz);
 				return;
 			}
 		}
@@ -399,7 +399,7 @@ size_t EventedSocket::readWithMsgLoop(void * data, size_t sz) throws(SocketExcep
 
 		if (state.read)
 		{
-			size_t readed = m_socket->readImpl(data, left);
+			size_t readed = m_socket->$read(data, left);
 			left -= readed;
 			(byte*&)data += readed;
 			if (left == 0) return sz;

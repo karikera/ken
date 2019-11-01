@@ -24,12 +24,12 @@ namespace kr
 		{
 			for (;;)
 			{
-				m_is.readto_F(dest, [&](Text text) {
+				m_is.readto_L(dest, [&](Text text) {
 					const char needles[] = { (char)'\\', needle };
-					Text finded = text.find_y(Text(needles, countof(needles)));
+					pcstr finded = text.find_y(Text(needles, countof(needles)));
 					if (finded != nullptr)
 						m_line += (int)text.cut(finded).count('\n');
-					return finded.begin();
+					return finded;
 				});
 				char findedchr = m_is.read();
 

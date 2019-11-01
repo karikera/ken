@@ -6,7 +6,7 @@
 #include <KR3/fs/file.h>
 #include <KR3/util/path.h>
 #include <KRWin/handle.h>
-#include <KRMessage/eventdispatcher.h>
+#include <KR3/msg/eventdispatcher.h>
 
 #include <CGuid.h>
 #include <MMSystem.h>

@@ -39,11 +39,11 @@ namespace test
 			File::removeFullDirectory(u"../../../test/copytest_to");
 			Installer installer(u"../../../test/copytest_to", u"../../../test/copytest_from");
 			installer.all();
-			Assert::AreEqual("aa", File::openAsArrayTemp<char>(u"../../../test/copytest_to/a.txt").c_str());
-			Assert::AreEqual("bb", File::openAsArrayTemp<char>(u"../../../test/copytest_to/b.txt").c_str());
-			Assert::AreEqual("dd", File::openAsArrayTemp<char>(u"../../../test/copytest_to/c/d.txt").c_str());
-			Assert::AreEqual("aa", File::openAsArrayTemp<char>(u"../../../test/copytest_to/c/a/a.txt").c_str());
-			Assert::AreEqual("bb", File::openAsArrayTemp<char>(u"../../../test/copytest_to/c/b/b.txt").c_str());
+			Assert::AreEqual("aa", ((TText)File::openAsArray<char>(u"../../../test/copytest_to/a.txt")).c_str());
+			Assert::AreEqual("bb", ((TText)File::openAsArray<char>(u"../../../test/copytest_to/b.txt")).c_str());
+			Assert::AreEqual("dd", ((TText)File::openAsArray<char>(u"../../../test/copytest_to/c/d.txt")).c_str());
+			Assert::AreEqual("aa", ((TText)File::openAsArray<char>(u"../../../test/copytest_to/c/a/a.txt")).c_str());
+			Assert::AreEqual("bb", ((TText)File::openAsArray<char>(u"../../../test/copytest_to/c/b/b.txt")).c_str());
 		}
 
 		TEST_METHOD(floatToString)
@@ -108,8 +108,11 @@ namespace test
 			Assert::AreEqual(true, path.isSeperator('/'));
 			Assert::AreEqual(true, path.isSeperator('\\'));
 			Assert::AreEqual(false, path.isSeperator('?'));
-			Assert::AreEqual("dir\\name\\basename.ext", path.join("dir/", "/name", "basename.ext"));
-			Assert::AreEqual("\\dir\\name\\nextdir\\", path.join("/dir/", "/name", "nextdir/"));
+			Assert::AreEqual("dir\\name\\basename.ext", path.join("dir/", "name/", "basename.ext"));
+			Assert::AreEqual("\\dir\\name\\nextdir\\", path.join("/dir/", "name/", "nextdir/"));
+			Assert::AreEqual("\\nextdir\\", path.join("/dir/", "../", "nextdir/"));
+			Assert::AreEqual("\\..\\nextdir\\", path.join("/dir/", "../", "../nextdir/"));
+			Assert::AreEqual("..\\nextdir\\", path.join("dir/", "../", "../nextdir/"));
 			TSZ resolved = path.resolve("dirname/../../basename.ext");
 			Assert::IsTrue(resolved.get(1) == ':');
 			Assert::IsTrue(resolved.endsWith("\\basename.ext"));
@@ -185,5 +188,15 @@ namespace test
 			Assert::AreEqual("\\\"\'\\\\\\t\\t", cus_text.c_str());
 		}
 
+		TEST_METHOD(testReversePointer)
+		{
+			Array<int> a = { 1,2,3,4,5 };
+
+			int n = 5;
+			for (int& v : a.reverse())
+			{
+				Assert::AreEqual(v, n--);
+			}
+		}
 	};
 }

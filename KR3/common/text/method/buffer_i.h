@@ -6,10 +6,11 @@ namespace kr
 	{
 		namespace method
 		{
+			// begin,end 등이 Parent에 정의되어있으므로, AddBufferable에 Parent를 직접 연결한다
 			template <class Parent> class BufferIMethod : 
-				public AddBufferable<Parent, BufferInfo<typename Parent::Component, true, false, !Parent::writable, Parent>>
+				public AddBufferable<Parent, BufferInfo<typename Parent::Component, false, false, false, !Parent::writable, Parent>>
 			{
-				CLASS_HEADER(BufferIMethod, AddBufferable<Parent, BufferInfo<typename Parent::Component, true, false, !Parent::writable, Parent>>);
+				CLASS_HEADER(BufferIMethod, AddBufferable<Parent, BufferInfo<typename Parent::Component, false, false, false, !Parent::writable, Parent>>);
 			public:
 				INHERIT_ARRAY();
 
@@ -24,12 +25,12 @@ namespace kr
 				constexpr BufferIMethod(BufferIMethod&&) = default;
 
 				template <class _Derived, bool a, bool b, class _Parent>
-				BufferIMethod(Bufferable<_Derived, BufferInfo<Component, true, a, b, _Parent>> & data) noexcept
+				BufferIMethod(Bufferable<_Derived, BufferInfo<Component, false, false, a, b, _Parent>> & data) noexcept
 					:Super(data.begin(), data.end())
 				{
 				}
 				template <class _Derived, bool a, bool b, class _Parent>
-				BufferIMethod(const Bufferable<_Derived, BufferInfo<Component, true, a, b, _Parent>> & data) noexcept
+				BufferIMethod(const Bufferable<_Derived, BufferInfo<Component, false, false, a, b, _Parent>> & data) noexcept
 					:Super(data.begin(), data.end())
 				{
 				}
@@ -52,17 +53,17 @@ namespace kr
 				{
 					return Ref(begin() - n, end());
 				}
-				intptr_t operator -(const Component * ptr) const noexcept
+				intptr_t operator -(const Component* ptr) const noexcept
 				{
-					return begin() - ptr;
+					return begin() - (InternalComponent*)ptr;
 				}
-				friend intptr_t operator -(const Component * ptr, const BufferIMethod& ori) noexcept
+				friend intptr_t operator -(const Component* ptr, const BufferIMethod& ori) noexcept
 				{
-					return ptr - ori.begin();
+					return (InternalComponent*)ptr - (InternalComponent*)ori.begin();
 				}
-				template <typename T> intptr_t operator -(const BufferIMethod<T>& ptr) const noexcept
+				template <typename _Parent> intptr_t operator -(const BufferIMethod<_Parent>& ptr) const noexcept
 				{
-					return begin() - ptr.begin();
+					return begin() - (internal_component_t<typename _Parent::Component>*)ptr.begin();
 				}
 			};
 		}

@@ -25,10 +25,10 @@ namespace kr
 		friend class CWebSocketPath;
 	public:
 		WebSocketPage() noexcept;
-		void process(HttpClient * client, Text query, BufferQueue * stream) override;
+		void process(HttpClient * client) override;
 		virtual WebSocketSession* onAccept(Socket * args) = 0;
 		
 	private:
-		void _handShake(HttpClient * client, BufferQueue * stream);
+		void _handShake(HttpClient * client);
 	};
 }

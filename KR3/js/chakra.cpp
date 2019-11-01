@@ -34,9 +34,9 @@ public:
 		{
 			return pointer;
 		}
-		bool operator !=(const IteratorEnd&) const noexcept
+		bool isEnd() const noexcept
 		{
-			return pointer != nullptr;
+			return pointer == nullptr;
 		}
 		Iterator& operator ++() noexcept
 		{
@@ -87,12 +87,13 @@ namespace
 
 #define jsassert(...) do { JsErrorCode err = __VA_ARGS__; _assert(err == JsNoError); } while(0, 0)
 #define jsthrow(...) do { JsErrorCode err = __VA_ARGS__; \
-	if (err == JsErrorScriptException) {\
+	if (err != JsNoError) {\
 		JsValueRef exception; \
-		jsassert(JsGetAndClearException(&exception));\
-		throw JsException(exception);\
-	} \
-	_assert(err == JsNoError);\
+		if (JsGetAndClearException(&exception) == JsNoError){\
+			InternalTools::throwException(exception); \
+		}\
+		throw JsException((Text16)(TSZ16() << u"JsErrorCode: 0x" << hexf((int)err)));\
+	}\
 } while(0, 0)
 
 namespace kr
@@ -285,6 +286,13 @@ namespace kr
 				s_currentScope->add(prototype);
 				jsassert(JsSetProperty(child.m_data, prototypeId, prototype.m_data, true));
 				jsassert(JsSetProperty(child.m_data, constructorId, parent.m_data, true));
+			}
+			static ATTR_NORETURN void throwException(JsRawException exception) throws(JsException)
+			{
+				s_currentScope->add(JsRawData(exception));
+				JsException ex;
+				ex.m_exception = exception;
+				throw ex;
 			}
 		};
 	}
@@ -491,7 +499,25 @@ kr::JsRawData kr::JsRawData::call(JsRawData _this, JsArgumentsIn arguments) cons
 	s_currentScope->add(res);
 	return res;
 }
-
+bool kr::JsRawData::equals(const JsRawData& other) const noexcept
+{
+	bool res;
+	jsassert(JsStrictEquals(m_data, other.m_data, &res));
+	return res;
+}
+bool kr::JsRawData::abstractEquals(const JsRawData& other) const noexcept
+{
+	bool res;
+	jsassert(JsEquals(m_data, other.m_data, &res));
+	return res;
+}
+kr::JsRawData kr::JsRawData::toString() const throws(JsException)
+{
+	JsRawData value;
+	jsassert(JsConvertValueToString(m_data, &value.m_data));
+	s_currentScope->add(value);
+	return value;
+}
 
 template <>
 kr::Text16 kr::JsRawData::as<kr::Text16>() const noexcept
@@ -566,20 +592,24 @@ bool kr::JsPersistent::isEmpty() const noexcept
 }
 
 // exception
-kr::JsException::JsException(JsRawException message) noexcept
-{
-	m_exception = message;
-}
 kr::JsException::JsException(kr::Text16 message) noexcept
 {
 	m_exception = InternalTools::createError(message).m_data;
+	s_currentScope->add(JsRawData(m_exception));
 }
 kr::Text16 kr::JsException::toString() noexcept
 {
-	JsRawData value;
-	jsassert(JsConvertValueToString(m_exception, &value.m_data));
-	s_currentScope->add(value);
-	return value.as<Text16>();
+	return JsRawData(m_exception).toString().as<Text16>();
+}
+KRJS_EXPORT kr::JsValue kr::JsException::getValue() noexcept
+{
+	return JsRawData(m_exception);
+}
+
+// object
+kr::JsObjectT<kr::JsObject>::JsObjectT(const JsArguments& args) throws(JsObjectT)
+	:JsValue(args.getThis())
+{
 }
 
 // property id
@@ -830,6 +860,14 @@ kr::JsValue kr::JsRuntime::run(Text16 fileName, Text16 source) throws(JsExceptio
 	JsRawData result;
 	TText16 buf;
 	jsthrow(JsRunScript(szlize(source, &buf), s_sourceContextCounter++, wide(source.data()), &result.m_data));
+	s_currentScope->add(result);
+	return result;
+}
+kr::JsValue kr::JsRuntime::run(Text16 fileName, Text16 source, uintptr_t sourceContext) throws(JsException)
+{
+	JsRawData result;
+	TText16 buf;
+	jsthrow(JsRunScript(szlize(source, &buf), sourceContext, wide(source.data()), &result.m_data));
 	s_currentScope->add(result);
 	return result;
 }

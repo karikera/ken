@@ -37,12 +37,12 @@ namespace kr
 		}
 
 		template <typename C>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return m_size;
 		}
 		template <typename C>
-		size_t copyTo(C * dest) const noexcept
+		size_t $copyTo(C * dest) const noexcept
 		{
 			if (m_minus) *dest++ = '-';
 			memt<sizeof(C)>::fromint(dest, m_cipher, m_value, m_radix);
@@ -86,12 +86,12 @@ namespace kr
 		}
 
 		template <typename C>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return m_size;
 		}
 		template <typename C>
-		size_t copyTo(C * dest) const noexcept
+		size_t $copyTo(C * dest) const noexcept
 		{
 			if (m_minus) *dest++ = '-';
 
@@ -115,17 +115,17 @@ namespace kr
 		}
 
 		template <typename C>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return sizeof(void*) * 2 + 2;
 		}
 		template <typename C>
-		size_t copyTo(C * dest) const noexcept
+		size_t $copyTo(C * dest) const noexcept
 		{
 			*dest++ = (C)'0';
 			*dest++ = (C)'x';
 			memt<sizeof(C)>::fromint(dest, sizeof(void*) * 2, m_value, 16);
-			return sizeAs<C>();
+			return $sizeAs<C>();
 		}
 	};
 
@@ -163,12 +163,12 @@ namespace kr
 		}
 
 		template <typename C>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return m_size;
 		}
 		template <typename C>
-		size_t copyTo(C *dest) const noexcept
+		size_t $copyTo(C *dest) const noexcept
 		{
 			using memm = memt<sizeof(C)>;
 			if (m_minus)
@@ -359,12 +359,12 @@ namespace kr
 		}
 
 		template <typename C>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return m_size;
 		}
 		template <typename C>
-		size_t copyTo(C *dest) const noexcept
+		size_t $copyTo(C *dest) const noexcept
 		{
 			C * end = dest + m_size;
 			if (m_minus)
@@ -485,11 +485,11 @@ namespace kr
 		{
 		}
 
-		size_t size() const noexcept
+		size_t $size() const noexcept
 		{
 			return count;
 		}
-		size_t copyTo(Component* dest) const noexcept
+		size_t $copyTo(Component* dest) const noexcept
 		{
 			mema::ctor_fill(dest, value, count);
 			return count;
@@ -514,11 +514,11 @@ namespace kr
 			count = totalSize - txsize;
 		}
 
-		size_t size() const noexcept
+		size_t $size() const noexcept
 		{
 			return totalSize;
 		}
-		size_t copyTo(Component* dest) const noexcept
+		size_t $copyTo(Component* dest) const noexcept
 		{
 			mema::ctor_fill(dest, value, count);
 			m_text.copyTo(dest + count);
@@ -543,12 +543,12 @@ namespace kr
 		}
 
 		template <typename C>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return m_size;
 		}
 		template <typename C>
-		size_t copyTo(C * dest) const noexcept
+		size_t $copyTo(C * dest) const noexcept
 		{
 			dest += m_size;
 			uint counter = 3;

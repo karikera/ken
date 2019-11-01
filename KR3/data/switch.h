@@ -26,7 +26,7 @@ namespace kr
 		}
 
 	private:
-		ReferenceMap<Text,size_t> m_map;
+		Map<Text, size_t, true> m_map;
 	};
 		
 	// enum

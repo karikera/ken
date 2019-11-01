@@ -200,7 +200,7 @@ Socket* Socket::accept() throws(SocketException)
 	//*ip = addr.sin_addr.s_addr;
 	return (Socket*)tsock;
 }
-void Socket::writeImpl(cptr binary, size_t len) throws(SocketException)
+void Socket::$write(cptr binary, size_t len) throws(SocketException)
 {
 	int sended = send((SOCKET)this, (pcstr)binary, (int)mint(len, (size_t)0x7fffffff), 0);
 	if (sended == SOCKET_ERROR)
@@ -212,7 +212,7 @@ void Socket::writeImpl(cptr binary, size_t len) throws(SocketException)
 	}
 	_assert(sended == len);
 }
-size_t Socket::readImpl(ptr binary, size_t len) throws(SocketException, EofException)
+size_t Socket::$read(ptr binary, size_t len) throws(SocketException, EofException)
 {
 	int nReceiveLen = recv((SOCKET)this, (char *)binary, intact<int>(len), 0);
 	if (nReceiveLen == 0) throw EofException();

@@ -277,23 +277,36 @@ namespace kr
 	using Utf32ToMultiByte = typename MultiByteToUtf32<charset>::Decoder;
 	template <Charset charset>
 	using Utf16ToMultiByte = typename MultiByteToUtf16<charset>::Decoder;
-	template <typename T>
-	using FromAcp = ToConvert<Charset::Default, T>;
-	template <typename T>
-	using ToAcp = typename FromAcp<T>::Decoder;
+
 	template <typename T>
 	using FromUtf8 = ToConvert<Charset::Utf8, T>;
 	template <typename T>
-	using ToUtf8 = typename FromAcp<T>::Decoder;
+	using ToUtf8 = typename FromUtf8<T>::Decoder;
 	
 	using Utf16ToUtf8 = Utf16ToMultiByte<Charset::Utf8>;
 	using Utf8ToUtf16 = MultiByteToUtf16<Charset::Utf8>;
 	using Utf32ToUtf8 = Utf32ToMultiByte<Charset::Utf8>;
 	using Utf8ToUtf32 = MultiByteToUtf32<Charset::Utf8>;
-	using Utf16ToAcp = Utf16ToMultiByte<Charset::Default>;
-	using AcpToUtf16 = MultiByteToUtf16<Charset::Default>;
-	using Utf32ToAcp = Utf32ToMultiByte<Charset::Default>;
-	using AcpToUtf32 = MultiByteToUtf32<Charset::Default>;
+
+	template <typename T>
+	using FromNone = ToConvert<Charset::None, T>;
+	template <typename T>
+	using ToNone = typename FromNone<T>::Decoder;
+
+	using Utf16ToNone = Utf16ToMultiByte<Charset::None>;
+	using NoneToUtf16 = MultiByteToUtf16<Charset::None>;
+	using Utf32ToNone = Utf32ToMultiByte<Charset::None>;
+	using NoneToUtf32 = MultiByteToUtf32<Charset::None>;
+
+	template <typename T>
+	using FromAcp = ToConvert<Charset::Default, T>;
+	template <typename T>
+	using ToAcp = typename FromAcp<T>::Decoder;
+
+	using Utf16ToAnsi = Utf16ToMultiByte<Charset::Default>;
+	using AnsiToUtf16 = MultiByteToUtf16<Charset::Default>;
+	using Utf32ToAnsi = Utf32ToMultiByte<Charset::Default>;
+	using AnsiToUtf32 = MultiByteToUtf32<Charset::Default>;
 
 	inline Text16 toUtf16(Text16 tx) noexcept
 	{
@@ -313,6 +326,14 @@ namespace kr
 		return tx;
 	}
 
+	inline NoneToUtf16 noneToUtf16(Text tx) noexcept
+	{
+		return (NoneToUtf16)tx;
+	}
+	inline Text16 noneToUtf16(Text16 tx) noexcept
+	{
+		return tx;
+	}
 	inline Utf8ToUtf16 utf8ToUtf16(Text tx) noexcept
 	{
 		return (Utf8ToUtf16)tx;
@@ -321,13 +342,22 @@ namespace kr
 	{
 		return tx;
 	}
-	inline AcpToUtf16 acpToUtf16(Text tx) noexcept
+	inline AnsiToUtf16 acpToUtf16(Text tx) noexcept
 	{
-		return (AcpToUtf16)tx;
+		return (AnsiToUtf16)tx;
 	}
 	inline Text16 acpToUtf16(Text16 tx) noexcept
 	{
 		return tx;
+	}
+
+	inline Text toNone(Text tx) noexcept
+	{
+		return tx;
+	}
+	inline Utf16ToNone toNone(Text16 tx) noexcept
+	{
+		return (Utf16ToNone)tx;
 	}
 
 	inline Text toUtf8(Text tx) noexcept
@@ -343,8 +373,8 @@ namespace kr
 	{
 		return tx;
 	}
-	inline Utf16ToAcp toAcp(Text16 tx) noexcept
+	inline Utf16ToAnsi toAcp(Text16 tx) noexcept
 	{
-		return (Utf16ToAcp)tx;
+		return (Utf16ToAnsi)tx;
 	}
 }

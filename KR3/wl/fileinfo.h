@@ -25,19 +25,19 @@ namespace kr
 		static ProgramVersion fromFile(pcstr16 filename) noexcept;
 
 		template <typename C>
-		void copyTo(ArrayWriter<C> * dest) const noexcept
+		void $copyTo(ArrayWriter<C> * dest) const noexcept
 		{
 			*dest << a << (C)' ' << (C)',' << b << (C)' ' << (C)',' << c << (C)' ' << (C)',' << d;
 		}
 		template <typename C>
-		size_t copyTo(C * dest) const noexcept
+		size_t $copyTo(C * dest) const noexcept
 		{
 			ArrayWriter<C> stream(dest, 0xffff);
 			copyTo(&stream);
 			return stream.end() - dest;
 		}
 		template <typename C>
-		size_t sizeAs() const noexcept
+		size_t $sizeAs() const noexcept
 		{
 			return math::cipher(a, 10) + 2
 				+ math::cipher(b, 10) + 2

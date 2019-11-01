@@ -47,9 +47,17 @@ JsValue JsValue::get(const JsPropertyId& name) const noexcept
 {
 	return getProperty(name);
 }
-JsValue JsValue::call(JsValue _this, JsArgumentsIn arguments) const noexcept
+JsValue JsValue::call(JsValue _this, JsArgumentsIn arguments) const throws(JsException)
 {
 	return JsRawData::call(_this, arguments);
+}
+bool JsValue::operator ==(const JsValue& value) const noexcept
+{
+	return equals(value);
+}
+bool JsValue::operator !=(const JsValue& value) const noexcept
+{
+	return !equals(value);
 }
 WBuffer JsValue::getBuffer() const noexcept
 {

@@ -361,16 +361,17 @@ template void DrawContext::textOut<char16>(View<char16> str, ivec2 pt) noexcept;
 
 template <typename T> void DrawContext::textWrite(View<T> str, ivec2* pt) noexcept
 {
-	int txHeight=getTextHeight();
-	View<T> Find, pFind=str;
-	while((Find=pFind.find('\n')) != nullptr)
+	int txHeight = getTextHeight();
+	View<T> findtext = str;
+	const T * find;
+	while((find = findtext.find('\n')) != nullptr)
 	{
-		textOut(pFind.begin(), Find - pFind, *pt);
-		pFind=Find+1;
+		textOut(findtext.begin(), find - findtext, *pt);
+		findtext.subarr_self(find+1);
 		pt->y += txHeight;
 	}
-	textOut<T>(pFind, *pt);
-	pt->x = getTextWidth(pFind)+pt->x;
+	textOut<T>(findtext, *pt);
+	pt->x = getTextWidth(findtext)+pt->x;
 }
 template void DrawContext::textWrite<char>(View<char> str, ivec2* pt) noexcept;
 template void DrawContext::textWrite<char16>(View<char16> str, ivec2* pt) noexcept;

@@ -4,15 +4,15 @@
 
 namespace kr
 {
-	class CurrentDirectory : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, false, true>>
+	class CurrentDirectory : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, true, false, true, true>>
 	{
 	public:
 		template <typename CHR>
 		bool set(const CHR * text) const noexcept;
 		template <typename CHR>
-		size_t copyTo(CHR * dest) const noexcept;
+		size_t $copyTo(CHR * dest) const noexcept;
 		template <typename CHR>
-		size_t sizeAs() const noexcept;
+		size_t $sizeAs() const noexcept;
 	};
 
 	static CurrentDirectory &currentDirectory = nullref;
@@ -87,7 +87,7 @@ namespace kr
 		// "basename.ext" -> ""
 		static Text dirname(Text text) noexcept
 		{
-			return text.cut(basename(text));
+			return text.cut(basename(text).data());
 		}
 
 		// "dir/name/basename.ext.name" -> "basename"
@@ -95,7 +95,7 @@ namespace kr
 		static Text filenameOnly(Text text) noexcept
 		{
 			Text name = basename(text);
-			Text find = text.find_e('.');
+			const C* find = text.find_e('.');
 			return name.cut(find);
 		}
 
@@ -117,7 +117,8 @@ namespace kr
 		// "http://dirname/basename" -> ""
 		static Text extname(Text text) noexcept
 		{
-			return basename(text).find_e((C)'.');
+			Text name = basename(text);
+			return name.subarr(name.find_e((C)'.'));
 		}
 
 		struct ProtocolInfo
@@ -130,16 +131,16 @@ namespace kr
 		static ProtocolInfo getProtocolInfo(Text path) noexcept
 		{
 			ProtocolInfo out;
-			Text seppos;
+			const C* seppos;
 #ifdef WIN32
 			seppos = path.find_y(SEPERATOR);
 #else
 			seppos = path.find(sep);
 #endif
-			Text protocol;
+			const C* protocol;
 			if (seppos != nullptr)
 			{
-				if (seppos.begin() == path.begin())
+				if (seppos == path.begin())
 				{
 					out.protocol = nullptr;
 					out.isAbsolute = true;
@@ -147,7 +148,7 @@ namespace kr
 				}
 				else
 				{
-					protocol = Text(path.cut(seppos).find(':').data(), path.end());
+					protocol = path.cut(seppos).find(':');
 				}
 			}
 			else
@@ -158,27 +159,30 @@ namespace kr
 			{
 				out.isAbsolute = true;
 				protocol++;
+				if (protocol != path.end())
+				{
 #ifdef WIN32
-				if (protocol.startsWith('\\'))
-				{
-					protocol++;
-					out.protocol = path.cut(protocol);
-					out.hasSeperator = true;
-					return out;
-				}
-#endif
-				if (protocol.startsWith('/'))
-				{
-					out.hasSeperator = true;
-					protocol++;
-					if (protocol.startsWith('/'))
+					if (*protocol == '\\')
 					{
 						protocol++;
+						out.protocol = path.cut(protocol);
+						out.hasSeperator = true;
+						return out;
 					}
-				}
-				else
-				{
-					out.hasSeperator = false;
+#endif
+					if (*protocol == '/')
+					{
+						out.hasSeperator = true;
+						protocol++;
+						if (protocol != path.end() && *protocol == '/')
+						{
+							protocol++;
+						}
+					}
+					else
+					{
+						out.hasSeperator = false;
+					}
 				}
 				out.protocol = path.cut(protocol);
 			}
@@ -246,8 +250,6 @@ namespace kr
 					}
 				}
 				
-				bool sep_end = endsWithSeperator(text);
-
 				for (;;)
 				{
 #ifdef WIN32
@@ -259,6 +261,88 @@ namespace kr
 					{
 						if (!name.empty())
 						{
+							if (*name == (C)'.')
+							{
+								switch (name.size())
+								{
+								case 1:
+									continue;
+								case 2: {
+									if (name[1] != (C)'.') break;
+									if (dest->empty())
+									{
+										*dest << name;
+										skip_sep = false;
+										continue;
+									}
+									switch (dest->size())
+									{
+									case 1:
+										if (dest->get(0) == sep)
+										{
+											*dest << name;
+											skip_sep = false;
+											continue;
+										}
+										if (dest->get(0) == '.')
+										{
+											*dest << (C)'.';
+											skip_sep = false;
+											continue;
+										}
+										break;
+									case 2:
+										if (dest->get(0) == '.' && dest->get(1) == '.')
+										{
+											*dest << sep;
+											*dest << (C)'.';
+											*dest << (C)'.';
+											skip_sep = false;
+											continue;
+										}
+										break;
+									default:
+										const C* end = dest->end();
+										if (end[-1] == '.' && end[-2] == '.' && end[-3] == sep)
+										{
+											*dest << sep;
+											*dest << (C)'.';
+											*dest << (C)'.';
+											skip_sep = false;
+											continue;
+										}
+										break;
+									}
+									const C* findend;
+
+									if (skip_sep)
+									{
+										findend = dest->cut(dest->end()-1).find_r(sep);
+									}
+									else
+									{
+										findend = dest->find_r(sep);
+									}
+									if (findend == nullptr)
+									{
+										dest->clear();
+										*dest << (C)'.';
+									}
+									else
+									{
+										dest->cut_self(findend);
+										if (dest->empty())
+										{
+											*dest << sep;
+											skip_sep = true;
+										}
+									}
+									continue;
+								}
+								default:
+									break;
+								}
+							}
 							if (skip_sep) skip_sep = false;
 							else *dest << sep;
 							*dest << name;
@@ -275,12 +359,12 @@ namespace kr
 						break;
 					}
 				}
+			}
 
-				if (sep_end)
-				{
-					*dest << sep;
-					skip_sep = true;
-				}
+			if (endsWithSeperator(end[-1]))
+			{
+				*dest << sep;
+				skip_sep = true;
 			}
 		}
 
@@ -298,7 +382,7 @@ namespace kr
 			return dest;
 		}
 
-		static void resolveAppend(TSZ * dest, Text path) noexcept
+		static void resolveTo(TSZ * dest, Text path) noexcept
 		{
 			switch (path.size())
 			{
@@ -308,8 +392,10 @@ namespace kr
 				{
 				case sep:
 #ifdef WIN32
-				case (C)'/': return;
+				case (C)'/':
 #endif
+					*dest << sep;
+					break;
 				case (C)'.':
 					*dest << currentDirectory;
 					break;
@@ -355,7 +441,7 @@ namespace kr
 					case 2:
 						if (dir[0] == '.' && dir[1] == '.')
 						{
-							Text parent = dest->find_r(sep);
+							const C* parent = dest->find_r(sep);
 							if (parent != nullptr) dest->cut_self(parent);
 							continue;
 						}
@@ -371,7 +457,7 @@ namespace kr
 		static TSZ resolve(Text path) noexcept
 		{
 			TSZ dest;
-			resolveAppend(&dest, path);
+			resolveTo(&dest, path);
 			return dest;
 		}
 	};

@@ -33,7 +33,7 @@ public:
 	{
 	}
 
-	Array<complex>::LoopIterable iterable() noexcept
+	Array<complex>::LoopIterator iterable() noexcept
 	{
 		return m_sum.loopIterable(m_offset);
 	}
@@ -388,11 +388,6 @@ public:
 
 int main()
 {
-	using t = bufferize_t<int, char>;
-	meta::types<t> datas = { ((t)1) };
-
-	return 0;
-
 	MainWindow wnd;
 	main_loop(&wnd);
 	return 0;

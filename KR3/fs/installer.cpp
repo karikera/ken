@@ -27,15 +27,9 @@ Wildcard::Wildcard(Text16 wildcard) noexcept
 	}
 	else
 	{
-		Text16 next = wildcard.find(u'*');
-		if (next != nullptr)
+		m_firstMatch = wildcard.readwith_e(u'*');
+		if (wildcard.empty())
 		{
-			m_firstMatch = wildcard.cut(next);
-			wildcard = next + 1;
-		}
-		else
-		{
-			m_firstMatch = wildcard;
 			m_fullMatch = true;
 			return;
 		}
@@ -62,7 +56,7 @@ bool Wildcard::test(Text16 text) noexcept
 
 	for (Text16 match : m_matches)
 	{
-		text = text.find(match);
+		text = text.subarr(text.find(match));
 		if (text == nullptr) return false;
 		text += match.size();
 	}
@@ -137,6 +131,8 @@ Text16 Installer::getDest(Text16 name) noexcept
 }
 void Installer::all() noexcept
 {
+	m_dest.resize(m_destend);
+	File::createFullDirectory(m_dest);
 	filter(u"*");
 }
 void Installer::filter(Text16 filterText) noexcept

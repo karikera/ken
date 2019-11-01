@@ -96,6 +96,12 @@ IATHooker IATModule::hooking(LPCSTR functionName, LPVOID pHook) noexcept
 	if (pTarget == nullptr) return IATHooker();
 	else return IATHooker(pTarget, pHook);
 }
+IATHooker IATModule::hooking(uintptr_t functionName, LPVOID pHook) noexcept
+{
+	PULONG_PTR pTarget = getFunctionStore(functionName);
+	if (pTarget == nullptr) return IATHooker();
+	else return IATHooker(pTarget, pHook);
+}
 
 IATModule::Iterator::Iterator(win::Module * module, PIMAGE_IMPORT_DESCRIPTOR desc) noexcept
 {
@@ -106,20 +112,25 @@ IATModule::Iterator::Iterator(win::Module * module, PIMAGE_IMPORT_DESCRIPTOR des
 IATModule::FunctionDesc IATModule::Iterator::operator *() const noexcept
 {
 	_assert(m_ilt != nullptr);
-
-	PIMAGE_IMPORT_BY_NAME namedata = (PIMAGE_IMPORT_BY_NAME)((uintptr_t)m_module + m_ilt->u1.AddressOfData);
 	FunctionDesc desc;
-	desc.name = namedata->Name;
 	desc.store = &m_iat->u1.Function;
+
+	if (m_ilt->u1.AddressOfData & IMAGE_ORDINAL_FLAG)
+	{
+		desc.ordinal = IMAGE_ORDINAL(m_ilt->u1.AddressOfData);
+		desc.name = nullptr;
+	}
+	else
+	{
+		PIMAGE_IMPORT_BY_NAME namedata = (PIMAGE_IMPORT_BY_NAME)((uintptr_t)m_module + m_ilt->u1.AddressOfData);
+		desc.ordinal = 0;
+		desc.name = namedata->Name;
+	}
 	return desc;
 }
-bool IATModule::Iterator::operator != (const IteratorEnd&) const noexcept
+bool IATModule::Iterator::isEnd() const noexcept
 {
-	return m_ilt != nullptr;
-}
-bool IATModule::Iterator::operator == (const IteratorEnd&) const noexcept
-{
-	return m_ilt != nullptr;
+	return m_ilt == nullptr;
 }
 IATModule::Iterator& IATModule::Iterator::operator ++() noexcept
 {
@@ -153,12 +164,26 @@ PULONG_PTR IATModule::getFunctionStore(LPCSTR name) noexcept
 	}
 	return nullptr;
 }
-
+PULONG_PTR IATModule::getFunctionStore(ULONG_PTR ordinal) noexcept
+{
+	for (FunctionDesc desc : *this)
+	{
+		if (desc.ordinal == ordinal)
+		{
+			return desc.store;
+		}
+	}
+	return nullptr;
+}
 
 IATHookerList::IATHookerList(win::Module* module, LPCSTR dll) noexcept :IATModule(module, dll)
 {
 }
 void IATHookerList::hooking(LPCSTR func, LPVOID hook) noexcept
+{
+	m_list.create(IATModule::hooking(func, hook));
+}
+void IATHookerList::hooking(ULONG_PTR func, LPVOID hook) noexcept
 {
 	m_list.create(IATModule::hooking(func, hook));
 }
@@ -250,7 +275,7 @@ CodeWriter::CodeWriter(void * dest, size_t size) noexcept
 
 void CodeWriter::fillNop() noexcept
 {
-	writeFill(0x90, left());
+	writeFill(0x90, remaining());
 }
 void CodeWriter::rjump(int32_t rpos) noexcept
 {
@@ -263,48 +288,123 @@ void CodeWriter::rcall(int32_t rpos) noexcept
 	writeas(rpos);
 }
 #ifdef _M_X64
-void CodeWriter::store32_to_64(dword to) noexcept
+void CodeWriter::mov(Register r, dword to) noexcept
 {
 	write(0x48); // mov rax, to
 	write(0xc7);
+	write(0xC0 | r);
 	write(to);
 
 }
-void CodeWriter::store64(qword to) noexcept
+void CodeWriter::mov(Register r, qword to) noexcept
 {
-	write(0x48); // mov rax, to
-	write(0xb8);
+	write(0x48);
+	write(0xb8 | r);
 	writeas(to);
-
 }
-void CodeWriter::jump64(void* to) noexcept
+void CodeWriter::mov(Register2 r, qword v) noexcept
 {
-	store64((uintptr_t)to);
-	write(0xff); // jmp rax
-	write(0xe0);
+	write(0x49);
+	write(0xb8 | r);
+	writeas(v);
 }
-void CodeWriter::call64(void* to) noexcept
+void CodeWriter::jump64(void* to, Register r) noexcept
 {
-	//48 c7 c0 35 08 40 00            mov rax, 0x00400835
-	//ff e0                           jmp rax
-
-	write(0x48); // mov rax, to
-	write(0xb8);
-	writeas(to);
-
-	write(0xff); // jmp rax
-	write(0xd0);
+	mov(r, (uintptr_t)to);
+	jump(r);
+}
+void CodeWriter::call64(void* to, Register r) noexcept
+{
+	mov(r, (uintptr_t)to);
+	call(r);
+}
+void CodeWriter::jump(Register r) noexcept
+{
+	write(0xff);
+	write(0xe0 | r);
+}
+void CodeWriter::call(Register r) noexcept
+{
+	write(0xff);
+	write(0xd0 | r);
+}
+void CodeWriter::call(Register2 r) noexcept
+{
+	write(0x41);
+	write(0xff);
+	write(0xd0 | r);
 }
 #endif
-void CodeWriter::pushRsp() noexcept
+void CodeWriter::push(Register r) noexcept
 {
-	write(0x54);
+	write(0x50 | r);
+}
+void CodeWriter::pop(Register r) noexcept
+{
+	write(0x58 | r);
 }
 void CodeWriter::mov(Register dest, Register src) noexcept
 {
 	write(0x48);
 	write(0x89);
 	write(0xc0 | dest | (src << 3));
+}
+void CodeWriter::mov(Register2 dest, Register src) noexcept
+{
+	write(0x49);
+	write(0x89);
+	write(0xc0 | dest | (src << 3));
+}
+void CodeWriter::mov(Register dest, Register2 src) noexcept
+{
+	write(0x4C);
+	write(0x89);
+	write(0xc0 | dest | (src << 3));
+}
+void CodeWriter::mov(Register2 dest, Register2 src) noexcept
+{
+	write(0x4D);
+	write(0x89);
+	write(0xc0 | dest | (src << 3));
+}
+void CodeWriter::movb(Register2 dest, Register2 src) noexcept
+{
+	write(0x45);
+	write(0x88);
+	write(0xc0 | src | (dest << 3));
+}
+void CodeWriter::mov(AddressPointerRule address, Register dest, int8_t offset, Register src) noexcept
+{
+	write(0x48);
+	write(0x89);
+	write(0x40 | (src << 3) | dest);
+	if (dest == RSP)
+	{
+		write(0x24);
+	}
+	write(offset);
+}
+void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, int8_t offset) noexcept
+{
+	write(0x48);
+	write(0x8b);
+	write(0x40 | (dest << 3) | src);
+	if (src == RSP)
+	{
+		write(0x24);
+	}
+	write(offset);
+}
+void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
+{
+	write(0x48);
+	write(0x8b);
+	write(0x80 | (dest << 3) | src);
+	if (src == RSP)
+	{
+		write(0x24);
+	}
+	write(offset);
 }
 void CodeWriter::sub(Register dest, char chr) noexcept
 {
@@ -320,13 +420,13 @@ void CodeWriter::add(Register dest, char chr) noexcept
 	write(0xc0 | dest);
 	write(chr);
 }
-void CodeWriter::jump(void* to) noexcept
+void CodeWriter::jump(void* to, Register tmp) noexcept
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
 #ifdef _M_X64
 	if (rjumppos < -(intptr_t)0x80000000 || rjumppos >= (intptr_t)0x80000000)
 	{
-		jump64(to);
+		jump64(to, tmp);
 	}
 	else
 	{
@@ -336,13 +436,13 @@ void CodeWriter::jump(void* to) noexcept
 	rjump((int)rjumppos);
 #endif
 }
-void CodeWriter::call(void* to) noexcept
+void CodeWriter::call(void* to, Register tmp) noexcept
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
 #ifdef _M_X64
 	if (rjumppos < -(intptr_t)0x80000000 || rjumppos >= (intptr_t)0x80000000)
 	{
-		call64(to);
+		call64(to, tmp);
 	}
 	else
 	{
@@ -358,7 +458,7 @@ void CodeWriter::ret() noexcept
 }
 
 
-void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)()) noexcept
+void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)(), Register temp) noexcept
 {
 	ExecutableAllocator * alloc = ExecutableAllocator::getInstance();
 	void * code = alloc->alloc(size + 12 + 12);
@@ -366,14 +466,14 @@ void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)()) noe
 	Unprotector unpro(dest, size);
 	{
 		CodeWriter junction(code, size + 12 + 12);
-		junction.call(func);
+		junction.call(func, temp);
 		junction.write(unpro, size);
-		junction.jump(dest);
+		junction.jump(dest, RAX);
 	}
 
 	{
 		CodeWriter writer((void*)unpro, size);
-		writer.jump(code);
+		writer.jump(code, RAX);
 		writer.fillNop();
 	}
 

@@ -3,9 +3,9 @@
 #include <KR3/main.h>
 #include <KR3/util/time.h>
 #ifdef WIN32
-#include <KRMessage/pump.h>
+#include <KR3/msg/pump.h>
 #endif
-#include <KRMessage/promise.h>
+#include <KR3/msg/promise.h>
 #include <emscripten.h>
 #include <EGL/egl.h>
 

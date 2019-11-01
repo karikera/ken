@@ -10,15 +10,17 @@ namespace kr
 	public:
 		enum Shell_t { Shell };
 		Process() noexcept;
+		Process(Process&& _move) noexcept;
 		Process(Shell_t, Text16 command) noexcept;
-		Process(pcstr16 fileName, pstr16 parameter) noexcept;
+		Process(pstr16 command) noexcept;
+		Process(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr) noexcept;
 		~Process() noexcept;
 
 		void close() noexcept;
 		void shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
 		void exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr) throws(Error);
 		void exec(pstr16 commandLine) throws(Error);
-		size_t readImpl(char * dest, size_t sz) throws(EofException);
+		size_t $read(char * dest, size_t sz) throws(EofException);
 		void wait() noexcept;
 		bool wait(int millis) noexcept;
 #ifdef WIN32
@@ -65,4 +67,9 @@ namespace kr
 	private:
 		dword m_id;
 	};
+
+	Writable<char, Process> shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
+	Writable<char, Process> exec(pcstr16 file, pstr16 parameter, pcstr16 curdir = nullptr) noexcept;
+	Writable<char, Process> exec(Text16 command) noexcept;
+	Writable<char, Process> exec(pstr16 command) noexcept;
 }

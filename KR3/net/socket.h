@@ -53,8 +53,8 @@ namespace kr
 		void open(word port, Ipv4Address v4addr = nullptr) throws(SocketException);
 		Ipv4Address getIpAddress() noexcept;
 		Socket* accept() throws(SocketException);
-		void writeImpl(cptr binary, size_t len) throws(SocketException);
-		size_t readImpl(ptr binary, size_t len) throws(SocketException, EofException);
+		void $write(cptr binary, size_t len) throws(SocketException);
+		size_t $read(ptr binary, size_t len) throws(SocketException, EofException);
 
 		template <typename CHR>
 		static Ipv4Address findIp(const CHR * url) throws(SocketException);

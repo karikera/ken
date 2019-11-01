@@ -178,6 +178,7 @@ namespace kr
 	// mt
 	class EventHandle;
 	class Event;
+	class EventDispatcher;
 
 	// data
 	template <typename Node> class Chain;
@@ -309,7 +310,7 @@ namespace kr
 
 		template <class Data> using Wrap = _pri_::WrapImpl<Data, typename Data::Component>;
 	}
-
+	
 	// 컨테이너
 	// 버퍼나, 스트림의 경우 상속하고 있으며, 컴포넌트 타입을 보관한다.
 	// C: 컴포넌트 타입
@@ -320,13 +321,10 @@ namespace kr
 	
 	// 버퍼의 정보
 	// C: 컴포넌트의 타입
-	// _accessable: 내부가 포인터로 접근할 수 있는 버퍼인지 여부이다.
-	//            true 일경우 begin, end, size 함수를 구현해야하며,
-	//            false 일 경우 copyTo, size 함수를 구현해야한다.
 	// _nullspace: 마지막에 null 종료 문자열이 들어가는지 여부이다.
 	// _readonly: 읽기 전용인지 여부이다.
 	// Parent: 추가로 상속할 부모 클래스
-	template <typename C, bool _accessable = false, bool _nullspace = false, bool _readonly = true, class Parent = Empty>
+	template <typename C, bool copyTo = true, bool writeTo = false, bool _nullspace = false, bool _readonly = true, class Parent = Empty>
 	class BufferInfo;
 
 	// 버퍼일 수 있는 클래스
@@ -335,13 +333,9 @@ namespace kr
 	template <class Derived, typename BufferInfo> 
 	class Bufferable;
 
-	// 출력 가능한 클래스
-	// Derived: 자식 클래스
-	// Component: 타입
-	// Parent: 추가로 상속할 부모 클래스
-	template <class Derived, typename Component, typename Parent = Empty>
-	class Printable;
-		
+	template <typename Derived, typename C, typename Parent = Empty>
+	using Printable = Bufferable<Derived, BufferInfo<C, false, true, false, true, Parent>>;
+			
 	// 참조하는 배열(쓰기 가능), 근원이 사라지면 안된다.
 	template <typename C> using WView = ary::_pri_::WrapImpl<ary::data::AccessableData<C, Empty>, C>;
 
@@ -365,7 +359,7 @@ namespace kr
 	template <typename T> using Array2D = Array<Array<T>>;
 
 	// 2D 참조 배열, 할당 배열의 참조이다, 안의 요소는 할당 배열이다.
-	template <typename T> using RefArray2D = View<Array<T>>;
+	template <typename T> using Array2DView = View<Array<T>>;
 
 	// 임시 널 종료 문자열 텍스트, 메모리가 스택형 임시 버퍼에 할당된다.
 	// 임시 메모리 끼리는 할당과 삭제 순서가 스택 순서여야한다.
@@ -389,6 +383,8 @@ namespace kr
 
 	// 할당된 버퍼, 복사시 메모리가 할당되어진다.
 	using ABuffer = Array<void>;
+
+	using BufferWriter = ArrayWriter<void>;
 
 	// 참조하는 텍스트(읽기 전용), 근원이 사라지면 안된다.
 	using Text = View<char>;
@@ -509,6 +505,20 @@ namespace kr
 		static constexpr bool value = is_convertible<T, conversion_tester>::value;
 	};
 	template <typename T> struct IsBuffer : is_base_of_t<Bufferable, T> {};
+	template <typename T> struct IsMemBuffer
+	{
+		struct conversion_tester
+		{
+			template <typename Derived, typename C, bool _szable, bool _readonly, typename Parent>
+			conversion_tester(const Bufferable<Derived, BufferInfo<C, false, false, _szable, _readonly, Parent>>&);
+		};
+
+		static constexpr bool value = is_convertible<T, conversion_tester>::value;
+	};
+	template <typename T> struct IsTransBeffer
+	{
+		static constexpr bool value = IsBuffer<T>::value && !IsMemBuffer<T>::value;
+	};
 
 	// add ~~
 	namespace _pri_
@@ -528,29 +538,29 @@ namespace kr
 		{
 		};
 
-		template <typename Derived, typename C, bool accessable, bool szable, bool readonly, class Parent, bool exists>
+		template <typename Derived, typename C, bool copyTo, bool writeTo, bool szable, bool readonly, class Parent, bool exists>
 		struct AddBufferableCond {
 			static_assert(is_same<C, typename Parent::Component>::value, "Container type unmatch");
 			static_assert(szable == Parent::szable, "Container szable unmatch");
 			static_assert(readonly == Parent::readonly, "Container readonly unmatch");
 			using type = Parent;
 		};
-		template <typename Derived, typename C, bool accessable, bool szable, bool readonly, class Parent>
-		struct AddBufferableCond<Derived, C, accessable, szable, readonly, Parent, false> {
-			using type = Bufferable<Derived, BufferInfo<C, accessable, szable, readonly, Parent>>;
+		template <typename Derived, typename C, bool copyTo, bool writeTo, bool szable, bool readonly, class Parent>
+		struct AddBufferableCond<Derived, C, copyTo, writeTo, szable, readonly, Parent, false> {
+			using type = Bufferable<Derived, BufferInfo<C, copyTo, writeTo, szable, readonly, Parent> >;
 		};
 		template <typename Derived, typename Info>
 		struct AddBufferableType;
-		template <typename Derived, typename C, bool accessable, bool szable, bool readonly, class Parent>
-		struct AddBufferableType<Derived, BufferInfo<C, accessable, szable, readonly, Parent> >
-			:AddBufferableCond<Derived, C, accessable, szable, readonly, Parent, IsBuffer<Parent>::value>
+		template <typename Derived, typename C, bool copyTo, bool writeTo, bool szable, bool readonly, class Parent>
+		struct AddBufferableType<Derived, BufferInfo<C, copyTo, writeTo, szable, readonly, Parent> >
+			:AddBufferableCond<Derived, C, copyTo, writeTo, szable, readonly, Parent, IsBuffer<Parent>::value>
 		{
 		};
 	}
 
-	template <typename T, bool rdonly, class Parent>
-	using AddContainer = typename _pri_::AddContainerType<T, rdonly, Parent>::type;
-	template <typename C, typename Info>
-	using AddBufferable = typename _pri_::AddBufferableType<C, Info>::type;
+	template <typename C, bool rdonly, class Parent>
+	using AddContainer = typename _pri_::AddContainerType<C, rdonly, Parent>::type;
+	template <typename Derived, typename Info>
+	using AddBufferable = typename _pri_::AddBufferableType<Derived, Info>::type;
 
 }

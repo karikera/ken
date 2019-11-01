@@ -34,7 +34,7 @@ JsValue JsFunction::create() const noexcept
 	return m_data->create();
 }
 
-JsValue JsFunction::call(const JsArguments& args) const noexcept
+JsValue JsFunction::call(const JsArguments& args) const throws(JsException)
 {
 	return m_data->call(args);
 }

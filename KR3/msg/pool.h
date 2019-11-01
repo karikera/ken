@@ -4,7 +4,7 @@
 #include <KR3/mt/thread.h>
 #include "poster.h"
 
-#include <KRMessage/promise.h>
+#include <KR3/msg/promise.h>
 #include <KR3/mt/taskqueue.h>
 
 namespace kr

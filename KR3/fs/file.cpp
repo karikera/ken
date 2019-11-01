@@ -168,20 +168,42 @@ bool File::createFullDirectory(Text16 str) noexcept
 	}
 #endif
 
-	while ((nstr = nstr.find_L(path16.isSeperator)) != nullptr)
+	for (;;)
 	{
-		temp << str.cut(nstr) << nullterm;
-		if (!createDirectory(temp.begin()))
+		Text16 dir = nstr.readwith_L(path16.isSeperator);
+		if (dir == nullptr) break;
+		_assert(!dir.empty());
+		temp << dir;
+		
+		switch(*dir)
+		{
+		case '.':
+			if (dir.size() == 1 || (dir.size() == 2 && dir[1] == '.'))
+			{
+				temp << path16.sep;
+				continue;
+			}
+			break;
+		}
+		if (!createDirectory(temp.c_str()))
 		{
 			int err = GetLastError();
 			if (err != ERROR_ALREADY_EXISTS) return false;
 		}
-
-		str = nstr;
-		nstr++;
+		temp << path16.sep;
 	}
-	temp << str << nullterm;
-	createDirectory(temp.begin());
+	temp << nstr;
+
+	switch (*nstr)
+	{
+	case '.':
+		if (nstr.size() == 1 || (nstr.size() == 2 && nstr[1] == '.'))
+		{
+			return true;
+		}
+		break;
+	}
+	createDirectory(temp.c_str());
 	return true;
 }
 bool kr::File::removeFullDirectory(Text16 path) noexcept
@@ -259,7 +281,7 @@ void kr::File::md5(size_t sz, byte _dest[16]) throws(Error)
 	md5_finish(&ctx, _dest);
 	movePointer(minusSize);
 }
-dword File::size32() throws(TooBigException)
+uint32_t File::size32() throws(TooBigException)
 {
 	_assert(this != nullptr);
 	filesize_t sz = size();
@@ -273,7 +295,18 @@ filesize_t File::size() noexcept
 	(dword&)base = GetFileSize(this,(LPDWORD)&base+1);
 	return base;
 }
-void File::writeImpl(cptr buff, size_t len) throws(Error)
+size_t File::sizep() throws(TooBigException)
+{
+	if (sizeof(size_t) == sizeof(filesize_t))
+	{
+		return (size_t)size();
+	}
+	else
+	{
+		return size32();
+	}
+}
+void File::$write(cptr buff, size_t len) throws(Error)
 {
 	_assert(this != nullptr);
 	_assert(len <= 0xffffffff);
@@ -283,7 +316,7 @@ void File::writeImpl(cptr buff, size_t len) throws(Error)
 		throw Error();
 	_assert(len == writed);
 }
-size_t File::readImpl(ptr buff, size_t len) throws(EofException)
+size_t File::$read(ptr buff, size_t len) throws(EofException)
 {
 	_assert(this != nullptr);
 	if (len == 0) return 0;
@@ -355,7 +388,7 @@ ptr File::allocAll(size_t *pSize) noexcept
 	size_t upSize=*pSize=(size_t)qwSize;
 	if(upSize == 0) return nullptr;
 	ptr p=_new byte[upSize];
-	readImpl(p, upSize);
+	$read(p, upSize);
 	return p;
 }
 File::Mapping File::beginMapping(filesize_t off,size_t read) throws(Error)
@@ -582,23 +615,23 @@ MappedFile::~MappedFile() noexcept
 {
 	m_file->endMapping(m_map);
 }
-size_t MappedFile::size() const noexcept
+size_t MappedFile::$size() const noexcept
 {
 	return m_size;
 }
-void * MappedFile::begin() noexcept
+void * MappedFile::$begin() noexcept
 {
 	return m_map.point;
 }
-void * MappedFile::end() noexcept
+void * MappedFile::$end() noexcept
 {
 	return (byte*)m_map.point + m_size;
 }
-const void * MappedFile::begin() const noexcept
+const void * MappedFile::$begin() const noexcept
 {
 	return m_map.point;
 }
-const void * MappedFile::end() const noexcept
+const void * MappedFile::$end() const noexcept
 {
 	return (byte*)m_map.point + m_size;
 }

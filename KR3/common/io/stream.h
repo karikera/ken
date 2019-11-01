@@ -16,6 +16,15 @@ namespace kr
 			template <typename C>
 			using Stream = StreamableStream<Derived, C>;
 
+			void write(const void* data, size_t size)
+			{
+				return static_cast<Derived*>(this)->$write(data, size);
+			}
+			size_t read(void* data, size_t size)
+			{
+				return static_cast<Derived*>(this)->$read(data, size);
+			}
+
 			template <typename C>
 			Stream<C> * stream() noexcept
 			{
@@ -34,13 +43,13 @@ namespace kr
 
 			static_assert(sizeof(InternalComponent) == 1, "size unmatch");
 
-			void writeImpl(const C * data, size_t size)
+			void $write(const C * data, size_t size)
 			{
-				return Base::writeImpl((void*)data, size);
+				return Base::$write((void*)data, size);
 			}
-			size_t readImpl(C * data, size_t size)
+			size_t $read(C * data, size_t size)
 			{
-				return Base::readImpl((void*)data, size);
+				return Base::$read((void*)data, size);
 			}
 
 		public:

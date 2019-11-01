@@ -3,7 +3,7 @@
 #ifdef WIN32
 
 #include "framesync.h"
-#include <KRMessage/pump.h>
+#include <KR3/msg/pump.h>
 
 kr::FrameSync::FrameSync()
 {

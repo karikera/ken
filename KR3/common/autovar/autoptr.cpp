@@ -1,12 +1,17 @@
 #include "stdafx.h"
 #include "autoptr.h"
 
-kr::autoptr::autoptr() noexcept
+kr::autoptr::autoptr(nullptr_t) noexcept
+	:m_ptr(nullptr)
 {
 }
-kr::autoptr::autoptr(nullptr_t) noexcept
+kr::autoptr::autoptr(intptr_t dat) noexcept
+	:m_ptr((void*)dat)
 {
-	m_ptr = nullptr;
+}
+kr::autoptr::autoptr(uintptr_t dat) noexcept
+	:m_ptr((void*)dat)
+{
 }
 kr::autoptr & kr::autoptr::operator=(nullptr_t) noexcept
 {

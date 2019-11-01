@@ -74,7 +74,7 @@ namespace kr
 		void setStream(io::VOStream<char> os) noexcept;
 		void indent(int n) noexcept;
 		void flush() noexcept;
-		void writeImpl(const char * data, size_t size);
+		void $write(const char * data, size_t size);
 
 	private:
 		void _writeText(Text text) noexcept;

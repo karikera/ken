@@ -68,6 +68,59 @@ size_t BufferBlockWithRef::capacity() const noexcept
 	return kr_msize(this) - offsetof(BufferBlockWithRef, buffer);
 }
 
+BufferQueue::ReadResult::ReadResult(BufferQueue* queue) noexcept
+	:queue(queue)
+{
+	totalSize = 0;
+}
+BufferQueue::ReadResult::ReadResult(ReadResult&& _move) noexcept
+	:queue(_move.queue)
+{
+	buffers = move(_move.buffers);
+	totalSize = _move.totalSize;
+	ended = _move.ended;
+}
+void BufferQueue::ReadResult::push(const Buffer& buffer) noexcept
+{
+	buffers.push(buffer);
+	totalSize += buffer.size();
+}
+void BufferQueue::ReadResult::remove(size_t size) noexcept
+{
+	_assert(size <= totalSize);
+
+	while (size != 0)
+	{
+		Buffer& buffer = buffers.back();
+		size_t bufsize = buffer.size();
+		if (bufsize <= size)
+		{
+			size -= bufsize;
+			buffers.pop();
+		}
+		else
+		{
+			buffer.cut_self(bufsize - size);
+			return;
+		}
+	}
+}
+void BufferQueue::ReadResult::readAllTo(io::VOStream<void> out) throws(ThrowRetry)
+{
+	for (Buffer buf : buffers)
+	{
+		out << buf;
+	}
+	queue->skip(totalSize);
+	if (!ended) throw ThrowRetry();
+}
+void BufferQueue::ReadResult::readAllTo(ABuffer* buffer, size_t limit) throws(ThrowRetry, NotEnoughSpaceException)
+{
+	if (buffer->size() + totalSize > limit) throw NotEnoughSpaceException();
+	readAllTo(buffer);
+	if (!ended) throw ThrowRetry();
+}
+
 BufferQueue::BufferQueue() noexcept
 {
 	m_first = nullptr;
@@ -246,7 +299,171 @@ void BufferQueue::read(void * dest, size_t size) noexcept
 		}
 	}
 }
-Buffer BufferQueue::read(size_t size, TBuffer * temp) noexcept
+BufferQueue::ReadResult BufferQueue::read(size_t size) noexcept
+{
+	_assert(size <= m_totalSize);
+
+	ReadResult result(this);
+	result.ended = true;
+
+	if (size == 0)
+	{
+		return result;
+	}
+
+	size_t offset = m_readed;
+
+	BufferBlock* block = m_first;
+
+	byte* srcbuffer = (byte*)block->buffer + offset;
+	size_t srcsize = block->size - offset;
+	if (srcsize > size)
+	{
+		result.push(Buffer(srcbuffer, size));
+		return result;
+	}
+	else
+	{
+		result.push(Buffer(srcbuffer, srcsize));
+		size -= srcsize;
+		block = block->next;
+		if (block == nullptr)
+		{
+			return result;
+		}
+	}
+
+	for (;;)
+	{
+		byte* srcbuffer = (byte*)block->buffer;
+		size_t srcsize = block->size;
+		if (srcsize > size)
+		{
+			result.push(Buffer(srcbuffer, size));
+			return result;
+		}
+		else
+		{
+			result.push(Buffer(srcbuffer, srcsize));
+			size -= srcsize;
+			block = block->next;
+			if (block == nullptr)
+			{
+				result.ended = true;
+				return result;
+			}
+		}
+	}
+	return result;
+}
+BufferQueue::ReadResult BufferQueue::readto(byte needle) noexcept
+{
+	ReadResult result(this);
+
+	auto iter = begin();
+	auto iter_end = end();
+
+	if (iter == iter_end)
+	{
+		result.ended = false;
+		return result;
+	}
+
+	Buffer text = *iter;
+	{
+		Buffer finded = text.readto(needle);
+		if (finded != nullptr)
+		{
+			result.push(finded);
+			result.ended = true;
+			return result;
+		}
+		result.push(text);
+		iter++;
+	}
+	for (; iter != iter_end; iter++)
+	{
+		Buffer text = *iter;
+		Buffer finded = text.readto(needle);
+		if (finded != nullptr)
+		{
+			result.push(finded);
+			result.ended = true;
+			return result;
+		}
+		result.push(text);
+	}
+	result.ended = false;
+	return result;
+}
+BufferQueue::ReadResult BufferQueue::readto(HashTester<void>& needle) noexcept
+{
+	ReadResult result(this);
+
+	auto iter = begin();
+	auto iter_end = end();
+	size_t needle_size = needle.size();
+
+	if (iter == iter_end)
+	{
+		result.ended = false;
+		result.totalSize = 0;
+		return result;
+	}
+
+	{
+		Buffer text = *iter;
+		cptr finded = needle.puts(text);
+		if (finded != nullptr)
+		{
+			size_t srcsize = (byte*)finded - (byte*)text.data() - needle_size;
+			if (srcsize != 0)
+			{
+				result.push(text.cut(srcsize));
+			}
+			result.ended = true;
+			return result;
+		}
+		result.push(text);
+		iter++;
+	}
+
+	for (; iter != iter_end; iter++)
+	{
+		Buffer text = *iter;
+		cptr finded = needle.puts(text);
+		if (finded != nullptr)
+		{
+			intptr_t endsize = (byte*)finded - (byte*)text.data() - needle_size;
+			if (endsize >= 0)
+			{
+				if (endsize != 0)
+				{
+					result.push(text.cut(endsize));
+				}
+			}
+			else
+			{
+				result.remove(-endsize);
+			}
+			result.ended = true;
+			return result;
+		}
+		result.push(text);
+	}
+
+	result.ended = false;
+	if (result.totalSize < needle_size)
+	{
+		result.buffers.clear();
+	}
+	else
+	{
+		result.remove(needle_size - 1);
+	}
+	return result;
+}
+Buffer BufferQueue::read(size_t size, TBuffer* temp) noexcept
 {
 	_assert(size <= m_totalSize);
 	if (size == 0) return Buffer(nullptr, nullptr);
@@ -257,7 +474,7 @@ Buffer BufferQueue::read(size_t size, TBuffer * temp) noexcept
 	size_t srcsize = m_first->size - m_readed;
 	if (srcsize == 0)
 	{
-		BufferBlock * next = m_first->next;
+		BufferBlock* next = m_first->next;
 		m_first->free();
 		m_first = next;
 		srcsize = next->size;
@@ -275,7 +492,7 @@ Buffer BufferQueue::read(size_t size, TBuffer * temp) noexcept
 	{
 		temp->write(srcbuffer, srcsize);
 		size -= srcsize;
-		BufferBlock * next = m_first->next;
+		BufferBlock* next = m_first->next;
 		m_first->free();
 		m_first = next;
 		m_count--;
@@ -295,7 +512,7 @@ Buffer BufferQueue::read(size_t size, TBuffer * temp) noexcept
 		{
 			temp->write(srcbuffer, srcsize);
 			size -= srcsize;
-			BufferBlock * next = m_first->next;
+			BufferBlock* next = m_first->next;
 			m_first->free();
 			m_first = next;
 			if (next == nullptr)
@@ -312,7 +529,7 @@ Buffer BufferQueue::read(size_t size, TBuffer * temp) noexcept
 		}
 	}
 }
-Text BufferQueue::readwith(char chr, TText * temp) noexcept
+Buffer BufferQueue::readwith(byte needle, TBuffer* temp) noexcept
 {
 	temp->clear();
 	auto iter = begin();
@@ -320,8 +537,8 @@ Text BufferQueue::readwith(char chr, TText * temp) noexcept
 	if (iter == iter_end) return nullptr;
 
 	{
-		Text text = (*iter).cast<char>();
-		Text readed = text.readwith(chr);
+		Buffer text = *iter;
+		Buffer readed = text.readwith(needle);
 		if (readed != nullptr)
 		{
 			size_t size = readed.size() + 1;
@@ -333,10 +550,10 @@ Text BufferQueue::readwith(char chr, TText * temp) noexcept
 		iter++;
 	}
 
-	for (;iter != iter_end;iter++)
+	for (; iter != iter_end; iter++)
 	{
-		Text text = (*iter).cast<char>();
-		Text readed = text.readwith(chr);
+		Buffer text = *iter;
+		Buffer readed = text.readwith(needle);
 		if (readed != nullptr)
 		{
 			*temp << readed;
@@ -347,8 +564,10 @@ Text BufferQueue::readwith(char chr, TText * temp) noexcept
 	}
 	return nullptr;
 }
-Text BufferQueue::readwith(Text chr, TText * temp) noexcept
+Buffer BufferQueue::readwith(HashTester<void>& needle, TBuffer* temp) noexcept
 {
+	size_t chr_size = needle.size();
+
 	temp->clear();
 	auto iter = begin();
 	auto iter_end = end();
@@ -356,41 +575,42 @@ Text BufferQueue::readwith(Text chr, TText * temp) noexcept
 	if (iter == iter_end) return false;
 
 	{
-		Text text = (*iter).cast<char>();
-		Text finded = text.readto(chr);
+		Buffer text = *iter;
+		cptr finded = needle.puts(text);
 		if (finded != nullptr)
 		{
-			m_readed += temp->size() + chr.size();
-			return finded;
+			m_readed = (byte*)finded - (byte*)text.data();
+			text.cut_self((byte*)finded - chr_size);
+			return text;
 		}
 		*temp << text;
 		iter++;
 	}
-	size_t offset = temp->size() - chr.size() + 1;
-
 	for (; iter != iter_end; iter++)
 	{
-		Text text = (*iter).cast<char>();
-		*temp << text;
-		
-		const char * finded = (*temp + offset).find(chr).begin();
+		Buffer text = *iter;
+
+		cptr finded = needle.puts(text);
 		if (finded != nullptr)
 		{
-			temp->cut(finded);
-			skip(temp->size() + chr.size());
+			intptr_t endsize = (byte*)finded - (byte*)text.data() - needle.size();
+			if (endsize >= 0)
+			{
+				if (endsize != 0)
+				{
+					*temp << text.cut(endsize);
+				}
+			}
+			else
+			{
+				temp->resize(temp->size() + endsize);
+			}
+			skip(temp->size() + chr_size);
 			return *temp;
 		}
+		*temp << text;
 	}
 	return nullptr;
-}
-AText BufferQueue::readAll() noexcept
-{
-	AText data;
-	for (Buffer buf : *this)
-	{
-		data << buf.cast<char>();
-	}
-	return data;
 }
 bool BufferQueue::empty() noexcept
 {
@@ -445,6 +665,18 @@ size_t BufferQueue::size() noexcept
 {
 	return m_totalSize;
 }
+void BufferQueue::_skipZero() noexcept
+{
+	if (m_first->size == m_readed)
+	{
+		m_first = m_first->next;
+		m_readed = 0;
+		if (m_first == nullptr)
+		{
+			m_last = _axis();
+		}
+	}
+}
 BufferBlock * BufferQueue::_makeBuffer() noexcept
 {
 	BufferBlock * buff = BufferBlock::alloc();
@@ -476,14 +708,6 @@ void BufferQueue::clearKeeped() noexcept
 	buffers.clear();
 }
 
-BufferQueue::Iterator BufferQueue::begin() noexcept
-{
-	return Iterator(m_first, m_readed);
-}
-BufferQueue::Iterator BufferQueue::end() noexcept
-{
-	return Iterator(nullptr, 0);
-}
 size_t BufferQueue::bufferCount() noexcept
 {
 	return m_count;
@@ -493,7 +717,7 @@ void BufferQueue::checkBufferCorrution() noexcept
 	BufferBlock * block = m_first;
 	if (block == nullptr)
 	{
-		_assert(m_last == nullptr);
+		_assert(m_last == _axis());
 		_assert(m_count == 0);
 		_assert(m_totalSize == 0);
 		_assert(m_readed == 0);
@@ -515,6 +739,24 @@ void BufferQueue::checkBufferCorrution() noexcept
 		total += next->size;
 		block = next;
 	}
+}
+
+BufferQueue::Iterator::Iterator(BufferQueue * queue) noexcept
+	:m_buffer(queue->m_first), m_offset(queue->m_readed)
+{
+}
+kr::Buffer BufferQueue::Iterator::value() const noexcept
+{
+	return kr::Buffer(m_buffer->buffer + m_offset, m_buffer->size - m_offset);
+}
+void BufferQueue::Iterator::next() noexcept
+{
+	m_buffer = m_buffer->next;
+	m_offset = 0;
+}
+bool BufferQueue::Iterator::isEnd() const noexcept
+{
+	return m_buffer == nullptr;
 }
 
 BufferQueuePointer::BufferQueuePointer(const BufferQueue & buf) noexcept
@@ -597,176 +839,4 @@ size_t BufferQueuePointer::getReadSize() noexcept
 void BufferQueuePointer::clearSize() noexcept
 {
 	m_fullreaded = 0-m_readed;
-}
-
-Buffer BufferQueueWithRef::getFirstBlock() noexcept
-{
-	return ((BufferBlockWithRef*)m_first)->getBuffer() + m_readed;
-}
-void BufferQueueWithRef::write(const void * data, size_t size) noexcept
-{
-	m_totalSize += size;
-
-	if (m_last != _axis())
-	{
-		BufferBlockWithRef* buff = (BufferBlockWithRef*)m_last;
-		size_t buff_size = buff->size & BufferBlockWithRef::SIZE_MASK;
-		size_t left = buff->capacity() - buff_size;
-		if (size <= left)
-		{
-			memcpy(buff->buffer + buff_size, data, size);
-			buff->size += size;
-			return;
-		}
-		else
-		{
-			memcpy(buff->buffer + buff_size, data, left);
-			(const byte*&)data += left;
-			buff->size += left;
-			size -= left;
-		}
-	}
-	m_count++;
-	BufferBlockWithRef * buff = BufferBlockWithRef::alloc();
-	m_last->next = (BufferBlock*)buff;
-
-	for (;;)
-	{
-		size_t cap = buff->capacity();
-		if (size > cap)
-		{
-			memcpy(buff->buffer, data, cap);
-			buff->size = cap;
-
-			m_count++;
-			buff = buff->next = BufferBlockWithRef::alloc();
-			(const byte*&)data += cap;
-			size -= cap;
-		}
-		else
-		{
-			memcpy(buff->buffer, data, size);
-			buff->size = size;
-			buff->next = nullptr;
-			break;
-		}
-	}
-	m_last = (BufferBlock*)buff;
-}
-void BufferQueueWithRef::writeRef(const void * data, size_t size) noexcept
-{
-	BufferBlockWithRef * buff = BufferBlockWithRef::alloc();
-	buff->size = size | BufferBlockWithRef::REFERENCE_BIT;
-	buff->bufferPtr = (byte*)data;
-	buff->next = nullptr;
-
-	m_last->next = (BufferBlock*)buff;
-	m_last = (BufferBlock*)buff;
-	m_totalSize += size;
-	m_count++;
-}
-void BufferQueueWithRef::read(void * dest, size_t size) noexcept
-{
-	if (size == 0) return;
-	m_totalSize -= size;
-
-	for (;;)
-	{
-		BufferBlockWithRef* buff = (BufferBlockWithRef*)m_first;
-
-		const byte* srcbuffer = buff->begin() + m_readed;
-		size_t srcsize = (buff->size & BufferBlockWithRef::SIZE_MASK) - m_readed;
-		if (srcsize > size)
-		{
-			memcpy(dest, srcbuffer, size);
-			m_readed += size;
-			return;
-		}
-		else
-		{
-			memcpy(dest, srcbuffer, srcsize);
-			(byte*&)dest += srcsize;
-			size -= srcsize;
-			m_readed = 0;
-			BufferBlockWithRef * next = (BufferBlockWithRef*)buff->next;
-			buff->free();
-			buff = next;
-			m_first = (BufferBlock*)next;
-			if (next == nullptr)
-			{
-				_assert(size == 0);
-				_assert(m_count == 1);
-				m_count = 0;
-				m_last = _axis();
-				_assert(m_totalSize == 0);
-				return;
-			}
-			m_count--;
-		}
-	}
-}
-BufferQueueWithRef::Iterator BufferQueueWithRef::begin() noexcept
-{
-	return Iterator((BufferBlockWithRef*)m_first, m_readed);
-}
-BufferQueueWithRef::Iterator BufferQueueWithRef::end() noexcept
-{
-	return Iterator(nullptr, 0);
-}
-BufferQueue::Iterator::Iterator(BufferBlock * buffer, size_t offset) noexcept
-	:m_buffer(buffer), m_offset(offset)
-{
-}
-kr::Buffer BufferQueue::Iterator::operator *() const noexcept
-{
-	return kr::Buffer(m_buffer->buffer + m_offset, m_buffer->size - m_offset);
-}
-BufferQueue::Iterator & BufferQueue::Iterator::operator ++() noexcept
-{
-	m_buffer = m_buffer->next;
-	m_offset = 0;
-	return *this;
-}
-const BufferQueue::Iterator BufferQueue::Iterator::operator ++(int) noexcept
-{
-	Iterator old = *this;
-	++*this;
-	return old;
-}
-bool BufferQueue::Iterator::operator ==(const Iterator & other) const noexcept
-{
-	return m_buffer == other.m_buffer && m_offset == other.m_offset;
-}
-bool BufferQueue::Iterator::operator !=(const Iterator & other) const noexcept
-{
-	return m_buffer != other.m_buffer || m_offset != other.m_offset;
-}
-
-BufferQueueWithRef::Iterator::Iterator(BufferBlockWithRef * buffer, size_t offset) noexcept
-	:m_buffer(buffer), m_offset(offset)
-{
-}
-Buffer BufferQueueWithRef::Iterator::operator *() noexcept
-{
-	return m_buffer->getBuffer() + m_offset;
-}
-BufferQueueWithRef::Iterator & BufferQueueWithRef::Iterator::operator ++() noexcept
-{
-	m_buffer = m_buffer->next;
-	m_offset = 0;
-	return *this;
-}
-const BufferQueueWithRef::Iterator BufferQueueWithRef::Iterator::operator ++(int) noexcept
-{
-	Iterator old = *this;
-	++*this;
-	return old;
-}
-bool BufferQueueWithRef::Iterator::operator ==(const Iterator & other) noexcept
-{
-	return m_buffer == other.m_buffer;
-}
-bool BufferQueueWithRef::Iterator::operator !=(const Iterator & other) noexcept
-{
-	return m_buffer != other.m_buffer;
 }

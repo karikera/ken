@@ -8,7 +8,7 @@ EMPTY_SOURCE
 #include "server.h"
 #include <KR3/net/socket.h>
 
-#include <KRMessage/msgloop.h>
+#include <KR3/msg/msgloop.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 

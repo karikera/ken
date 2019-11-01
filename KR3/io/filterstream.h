@@ -16,7 +16,7 @@ namespace kr
 
 			FilterIStream(Base* p) noexcept;
 			~FilterIStream() noexcept;
-			size_t readImpl(NewComponent* data, size_t nSize) = delete;
+			size_t $read(NewComponent* data, size_t nSize) = delete;
 			void resetStream(Base * p) noexcept;
 			Base* base() const noexcept;
 
@@ -34,7 +34,7 @@ namespace kr
 
 			FilterOStream(Base* p) noexcept;
 			~FilterOStream() noexcept;
-			void writeImpl(const NewComponent* data, size_t nSize) = delete;
+			void $write(const NewComponent* data, size_t nSize) = delete;
 			void resetStream(nullptr_t) noexcept;
 			void resetStream(Base * p) noexcept;
 			void resetStream(typename Base::StreamableBase * p) noexcept;

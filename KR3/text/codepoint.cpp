@@ -26,16 +26,6 @@ void CodePoint<char, Charset::Utf8>::next(View<char> * text) noexcept
 	}
 }
 template <>
-void CodePoint<char, Charset::EucKr>::next(View<char> * text) noexcept
-{
-	if (**text < 0)
-	{
-		(*text)++;
-		if (text->empty()) return;
-	}
-	(*text)++;
-}
-template <>
 void CodePoint<char16, Charset::Default>::next(View<char16> * text) noexcept
 {
 	if ((**text & 0xfc00) == 0xd800)

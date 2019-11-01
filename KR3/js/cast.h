@@ -37,6 +37,15 @@ namespace kr
 					return To(move(_value));
 				}
 			};
+			template <typename To>
+			struct ToOuter<To*, JsRawData>
+			{
+				static To* toOuter(const JsRawData& _value) noexcept
+				{
+					if (!_value.instanceOf(JsObject::classObject)) return nullptr;
+					return dynamic_cast<To*>(_value.as<JsObject*>());
+				}
+			};
 			template <typename T, typename TI>
 			static T toOuter(const TI& _value) noexcept
 			{
@@ -80,6 +89,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static long_to_what_t toInner(long _value) noexcept;
 			static TText16 toInner(Text _value, Charset cs = Charset::Default) noexcept;
 			static TText16 toInner(const AText& _value, Charset cs = Charset::Default) noexcept;
+			static TText16 toInner(const TText& _value, Charset cs = Charset::Default) noexcept;
 			static Text16 toInner(const AText16& _value) noexcept;
 			static Text16 toInner(const TText16& _value) noexcept;
 			static JsRawData toInner(JsNewObject_t) noexcept;
@@ -97,9 +107,24 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 				return toOuter<T>(defaultValue<type>());
 			}
 			template <>
+			static AText16 defaultValue<AText16>() noexcept
+			{
+				return nullptr;
+			}
+			template <>
+			static AText defaultValue<AText>() noexcept
+			{
+				return nullptr;
+			}
+			template <>
+			static Text defaultValue<Text>() noexcept
+			{
+				return "";
+			}
+			template <>
 			static void defaultValue<void>() noexcept
 			{
-			};
+			}
 #define DEFAULT(type, v)	template <> static type defaultValue<type>() noexcept { return v; }
 			DEFAULT(int, 0);
 			DEFAULT(double, NAN);
@@ -109,6 +134,9 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			DEFAULT(Text16, u"");
 #undef DEFAULT
 		};
+
+		template <>
+		JsRawData JsCast::defaultValue<JsRawData>() noexcept;
 
 		enum CastType
 		{

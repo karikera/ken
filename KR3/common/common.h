@@ -70,11 +70,13 @@ namespace kr
 	enum class Charset
 	{
 		Utf8,
+		None,
+		Ansi,
 		EucKr,
 #ifdef EMSCRIPTEN
 		Default = Utf8,
 #else
-		Default = EucKr,
+		Default = Ansi,
 #endif
 	};
 
@@ -95,6 +97,7 @@ namespace kr
 
 #define CHARSET_CONSTLIZE(charset, code) \
 switch (charset) { \
-case ::kr::Charset::EucKr: {constexpr ::kr::Charset charset = ::kr::Charset::EucKr; code; } break; \
+case ::kr::Charset::Ansi: {constexpr ::kr::Charset charset = ::kr::Charset::Ansi; code; } break; \
 case ::kr::Charset::Utf8: {constexpr ::kr::Charset charset = ::kr::Charset::Utf8; code; } break; \
+case ::kr::Charset::EucKr: {constexpr ::kr::Charset charset = ::kr::Charset::EucKr; code; } break; \
 }

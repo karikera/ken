@@ -16,15 +16,129 @@ inline AText readWithHeader(Text header, pcstr16 path)
 	size_t headersize = header.size();
 	AText contents(headersize + filesize);
 	contents.subcopy(header.begin(), headersize, 0);
-	file->readImpl(contents.begin() + headersize, filesize);
+	file->$read(contents.begin() + headersize, filesize);
 	return contents;
 }
 
 constexpr size_t HEADER_LENGTH_LIMIT = 4096;
+constexpr size_t POST_DATA_LENGTH_LIMIT = 4096;
+constexpr size_t MULTIFORM_POST_DATA_LENGTH_LIMIT = 4096;
 static size_t clientCount = 0;
 static CriticalSection doutLock;
 
-HttpClient::HttpClient(HttpServer * server, Socket * socket) noexcept
+UriFormData::UriFormData(Text data) noexcept
+{
+	for (;;)
+	{
+		Text name = data.readwith('=');
+		if (name == nullptr) return;
+
+		Text to = data;
+		for (;;)
+		{
+			to.subarr_self(to.find('&'));
+			if (to == nullptr)
+			{
+				(*this)[name] = data;
+				return;
+			}
+			else if ((to + 1).startsWith("amp;"))
+			{
+				to += 5;
+				continue;
+			}
+
+			Text value = data.readto_p(to.data());
+			(*this)[name] = value;
+			data++;
+			break;
+		}
+	}
+}
+
+MultipartFormData::MultipartFormData() noexcept
+{
+	m_boundary = nullptr;
+	m_state = State::SkipBoundary;
+}
+
+void MultipartFormData::readHeader(HttpClient* client) throws(ThrowRetry, HttpStatus)
+{
+	if (m_boundary != nullptr) return;
+	
+	auto& headers = client->getHeader();
+
+	Text contentLength = headers["Content-Length"];
+	if (contentLength == nullptr) throw HttpStatus::MethodNotAllowed;
+	m_contentSize = contentLength.to_uintp();
+
+	Text contentType = headers["Content-Type"];
+	if (contentType == nullptr) throw HttpStatus::MethodNotAllowed;
+	if (contentType.readwith(';') != "multipart/form-data") throw HttpStatus::MethodNotAllowed;
+
+	while (!contentType.empty())
+	{
+		if (*contentType == ' ') contentType++;
+		Text varline = contentType.readwith_e(';');
+		Text varname = varline.readwith('=');
+		if (varname == nullptr) continue;
+		if (varname == "boundary")
+		{
+			m_boundary = varline;
+			m_boundary << "\r\n";
+			return;
+		}
+	}
+	throw HttpStatus::MethodNotAllowed;
+}
+void MultipartFormData::read(HttpClient* client, BufferQueue* receive) throws(ThrowRetry, HttpStatus)
+{
+	readHeader(client);
+	HashTester<void> boundary(m_boundary.cast<void>(), HashTester<void>::NoReset);
+	HashTester<void> lineend("\r\n"_tx.cast<void>(), HashTester<void>::NoReset);
+	for (;;)
+	{
+		switch (m_state)
+		{
+		case State::SkipBoundary:
+		{
+			boundary.reset();
+			BufferQueue::ReadResult res = receive->readto(boundary);
+			size_t junksize = res.totalSize + boundary.size();
+			m_contentSize -= junksize;
+			receive->skip(junksize);
+			if (!res.ended) throw ThrowRetry();
+			m_state = State::Header;
+			break;
+		}
+		case State::Header:
+		{
+			for (;;)
+			{
+				lineend.reset();
+				BufferQueue::ReadResult res = receive->readto(lineend);
+				res.readAllTo((ABuffer*)&m_currentHeader, MULTIFORM_POST_DATA_LENGTH_LIMIT);
+				receive->skip(lineend.size());
+
+				if (m_currentHeader.empty()) break;
+				m_currentHeader = nullptr;
+			}
+			m_currentHeader = nullptr;
+			m_state = State::Data;
+			break;
+		}
+		case State::Data:
+			m_state = State::Header;
+			break;
+		}
+	}
+}
+Text MultipartFormData::get(Text name) noexcept
+{
+	return "";
+}
+
+HttpClient::HttpClient(HttpServer* server, Socket* socket) noexcept
 	:MTClient(socket)
 {
 	m_state = ReadHeader;
@@ -33,11 +147,11 @@ HttpClient::HttpClient(HttpServer * server, Socket * socket) noexcept
 	CsLock __lock = doutLock;
 	clientCount++;
 	dout << "HTTP Client Count: " << clientCount << endl;
+
+	m_headerParsed = false;
 }
 HttpClient::~HttpClient() noexcept
 {
-	m_get.clear();
-	m_post.clear();
 	m_header.clear();
 
 	CsLock __lock = doutLock;
@@ -54,24 +168,10 @@ void HttpClient::onRead() throws(...)
 		case ReadHeader:
 			try
 			{
-				{
-					TText headerBuffer;
-					Text header = m_receive.readwith("\r\n\r\n", &headerBuffer);
-					if (header == nullptr)
-					{
-						if (m_headerData.size() >= HEADER_LENGTH_LIMIT) return;
-						size_t size = m_receive.size() - 3;
-						m_receive.read(m_headerData.prepare(size), size);
-						return;
-					}
-					m_headerData << header;
-				}
+				_readHeadLine();
 
 				// parse headline
-				Text header = m_headerData;
-				Text headline = header.readwith("\r\n");
-				if (headline == nullptr) return;
-
+				Text headline = m_headLine;
 				m_method = headline.readwith(' ');
 				if (m_method == "POST")
 				{
@@ -81,30 +181,25 @@ void HttpClient::onRead() throws(...)
 				}
 				else
 				{
-					throw HttpMethodNotImplemented;
+					throw HttpStatus::NotImplemented;
 				}
-
-				// parse headers
-				m_header.set(header);
 
 				// process path
 				m_uriRequest = headline.readwith(' ');
 				Text url = m_uriRequest;
-
-				if (url.empty()) throw HttpBadRequest;
-				if (url.front() != '/') throw HttpBadRequest;
+				if (url.empty()) throw HttpStatus::BadRequest;
+				if (url.front() != '/') throw HttpStatus::BadRequest;
 				url++;
-				Text query = url.find('?');
+				const char* query = url.find('?');
 				if (query != nullptr)
 				{
 					url = url.cut(query);
 					query++;
 				}
 				m_path = url;
-				m_query = query;
+				m_query = url.subarr(query);
 
 				m_server->findPage(m_path, &m_fp);
-
 				if (m_fp.page)
 				{
 					m_state = ProcessPage;
@@ -113,7 +208,15 @@ void HttpClient::onRead() throws(...)
 				{
 					m_state = SendFile;
 				}
-
+			}
+			catch (ThrowRetry)
+			{
+				return;
+			}
+			catch (NotEnoughSpaceException&)
+			{
+				m_fp.page = m_server->getErrorPage(HttpStatus::BadRequest);
+				m_state = ProcessErrorPage;
 			}
 			catch (HttpStatus status)
 			{
@@ -124,9 +227,18 @@ void HttpClient::onRead() throws(...)
 		case ProcessPage:
 			try
 			{
-				m_fp.page->process(this, m_query, &m_receive);
+				m_fp.page->process(this);
 				m_state = IgnoreReceive;
 				return;
+			}
+			catch (ThrowRetry)
+			{
+				return;
+			}
+			catch (NotEnoughSpaceException&)
+			{
+				m_fp.page = m_server->getErrorPage(HttpStatus::BadRequest);
+				m_state = ProcessErrorPage;
 			}
 			catch (HttpStatus code)
 			{
@@ -135,14 +247,14 @@ void HttpClient::onRead() throws(...)
 			}
 			catch (...)
 			{
-				m_fp.page = m_server->getErrorPage(HttpServerInternalError);
+				m_fp.page = m_server->getErrorPage(HttpStatus::InternalServerError);
 				m_state = ProcessErrorPage;
 			}
 			break;
 		case ProcessErrorPage:
 			try
 			{
-				m_fp.page->process(this, m_query, &m_receive);
+				m_fp.page->process(this);
 				m_state = IgnoreReceive;
 			}
 			catch (...)
@@ -152,15 +264,12 @@ void HttpClient::onRead() throws(...)
 			return;
 		case SendFile:
 		{
-			TmpArray<char> header((size_t)0, 1024);
-			header <<
+			writeHeader({
 				"HTTP/1.0 200 OK\r\n"
 				"MIME-Version: 1.0\r\n"
-				"Content-Type:";
-			header << m_server->getMIMEType(m_fp.path);
-			header << "\r\n";
-			header << m_server->getDefaultHeader();
-			write(header.cast<void>());
+				"Content-Type: ", m_server->getMIMEType(m_fp.path), "\r\n"
+				"Content-Length: ", TSZ() << m_fp.file->size(), "\r\n"
+				});
 			m_state = IgnoreReceive;
 			onSendDone();
 			return;
@@ -177,8 +286,8 @@ void HttpClient::onSendDone() noexcept
 		try
 		{
 			TmpArray<char> buffer(8192);
-			buffer.resize(m_fp.file->readImpl(buffer.begin(), buffer.size()));
-			write(buffer.cast<void>());
+			buffer.resize(m_fp.file->$read(buffer.begin(), buffer.size()));
+			write(buffer);
 			flush();
 		}
 		catch (EofException&)
@@ -187,87 +296,115 @@ void HttpClient::onSendDone() noexcept
 			close();
 		}
 	}
+	void writeHeader(View<Text> headers) noexcept;
+	void writeHeader(View<Text> headers) noexcept;
+}
+void HttpClient::write(Text data) noexcept
+{
+	MTClient::write(data.cast<void>());
+}
+void HttpClient::writes(View<Text> data) noexcept
+{
+	MTClient::writes((View<Buffer>&)data);
+}
+void HttpClient::writeWithoutLock(Text data) noexcept
+{
+	MTClient::writeWithoutLock(data.cast<void>());
+}
+void HttpClient::writeHeader(View<Text> headers) noexcept
+{
+	writeLock();
+	writeWithoutLock("HTTP/1.0 200 OK\r\n");
+	for (Text line : headers)
+	{
+		writeWithoutLock(line);
+	}
+	writeWithoutLock(m_server->getDefaultHeader());
+	writeUnlock();
+}
+void HttpClient::writeHeader() noexcept
+{
+	writeLock();
+	writeWithoutLock("HTTP/1.0 200 OK\r\n"_tx);
+	writeWithoutLock(m_server->getDefaultHeader());
+	writeUnlock();
 }
 void HttpClient::onError(Text funcname, int code) noexcept
 {
 	CsLock __lock = doutLock;
 	dout << "Client error: " << funcname << " (code: " << code << ")" << endl;
 }
-void HttpClient::readPostVariable(Text * stream)
+Text HttpClient::getMethod() noexcept
 {
+	return m_method;
 }
-
-void kr::HttpClient::parseQueryTo(ReferenceMap<Text, Text>* target, Text data) noexcept
+Text HttpClient::getPath() noexcept
 {
-	for (;;)
+	return m_path;
+}
+Text HttpClient::getQuery() noexcept
+{
+	return m_query;
+}
+AText HttpClient::getPostData() throws(ThrowRetry, HttpStatus)
+{
+	Text value = getHeader("Content-Length");
+	if (value == nullptr) return nullptr;
+
+	size_t size = m_receive.size();
+	size_t contentLength = value.to_uintp();
+	if (contentLength >= POST_DATA_LENGTH_LIMIT) throw NotEnoughSpaceException();
+	if (size < contentLength) throw ThrowRetry{};
+	if (size >= POST_DATA_LENGTH_LIMIT) throw NotEnoughSpaceException();
+
+	ABuffer out;
+	for (Buffer buf : m_receive)
 	{
-		Text name = data.readwith('=');
-		if (name == nullptr) return;
-
-		Text to = data;
-		for (;;)
-		{
-			to = to.find('&');
-			if (to == nullptr)
-			{
-				(*target)[name] = data;
-				return;
-			}
-			else if ((to + 1).startsWith("amp;"))
-			{
-				to += 5;
-				continue;
-			}
-
-			Text value = data.readto_p(to);
-			(*target)[name] = value;
-			data++;
-			break;
-		}
+		out << buf;
 	}
+	return move((AText&)out);
 }
-Text HttpClient::getHeader(Text name) noexcept
+MultipartFormData& HttpClient::getMultipartFormData() throws(ThrowRetry, NotEnoughSpaceException)
 {
-	return m_header[name];
+	m_multipart.read(this, &m_receive);
+	return m_multipart;
 }
-Text HttpClient::get(Text name) noexcept
+
+Text HttpClient::getHeader(Text name) throws(ThrowRetry, NotEnoughSpaceException)
 {
-	return getMap()[name];
+	return getHeader()[name];
 }
-Text HttpClient::post(Text name) noexcept
+HttpHeader& HttpClient::getHeader() throws(ThrowRetry, NotEnoughSpaceException)
 {
-	return postMap()[name];
-}
-HttpHeader& HttpClient::getHeader() noexcept
-{
+	if (!m_headerParsed)
+	{
+		HashTester<void> needle = "\r\n\r\n"_tx.cast<void>();
+		m_receive.readto(needle).readAllTo((ABuffer*)&m_headerBuffers, HEADER_LENGTH_LIMIT);
+		m_receive.skip(needle.size());
+		m_header.set(m_headerBuffers);
+		m_headerParsed = true;
+	}
+
 	return m_header;
 }
-ReferenceMap<Text, Text>& HttpClient::getMap() noexcept
+
+void HttpClient::_readHeadLine() throws(ThrowRetry, NotEnoughSpaceException)
 {
-	if (!m_getParsed)
-	{
-		m_getParsed = true;
-		parseQueryTo(&m_get, m_query);
-	}
-	return m_get;
-}
-ReferenceMap<Text, Text>& HttpClient::postMap() noexcept
-{
-	if (!m_postParsed)
-	{
-		m_postParsed = true;
-		parseQueryTo(&m_post, m_query);
-	}
-	return m_post;
+	HashTester<void> needle = "\r\n"_tx.cast<void>();
+	m_receive.readto(needle).readAllTo((ABuffer*)&m_headLine, HEADER_LENGTH_LIMIT);
+	m_receive.skip(needle.size());
 }
 
-HttpServer::HttpServer() noexcept
+HttpServer::HttpServer(AText16 htmlRoot) throws(FunctionError)
+	:m_htmlRoot(move(htmlRoot))
 {
+	if (m_htmlRoot.endsWith_y(u"\\/")) m_htmlRoot.pop();
+
 	m_mime["html"] = "text/html";
 	m_mime["js"] = "text/javascript";
-	m_error[HttpNotModified] =  _new StaticPage("HTTP/1.0 304 Not Modified\r\n\r\n");
-	m_error[HttpMethodNotImplemented] =  _new StaticPage("HTTP/1.0 501 Method Not Implemented\r\nContent-Type: text/plain\r\n\r\nNot implemented");
-	m_error[HttpNotFound] = _new StaticPage("HTTP/1.0 404 Not Found\r\nContent-Type: text/plain\r\n\r\nNot Found");
+	m_error[HttpStatus::NotModified] =  _new StaticPage("HTTP/1.0 304 Not Modified\r\n\r\n");
+	m_error[HttpStatus::NotImplemented] =  _new StaticPage("HTTP/1.0 501 Not Implemented\r\nContent-Type: text/plain\r\n\r\nNot implemented");
+	m_error[HttpStatus::NotFound] = _new StaticPage("HTTP/1.0 404 Not Found\r\nContent-Type: text/plain\r\n\r\nNot Found");
 	m_headers = "\r\n";
 }
 HttpServer::~HttpServer() noexcept
@@ -285,6 +422,7 @@ HttpServer::~HttpServer() noexcept
 		delete iter.second;
 	}
 }
+
 void HttpServer::setDefaultHeader(pcstr16 filename) noexcept
 {
 	m_headers = File::openAsArray<char>(filename);
@@ -332,14 +470,14 @@ void HttpServer::setMIMEType(Text type, Text mime) noexcept
 }
 Text HttpServer::getMIMEType(Text fileName) noexcept
 {
-	Text ext = fileName.find_r('.');
+	pcstr ext = fileName.find_r('.');
 	if (ext == nullptr)
 	{
 		return "application/octet-stream";
 	}
 	else
 	{
-		auto iter2 = m_mime.find(ext + 1);
+		auto iter2 = m_mime.find(fileName.subarr(ext + 1));
 		if (iter2 == m_mime.end())
 		{
 			return "application/octet-stream";
@@ -368,8 +506,8 @@ void HttpServer::findPage(Text path, HttpFindPage * fp) noexcept
 		{
 			if (name == "..")
 			{
-				Text rev = name.find_r('/');
-				if (rev == nullptr) throw HttpForbidden;
+				pcstr rev = name.find_r('/');
+				if (rev == nullptr) throw HttpStatus::Forbidden;
 				nurl.cut_self(rev);
 			}
 			nurl << '/' << name;
@@ -388,11 +526,8 @@ void HttpServer::findPage(Text path, HttpFindPage * fp) noexcept
 		{
 			nurl << "index.html";
 		}
-		path = nurl + 1;
-
 		TText16 file16;
-		file16.prints(Utf8ToUtf16(path), nullterm);
-		
+		file16.prints(m_htmlRoot, Utf8ToUtf16(nurl), nullterm);
 		// unicode read
 		fp->page = nullptr;
 		fp->path = move(nurl);
@@ -401,14 +536,14 @@ void HttpServer::findPage(Text path, HttpFindPage * fp) noexcept
 	}
 	catch (EofException&) { return; }
 	catch (SocketException&) { return; }
-	catch (Error&) { exception = HttpNotFound; }
-	catch (TooBigException&) { exception = HttpServerInternalError; }
+	catch (Error&) { exception = HttpStatus::NotFound; }
+	catch (TooBigException&) { exception = HttpStatus::InternalServerError; }
 	catch (HttpStatus e) { exception = e; }
 
 	Page * page;
 	auto res = m_error.find(exception);
 	if (res != m_error.end()) page = res->second;
-	else page = m_error[HttpMethodNotImplemented];
+	else page = m_error[HttpStatus::NotImplemented];
 
 	fp->file = nullptr;
 	fp->page = page;
@@ -418,7 +553,7 @@ Page* HttpServer::getErrorPage(HttpStatus code) noexcept
 	Page * page;
 	auto res = m_error.find(code);
 	if (res != m_error.end()) page = res->second;
-	else page = m_error[HttpMethodNotImplemented];
+	else page = m_error[HttpStatus::NotImplemented];
 	return page;
 }
 
@@ -443,9 +578,9 @@ StaticPage::StaticPage(Text text) noexcept
 	:m_contents(text)
 {
 }
-void StaticPage::process(HttpClient * client, Text query, BufferQueue * stream)
+void StaticPage::process(HttpClient * client)
 {
-	client->write(m_contents.cast<void>());
+	client->write(m_contents);
 	client->flush();
 	client->close();
 }
@@ -487,7 +622,7 @@ void kr::TemplatePage::parseQuery(Array<Text> &arr, Text prefix, Text query) noe
 		Text to = query;
 		for (;;)
 		{
-			to = to.find('&');
+			to.subarr(to.find('&'));
 			if (to == nullptr)
 			{
 				for (auto i = range.first; i != range.second; i++)
@@ -502,7 +637,7 @@ void kr::TemplatePage::parseQuery(Array<Text> &arr, Text prefix, Text query) noe
 				continue;
 			}
 
-			Text value = query.readto_p(to);
+			Text value = query.readto_p(to.data());
 			for (auto i = range.first; i != range.second; i++)
 			{
 				arr[i->second] = value;
@@ -512,20 +647,19 @@ void kr::TemplatePage::parseQuery(Array<Text> &arr, Text prefix, Text query) noe
 		}
 	}
 }
-void kr::TemplatePage::process(HttpClient * client, Text query, BufferQueue * stream)
+void kr::TemplatePage::process(HttpClient * client)
 {
 	Array<Text> variables(m_keys.size());
-	parseQuery(variables, "get:"_tx, query);
-	AText postdata = stream->readAll();
-	parseQuery(variables, "post:"_tx, postdata);
+	// TODO: set variables
+	debug();
 	size_t n = m_splitContents.size()-1;
 	size_t i = 0;
 	for (;i<n;i++)
 	{
-		client->write(m_splitContents[i].cast<void>());
-		client->write(variables[i].cast<void>());
+		client->write(m_splitContents[i]);
+		client->write(variables[i]);
 	}
-	client->write(m_splitContents[i].cast<void>());
+	client->write(m_splitContents[i]);
 	client->flush();
 	client->close();
 }
@@ -565,9 +699,9 @@ MemoryPage & MemoryPage::operator =(MemoryPage&& _move) noexcept
 	new(this) MemoryPage(move(_move));
 	return *this;
 }
-void MemoryPage::process(HttpClient * client, Text query, BufferQueue * stream)
+void MemoryPage::process(HttpClient * client)
 {
-	client->write(m_contents.cast<void>());
+	client->write(m_contents);
 	client->flush();
 	client->close();
 }

@@ -23,7 +23,7 @@ namespace kr
 				m_offset = 0;
 			}
 
-			void writeImpl(typename const OS::Component * data, size_t sz)
+			void $write(typename const OS::Component * data, size_t sz)
 			{
 				WriteLock<OS> lock(sz);
 				size_t size = lock.lock(m_os);
@@ -49,7 +49,7 @@ namespace kr
 				m_offset = 0;
 			}
 
-			size_t readImpl(typename IS::Component * data, size_t sz)
+			size_t $read(typename IS::Component * data, size_t sz)
 			{
 				return m_is->read(data, sz);
 			}

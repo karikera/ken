@@ -82,19 +82,21 @@ namespace kr
 
 			void need(size_t size)
 			{
-				size_t txsz = m_buffer.end() - m_read;
-				while (size > txsz)
+				while (size > (size_t)((InternalComponent*)m_buffer.end() - (InternalComponent*)m_read))
 				{
-					size -= txsz;
-					if (m_buffer.left() == 0)
+					size_t remaining = m_buffer.remaining();
+					if (remaining == 0)
 					{
 						if (m_read == m_buffer.begin()) throw TooBigException();
-						size_t left = m_buffer.end() - m_read;
-						m_buffer.copy(m_read, left);
+						size_t remainsize = (InternalComponent*)m_buffer.end() - (InternalComponent*)m_read;
+						m_buffer.copy(m_read, remainsize);
 						m_read = m_buffer.begin();
+						m_buffer << m_stream->read(m_buffer.remaining());
 					}
-
-					txsz = m_stream->read(&m_buffer, m_buffer.left());
+					else
+					{
+						m_buffer << m_stream->read(remaining);
+					}
 				}
 			}
 			Component peek()
@@ -120,7 +122,7 @@ namespace kr
 			}
 			Component * forceEnqueuePadding(size_t size) // TooBigException
 			{
-				size_t left = m_buffer.left();
+				size_t left = m_buffer.remaining();
 				if (left < size)
 				{
 					if (m_read - m_buffer.begin() + left < size)
@@ -134,7 +136,7 @@ namespace kr
 			}
 			Component * forceEnqueuePaddingAll(size_t *size) // TooBigException
 			{
-				size_t left = m_buffer.left();
+				size_t left = m_buffer.remaining();
 				if (left == 0) throw TooBigException();
 				*size = left;
 				return m_buffer.padding(left);
@@ -146,15 +148,15 @@ namespace kr
 
 			intptr_t request() // TooBigException, EofException
 			{
-				intptr_t shifted = m_buffer.begin() - m_read;
-				intptr_t left = m_buffer.end() - m_read;
+				intptr_t shifted = (InternalComponent*)m_buffer.begin() - (InternalComponent*)m_read;
+				intptr_t left = (InternalComponent*)m_buffer.end() - (InternalComponent*)m_read;
 				m_buffer.copy(Text(m_read, left));
-				size_t remaining = m_buffer.left();
+				size_t remaining = m_buffer.remaining();
 				if (remaining == 0)
 					throw TooBigException();
 				try
 				{
-					size_t readed = m_stream->read(&m_buffer, remaining);
+					m_buffer << m_stream->read(remaining);
 					m_read = m_buffer.begin();
 					return shifted;
 				}
@@ -166,17 +168,17 @@ namespace kr
 			}
 			intptr_t request(size_t need) // TooBigException, EofException
 			{
-				intptr_t shifted = m_buffer.begin() - m_read;
-				intptr_t left = m_buffer.end() - m_read;
+				intptr_t shifted = (InternalComponent*)m_buffer.begin() - (InternalComponent*)m_read;
+				intptr_t left = (InternalComponent*)m_buffer.end() - (InternalComponent*)m_read;
 				m_buffer.copy(Text(m_read, left));
-				size_t remaining = m_buffer.left();
+				size_t remaining = m_buffer.remaining();
 				if (remaining == 0)
 					throw TooBigException();
 				try
 				{
 					if (remaining > need)
 						need = need;
-					size_t readed = m_stream->read(&m_buffer, remaining);
+					m_buffer << m_stream->read(remaining);
 					m_read = m_buffer.begin();
 					return shifted;
 				}
@@ -228,60 +230,60 @@ namespace kr
 			}
 			void skipwith(InternalComponent _chr)
 			{
-				Text index = text().find(_chr);
+				const Component* index = text().find(_chr);
 				while (index == nullptr)
 				{
 					m_read = m_buffer.end();
 					request();
 					index = m_buffer.find(_chr);
 				}
-				m_read = index.begin() + 1;
+				m_read = (InternalComponent*)index + 1;
 			}
 			void skipwith(Text _str)
 			{
-				Text index = text().find(_str);
+				const Component* index = text().find(_str);
 				while (index == nullptr)
 				{
 					m_read = m_buffer.end() - _str.size() + 1;
 					request();
 					index = m_buffer.find(_str);
 				}
-				m_read = index.begin() + _str.size();
+				m_read = (InternalComponent*)index + _str.size();
 			}
 			Component skipwith_n(InternalComponent _chr)
 			{
-				Text index = text().find_n(_chr);
+				const Component* index = text().find_n(_chr);
 				while (index == nullptr)
 				{
 					m_read = m_buffer.end();
 					request();
 					index = m_buffer.find_n(_chr);
 				}
-				m_read = index.begin() + 1;
+				m_read = (InternalComponent*)index + 1;
 				return *index;
 			}
 			Component skipwith_y(Text _str)
 			{
-				Text index = text().find_y(_str);
+				const Component* index = text().find_y(_str);
 				while (index == nullptr)
 				{
 					m_read = m_buffer.end();
 					request();
 					index = m_buffer.find_y(_str);
 				}
-				m_read = index.begin() + 1;
+				m_read = (InternalComponent*)index + 1;
 				return *index;
 			}
 			Component skipwith_ny(Text _str)
 			{
-				Text index = text().find_ny(_str);
+				const Component* index = text().find_ny(_str);
 				while (index == nullptr)
 				{
 					m_read = m_buffer.end();
 					request();
 					index = m_buffer.find_ny(_str);
 				}
-				m_read = index.begin() + 1;
+				m_read = (InternalComponent*)index + 1;
 				return *index;
 			}
 			Component skipspace()
@@ -295,7 +297,7 @@ namespace kr
 					index = index.pos_y(_str);
 					while (index == nullptr)
 					{
-						size_t off = m_buffer.end() - m_read;
+						size_t off = (InternalComponent*)m_buffer.end() - (InternalComponent*)m_read;
 						request();
 						index = (m_buffer + off).find_y(_str);
 					}
@@ -307,51 +309,51 @@ namespace kr
 			}
 			size_t pos_y(Text _str, size_t pos)
 			{
-				Text index = (text() + pos).find_y(_str);
+				const Component* index = (text() + pos).find_y(_str);
 				while (index == nullptr)
 				{
-					size_t off = m_buffer.end() - m_read;
+					size_t off = (InternalComponent*)m_buffer.end() - (InternalComponent*)m_read;
 					request();
 					index = (m_buffer + off).find_y(_str);
 				}
-				return index - text();
+				return (InternalComponent*)index - (InternalComponent*)m_read;
 			}
 			size_t pos(InternalComponent _chr, size_t pos = 0)
 			{
-				Text index = (text() + pos).find(_chr);
+				const Component* index = (text() + pos).find(_chr);
 				while (index == nullptr)
 				{
-					size_t off = m_buffer.end() - m_read;
+					size_t off = (InternalComponent*)m_buffer.end() - (InternalComponent*)m_read;
 					request();
 					index = (m_buffer + off).find(_chr);
 				}
-				return index - text();
+				return (InternalComponent*)index - (InternalComponent*)m_read;
 			}
 			size_t pos(Text _str)
 			{
 				_assert(_str.size() != 0);
 				size_t asize = _str.size() - 1;
-				Text index = text().find(_str);
+				const InternalComponent* index = (const InternalComponent*)text().find(_str);
 				while (index == nullptr)
 				{
-					size_t off = m_buffer.end() - m_read;
+					size_t off = m_buffer.end() - (InternalComponent*)m_read;
 					request();
-					if (off > asize) index = m_buffer + off - asize;
-					else index = m_buffer;
-					index = index.find(_str);
+					if (off > asize) index = m_buffer.begin() + off - asize;
+					else index = m_buffer.begin();
+					index = m_buffer.subarr(index).find(_str);
 				}
-				return index - text();
+				return (InternalComponent*)index - (InternalComponent*)m_read;
 			}
 			size_t pos_y(Text _str)
 			{
-				Text index = text().find_y(_str);
+				const InternalComponent* index = (const InternalComponent*)text().find_y(_str);
 				while (index == nullptr)
 				{
-					size_t off = m_buffer.end() - m_read;
+					size_t off = m_buffer.end() - (InternalComponent*)m_read;
 					request();
 					index = (m_buffer + off).find_y(_str);
 				}
-				return index.begin() - m_read;
+				return index - (InternalComponent*)m_read;
 			}
 			size_t pos_ye(Text _str)
 			{
@@ -380,7 +382,7 @@ namespace kr
 				m_read += sz;
 				return res;
 			}
-			size_t readImpl(Component * dest, size_t size)
+			size_t $read(Component * dest, size_t size)
 			{
 				Text tx = text();
 				if (!tx.empty())

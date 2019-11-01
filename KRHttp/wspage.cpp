@@ -77,15 +77,15 @@ WebSocketPage::WebSocketPage() noexcept
 {
 }
 
-void WebSocketPage::process(HttpClient * client, Text query, BufferQueue * stream)
+void WebSocketPage::process(HttpClient * client)
 {
-	_handShake(client, stream);
+	_handShake(client);
 	Socket * socket = client->getSocket();
 	WebSocketSession * newclient = onAccept(socket);
 	client->switchClient(newclient);
 }
 
-void WebSocketPage::_handShake(HttpClient * client, BufferQueue * stream)
+void WebSocketPage::_handShake(HttpClient * client)
 {
 	// client->m_stream.base()->setTimeout(1, 500000);
 
@@ -95,19 +95,19 @@ void WebSocketPage::_handShake(HttpClient * client, BufferQueue * stream)
 	if (header.upgrade != "websocket")
 	{
 		// 이 페이지는 웹소켓 전용이에요!
-		throw HttpBadRequest;
+		throw HttpStatus::BadRequest;
 	}
 
 	if (!connectionIs(header.connection, "Upgrade"))
 	{
 		// 이 페이지는 웹소켓 전용이에요!
-		throw HttpBadRequest;
+		throw HttpStatus::BadRequest;
 	}
 
 	if (header.wsKey == nullptr)
 	{
 		// No key
-		throw HttpBadRequest;
+		throw HttpStatus::BadRequest;
 	}
 
 	BText<128> keys;
@@ -122,11 +122,11 @@ void WebSocketPage::_handShake(HttpClient * client, BufferQueue * stream)
 	Sec-WebSocket-Origin: http://www.rua.kr\r\n\
 	Sec-WebSocket-Protocol: /protocol/\r\n\
 	*/
-	client->write((TSZ() << "\
-HTTP/1.1 101 Web Socket Protocol Handshake\r\n\
-Upgrade: WebSocket\r\n\
-Connection: Upgrade\r\n\
-Sec-WebSocket-Accept: " << acceptKey << "\r\n\
-\r\n").cast<void>());
+	client->writes({
+		"HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
+		"Upgrade: WebSocket\r\n"
+		"Connection: Upgrade\r\n"
+		"Sec-WebSocket-Accept: ", acceptKey, "\r\n\r\n"
+	});
 	client->flush();
 }

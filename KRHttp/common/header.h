@@ -73,7 +73,7 @@ namespace kr
 		}
 
 	private:
-		ReferenceMap<Text, Text> m_map;
+		Map<Text, Text, true> m_map;
 	};
 
 	class AHttpHeader : public HttpHeader

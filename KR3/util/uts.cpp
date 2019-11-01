@@ -196,10 +196,10 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 
 		// time test
 		{
-			Text time = str.find('T');
+			Text time = Text(str.find('T'), str.end());
 			if(time != nullptr)
 			{
-				ymd = str.cut(time);
+				ymd = str.cut(time.data());
 				time++;
 
 				if(time.size() < 2) throw InvalidSourceException();
@@ -209,7 +209,7 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 				}
 				else
 				{
-					Text point = time.find_y({ ',', '.' });
+					const C* point = time.find_y({ ',', '.' });
 					Text tmcut;
 					if(point != nullptr)
 					{
@@ -222,9 +222,9 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 					{
 						switch(tmcut.size())
 						{
-						case 2: GetTime(&t, tmcut, (Text)point); break;
-						case 4: GetTime(&t, tmcut.subarr(0, 2), (Text)tmcut.subarr(2), (Text)point); break;
-						case 6: GetTime(&t, tmcut.subarr(0, 2), tmcut.subarr(2, 2), (Text)tmcut.subarr(4), (Text)point); break;
+						case 2: GetTime(&t, tmcut, Text(point, time.end())); break;
+						case 4: GetTime(&t, tmcut.subarr(0, 2), (Text)tmcut.subarr(2), Text(point, time.end())); break;
+						case 6: GetTime(&t, tmcut.subarr(0, 2), tmcut.subarr(2, 2), tmcut.subarr(4), Text(point, time.end())); break;
 						default: throw InvalidSourceException();
 						}
 					}
@@ -232,10 +232,10 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 					{
 						switch(tmcut.size())
 						{
-						case 5: GetTime(&t, time.cut(2), (Text)time.subarr(3), (Text)point); break;
+						case 5: GetTime(&t, time.cut(2), time.subarr(3), Text(point, time.end())); break;
 						case 8:
 							if(time[5] != ':') throw InvalidSourceException();
-							GetTime(&t, time.cut(2), time.subarr(3, 2), (Text)time.subarr(6));
+							GetTime(&t, time.cut(2), time.subarr(3, 2), time.subarr(6));
 							break;
 						default: throw InvalidSourceException();
 						}
@@ -246,7 +246,6 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 		}
 
 		// year test
-		Text cut = ymd.find('-');
 		if(ymd.size() < 4) throw InvalidSourceException();
 		if(ymd.size() == 4)
 		{

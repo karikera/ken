@@ -34,14 +34,14 @@ namespace kr
 			using FromText = View<From>;
 
 			Encoder(View<From> src) noexcept;
-			size_t size() const noexcept;
-			size_t copyTo(To * dest) const noexcept;
+			size_t $size() const noexcept;
+			size_t $copyTo(To * dest) const noexcept;
 			class Decoder : public Bufferable<Decoder, BufferInfo<From>>
 			{
 			public:
 				Decoder(View<To> src) noexcept;
-				size_t size() const noexcept;
-				size_t copyTo(From * dest) const noexcept;
+				size_t $size() const noexcept;
+				size_t $copyTo(From * dest) const noexcept;
 
 			private:
 				const View<To> m_data;
@@ -65,12 +65,12 @@ namespace kr
 		{
 		}
 		template <typename Derived, typename To, typename From>
-		size_t Encoder<Derived, To, From>::size() const noexcept
+		size_t Encoder<Derived, To, From>::$size() const noexcept
 		{
 			return m_size;
 		}
 		template <typename Derived, typename To, typename From>
-		size_t Encoder<Derived, To, From>::copyTo(To * dest) const noexcept
+		size_t Encoder<Derived, To, From>::$copyTo(To * dest) const noexcept
 		{
 			return Derived::encode(dest, m_data);
 		}
@@ -80,12 +80,12 @@ namespace kr
 		{
 		}
 		template <typename Derived, typename To, typename From>
-		size_t Encoder<Derived, To, From>::Decoder::size() const noexcept
+		size_t Encoder<Derived, To, From>::Decoder::$size() const noexcept
 		{
 			return m_size;
 		}
 		template <typename Derived, typename To, typename From>
-		size_t Encoder<Derived, To, From>::Decoder::copyTo(From * dest) const noexcept
+		size_t Encoder<Derived, To, From>::Decoder::$copyTo(From * dest) const noexcept
 		{
 			return Derived::decode(dest, m_data);
 		}
@@ -153,7 +153,7 @@ namespace kr
 				return reinterpret_cast<Base*>(this);
 			}
 
-			void writeImpl(const Component * _data, size_t _size)
+			void $write(const Component* _data, size_t _size)
 			{
 				size_t _nsize = Encoder::length(View<Component>(_data, _size));
 				WriteLock<Base> lockData(_nsize);

@@ -1,13 +1,16 @@
 #pragma once
 
 #include <KR3/main.h>
+#include <KR3/util/hashtester.h>
 
 namespace kr
 {
 	class BufferQueue;
 	class BufferQueuePointer;
-	class BufferQueueWithRef;
 	struct BufferBlock;
+
+	template <typename C>
+	class TBufferQueue;
 
 	constexpr size_t BUFFER_BLOCK_SIZE = 4096;
 
@@ -57,16 +60,41 @@ namespace kr
 		~BufferBlockWithRef() = delete;
 	};
 
-	class BufferQueue:public AddBufferable<BufferQueue, BufferInfo<void, false, false, true, 
+
+	class BufferQueue:public MakeIterable<BufferQueue, AddBufferable<BufferQueue, BufferInfo<void, true, false, false, true,
 		OutStream<BufferQueue, void>
-	> >
+	> >>
 	{
 		friend BufferQueue;
 		friend BufferQueuePointer;
-		friend BufferQueueWithRef;
-	public:	
-		class Iterator;
+	public:
+		class Iterator:public MakeIterableIterator<Iterator, Buffer>
+		{
+		public:
+			Iterator(BufferQueue* queue) noexcept;
+			Buffer value() const noexcept;
+			void next() noexcept;
+			bool isEnd() const noexcept;
 
+		private:
+			size_t m_offset;
+			BufferBlock* m_buffer;
+		};
+		struct ReadResult
+		{
+			BufferQueue* const queue;
+			TmpArray<Buffer> buffers;
+			size_t totalSize;
+			bool ended;
+
+			ReadResult(BufferQueue * queue) noexcept;
+			ReadResult(ReadResult&& _move) noexcept;
+			void push(const Buffer& buffer) noexcept;
+			void remove(size_t size) noexcept;
+			void readAllTo(io::VOStream<void> out) throws(ThrowRetry);
+			void readAllTo(ABuffer * buffer, size_t limit) throws(ThrowRetry, NotEnoughSpaceException);
+		};
+		
 		BufferQueue() noexcept;
 		~BufferQueue() noexcept;
 		BufferQueue(BufferQueue&& _move) noexcept;
@@ -77,10 +105,13 @@ namespace kr
 		void write(Buffer data) noexcept;
 		void peek(void * dest, size_t size) noexcept;
 		void read(void * dest, size_t size) noexcept;
-		Buffer read(size_t size, TBuffer * temp) noexcept;
-		Text readwith(char chr, TText * temp) noexcept;
-		Text readwith(Text chr, TText * temp) noexcept;
-		AText readAll() noexcept;
+		ReadResult read(size_t size) noexcept;
+		ReadResult readto(byte needle) noexcept;
+		ReadResult readto(HashTester<void>& needle) noexcept;
+		Buffer read(size_t size, TBuffer* temp) noexcept;
+		Buffer readwith(byte needle, TBuffer* temp) noexcept;
+		Buffer readwith(HashTester<void>& needle, TBuffer* temp) noexcept;
+
 		bool empty() noexcept;
 		void clear() noexcept;
 		Buffer getFirstBlock() noexcept;
@@ -89,8 +120,6 @@ namespace kr
 		
 		static void clearKeeped() noexcept;
 
-		Iterator begin() noexcept;
-		Iterator end() noexcept;
 		size_t bufferCount() noexcept;
 		void checkBufferCorrution() noexcept;
 
@@ -110,7 +139,13 @@ namespace kr
 			return data;
 		}
 
+		template <typename T>
+		TBufferQueue<T>* retype() noexcept
+		{
+			return static_cast<TBufferQueue<T>*>(this);
+		}
 	private:
+		void _skipZero() noexcept;
 		BufferBlock * _makeBuffer() noexcept;
 		void _removeFrontNode() noexcept;
 		BufferBlock * _axis() noexcept;
@@ -120,6 +155,68 @@ namespace kr
 		size_t m_count;
 		size_t m_readed;
 		size_t m_totalSize;
+	};
+	template <typename C>
+	class TBufferQueue:public BufferQueue
+	{
+		static_assert(sizeof(C) == sizeof(byte), "Type size must be 1 byte");
+	public:
+		WView<C> prepare() noexcept
+		{
+			return (WView<C>&)BufferQueue::prepare();
+		}
+		void write(const C* data, size_t size) noexcept
+		{
+			BufferQueue::write(data, size);
+		}
+		void write(View<C> data) noexcept
+		{
+			BufferQueue::write(data.cast<void>());
+		}
+		void peek(C* dest, size_t size) noexcept
+		{
+			BufferQueue::peek(dest, size);
+		}
+		void read(C* dest, size_t size) noexcept
+		{
+			BufferQueue::read(dest, size);
+		}
+		ReadResult read(size_t size) noexcept
+		{
+			return BufferQueue::read(size);
+		}
+		ReadResult readwith(C needle) noexcept
+		{
+			return BufferQueue::readwith((byte)needle);
+		}
+		ReadResult readwith(View<C> needle) noexcept
+		{
+			return BufferQueue::readwith(needle.cast<void>());
+		}
+		View<C> read(size_t size, TmpArray<C>* temp) noexcept
+		{
+			return BufferQueue::read(size, (TmpArray<void>*)temp).cast<C>();
+		}
+		View<C> readwith(C needle, TmpArray<C>* temp) noexcept
+		{
+			return BufferQueue::readwith((byte)needle, (TmpArray<void>*)temp).cast<C>();
+		}
+		View<C> readwith(HashTester<C>& needle, TmpArray<C>* temp) noexcept
+		{
+			return BufferQueue::readwith((HashTester<void>&)needle, (TmpArray<void>*)temp).cast<C>();
+		}
+		void readwith(byte needle, io::VOStream<void> out, size_t limit) throws(ThrowRetry)
+		{
+			return BufferQueue::readwith(needle, out, limit);
+		}
+		void readwith(View<C> needle, io::VOStream<C> out, size_t limit) throws(ThrowRetry)
+		{
+			return BufferQueue::readwith(needle.cast<void>(), (io::VOStream<void>&)out, limit);
+		}
+		View<C> getFirstBlock() noexcept
+		{
+			return BufferQueue::getFirstBlock().cast<C>();
+		}
 	};
 	class BufferQueuePointer:public InStream<BufferQueuePointer, void>
 	{
@@ -141,47 +238,5 @@ namespace kr
 		BufferBlock *m_buffer;
 		size_t m_readed;
 		size_t m_fullreaded;
-	};
-	class BufferQueueWithRef:public BufferQueue
-	{
-	public:
-		class Iterator;
-
-		Buffer getFirstBlock() noexcept;
-		void write(const void * data, size_t size) noexcept;
-		void writeRef(const void * data, size_t size) noexcept;
-		void read(void * dest, size_t size) noexcept;
-
-		Iterator begin() noexcept;
-		Iterator end() noexcept;
-	};
-
-	class BufferQueue::Iterator
-	{
-	public:
-		Iterator(BufferBlock * buffer, size_t offset) noexcept;
-		Buffer operator *() const noexcept;
-		Iterator & operator ++() noexcept;
-		const Iterator operator ++(int) noexcept;
-		bool operator ==(const Iterator & other) const noexcept;
-		bool operator !=(const Iterator & other) const noexcept;
-
-	private:
-		size_t m_offset;
-		BufferBlock * m_buffer;
-	};
-	class BufferQueueWithRef::Iterator
-	{
-	public:
-		Iterator(BufferBlockWithRef * buffer, size_t offset) noexcept;
-		Buffer operator *() noexcept;
-		Iterator & operator ++() noexcept;
-		const Iterator operator ++(int) noexcept;
-		bool operator ==(const Iterator & other) noexcept;
-		bool operator !=(const Iterator & other) noexcept;
-
-	private:
-		size_t m_offset;
-		BufferBlockWithRef * m_buffer;
 	};
 }

@@ -24,8 +24,9 @@ namespace kr
 #define KRJS_TYPE_CONSTLIZE_SINGLE(typeValue, fn) \
 case typeValue: { typedef GetTypeFromJsType<typeValue>::type type; fn; } break;
 
-#define KRJS_TYPE_CONSTLIZE( ... ) {\
-switch(getType())\
+
+#define KRJS_TYPE_CONSTLIZE(typevalue, ... ) {\
+switch(typevalue)\
 {\
 KRJS_TYPE_CONSTLIZE_SINGLE(JsType::Boolean, __VA_ARGS__)\
 KRJS_TYPE_CONSTLIZE_SINGLE(JsType::Float, __VA_ARGS__)\
@@ -38,7 +39,7 @@ KRJS_TYPE_CONSTLIZE_SINGLE(JsType::Object, __VA_ARGS__)\
 KRJS_TYPE_CONSTLIZE_SINGLE(JsType::DataView, __VA_ARGS__)\
 KRJS_TYPE_CONSTLIZE_SINGLE(JsType::ArrayBuffer, __VA_ARGS__)\
 KRJS_TYPE_CONSTLIZE_SINGLE(JsType::TypedArray, __VA_ARGS__)\
-default: _assert(!"Invalid type");\
+default: unreachable();\
 }\
 }
 	/// MACRO END
@@ -62,7 +63,9 @@ default: _assert(!"Invalid type");\
 		JsValue get(Text16 name) const noexcept;
 		void set(const JsPropertyId& name, const JsValue& value) const noexcept;
 		JsValue get(const JsPropertyId& name) const noexcept;
-		JsValue call(JsValue _this, JsArgumentsIn arguments) const noexcept;
+		JsValue call(JsValue _this, JsArgumentsIn arguments) const throws(JsException);
+		bool operator ==(const JsValue& value) const noexcept;
+		bool operator !=(const JsValue& value) const noexcept;
 
 		// for ArrayBuffer, TypedArray, DataView
 		WBuffer getBuffer() const noexcept;
@@ -112,7 +115,7 @@ kr::JsValue::JsValue(T&& value) noexcept
 template <typename T> T kr::JsValue::cast() const noexcept
 {
 	using Inner = typename _pri_::GetBridgeType<T>::type;
-	KRJS_TYPE_CONSTLIZE(
+	KRJS_TYPE_CONSTLIZE(getType(),
 		return _pri_::JsCast::toOuter<T>(_pri_::ComputeCast<type, Inner>::cast(as<type>()));
 	);
 	return _pri_::JsCast::defaultValue<T>();

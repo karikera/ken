@@ -40,7 +40,7 @@ public:
 	list<Keep<Value>> fields;
 	list<Keep<ValueConstField>> consts;
 	list<Keep<Field>> locals;
-	kr::ReferenceMap<Text, Keep<Identity>> scope;
+	kr::Map<Text, Keep<Identity>, true> scope;
 };
 class ClassExtern:public Class
 {

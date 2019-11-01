@@ -11,7 +11,7 @@
 #endif
 
 #include <KR3/io/bufferedstream.h>
-#include <KRMessage/pool.h>
+#include <KR3/msg/pool.h>
 
 #ifdef _DEBUG
 #pragma comment(lib, "libcurld.lib")
@@ -54,7 +54,7 @@ namespace
 #ifndef NDEBUG
 			dout << curl_easy_strerror(res) << endl;
 #endif
-			throw HttpException{ HttpUndefined };
+			throw HttpException{ HttpStatus::Undefined };
 		}
 		else
 		{
@@ -79,7 +79,7 @@ namespace
 #ifndef NDEBUG
 			dout << curl_easy_strerror(res) << endl;
 #endif
-			throw HttpException{ HttpUndefined };
+			throw HttpException{ HttpStatus::Undefined };
 		}
 	}
 #endif
@@ -216,7 +216,7 @@ AText HttpRequest::fetchAsTextSync(const char * url) throws(HttpException)
 	setBasic(m_curl, headers);
 	AText response = fetchAsTextImpl(m_curl, headers);
 	HttpStatus code = _getStatusCode();
-	if (code != HttpOk) throw HttpException(code);
+	if (code != HttpStatus::OK) throw HttpException(code);
 	return response;
 }
 #endif
@@ -253,7 +253,7 @@ void HttpRequest::fetchAsFileSync(const char * url, pcstr16 filename) throws(Htt
 	setBasic(m_curl, headers);
 	fetchAsFileImpl(m_curl, File::create(filename), headers);
 	HttpStatus code = _getStatusCode();
-	if (code != HttpOk) throw HttpException(code);
+	if (code != HttpStatus::OK) throw HttpException(code);
 }
 #endif
 #ifndef __EMSCRIPTEN__
@@ -279,7 +279,7 @@ Promise<AText>* kr::fetchAsText(Text16 url) noexcept
 		}
 	}
 	return threading([textsz = AText16::concat(url, nullterm)]{
-		return File::openAsArray<char>(textsz.data());
+		return (AText)File::openAsArray<char>(textsz.data());
 	});
 #endif
 }
@@ -297,7 +297,7 @@ Promise<AText>* kr::fetchAsText(Text url) noexcept
 		}
 	}
 	return threading([textsz = AText16::concat(utf8ToUtf16(url), nullterm)]{
-		return File::openAsArray<char>(textsz.data());
+		return (AText)File::openAsArray<char>(textsz.data());
 	});
 #endif
 }

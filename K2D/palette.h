@@ -5,7 +5,7 @@
 #include <KR3/util/resloader.h>
 #include "common.h"
 
-class kr::image::Palette :public kr::Bufferable<Palette, kr::BufferInfo<color, true, false, false, krb_image_palette_t> >
+class kr::image::Palette :public kr::Bufferable<Palette, kr::BufferInfo<color, false, false, false, false, krb_image_palette_t> >
 {
 	using Super = WView<kr::color>;
 public:
@@ -13,12 +13,12 @@ public:
 
 	Palette() noexcept = default;
 
-	kr::color * begin() noexcept;
-	const kr::color * begin() const noexcept;
-	kr::color * end() noexcept;
-	const kr::color * end() const noexcept;
-	size_t size() const noexcept;
-	bool empty() const noexcept;
+	kr::color * $begin() noexcept;
+	const kr::color * $begin() const noexcept;
+	kr::color * $end() noexcept;
+	const kr::color * $end() const noexcept;
+	size_t $size() const noexcept;
+	bool $empty() const noexcept;
 
 	void fill(kr::color _color) noexcept;
 

@@ -6,83 +6,45 @@
 
 namespace kr
 {
-	template <typename Base, typename Iterable, typename T>
-	class FilterIterable
+	template <typename Derived, typename Iterable, typename T>
+	class FilterIterableIterator:public MakeIterableIterator<FilterIterableIterator<Derived, Iterable, T>, T&>
 	{
-	private:
-		Iterable * m_iterable;
-
 	public:
 		using BaseIterator = decltype(((Iterable*)0)->begin());
 		using BaseIteratorEnd = decltype(((Iterable*)0)->end());
 
-		class IteratorEnd
-		{
-		};
-		class Iterator
-		{
-		private:
-			Base * m_filter;
-			BaseIterator m_iter;
-			BaseIteratorEnd m_end;
+	private:
+		BaseIterator m_iter;
+		BaseIteratorEnd m_end;
 
-		public:
-			Iterator(FilterIterable * base, Iterable* iterable) noexcept
-				:m_filter(static_cast<Base*>(base)), m_iter(iterable->begin()), m_end(iterable->end())
-			{
-				for (;;)
-				{
-					if (m_filter->test(*m_iter)) break;
-					++m_iter;
-					if (m_iter == m_end) break;
-				}
-			}
-			Iterator & operator ++() noexcept
-			{
-				for (;;)
-				{
-					++m_iter;
-					if (m_iter == m_end) break;
-					if (m_filter->test(*m_iter)) break;
-				}
-				return *this;
-			}
-			T& operator *() noexcept
-			{
-				return *m_iter;
-			}
-			
-			T* operator ->() noexcept
-			{
-				return m_iter->operator->();
-			}
-			operator T*() noexcept
-			{
-				return (T*)m_iter;
-			}
-			bool operator ==(const IteratorEnd&) const noexcept
-			{
-				return m_iter == m_end;
-			}
-			bool operator !=(const IteratorEnd&) const noexcept
-			{
-				return m_iter != m_end;
-			}
-		};
+	public:
 
-		FilterIterable(Iterable * iterable) noexcept
-			:m_iterable(iterable)
+		FilterIterableIterator(Iterable* iterable) noexcept
+			:m_iter(iterable->begin()), m_end(iterable->end())
 		{
+			for (;;)
+			{
+				if (static_cast<Derived*>(this)->test(*m_iter)) break;
+				++m_iter;
+				if (m_iter == m_end) break;
+			}
 		}
-
-		Iterator begin() noexcept
+		void next() noexcept
 		{
-			return Iterator(this, m_iterable);
+			for (;;)
+			{
+				++m_iter;
+				if (m_iter == m_end) break;
+				if (static_cast<Derived*>(this)->test(*m_iter)) break;
+			}
 		}
-
-		IteratorEnd end() noexcept
+		T& value() const noexcept
 		{
-			return IteratorEnd();
+			return *m_iter;
+		}
+		bool isEnd() const noexcept
+		{
+			return m_iter == m_end;
 		}
 	};
 
@@ -111,7 +73,7 @@ namespace kr
 			void addChild(FBXNode * child) noexcept;
 			const LinkedList<FBXNode>& getChildren() const noexcept;
 
-			class Filter :public FilterIterable<Filter, const LinkedList<FBXNode>, FBXNode>
+			class Filter :public FilterIterableIterator<Filter, const LinkedList<FBXNode>, FBXNode>
 			{
 			public:
 				Filter(const LinkedList<FBXNode> * list, Text name) noexcept;

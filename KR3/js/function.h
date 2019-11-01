@@ -17,7 +17,7 @@ namespace kr
 		{
 		public:
 			KRJS_EXPORT JsValue create() noexcept;
-			virtual JsValue call(const JsArguments & args) = 0;
+			virtual JsValue call(const JsArguments & args) throws(JsException) = 0;
 		};
 
 		template <typename LAMBDA> class LambdaWrap : public Data
@@ -30,7 +30,7 @@ namespace kr
 				:m_lambda(lambda)
 			{
 			}
-			virtual JsValue call(const JsArguments & args) override
+			virtual JsValue call(const JsArguments & args) throws(JsException) override
 			{
 				return m_lambda(args);
 			}
@@ -46,7 +46,7 @@ namespace kr
 		JsFunction(const JsFunction& func) noexcept;
 		JsFunction(JsFunction&& func) noexcept;
 		JsValue create() const noexcept;
-		JsValue call(const JsArguments& args) const noexcept;
+		JsValue call(const JsArguments& args) const throws(JsException);
 		JsFunction& operator =(const JsFunction& _copy) noexcept;
 		JsFunction& operator =(JsFunction&& _copy) noexcept;
 		bool operator ==(const JsFunction& o) const noexcept;
@@ -115,7 +115,7 @@ namespace kr
 		}
 
 		// 객체의 함수를 호출합니다.
-		RET call(JsObject _this, const ARGS & ... args) const
+		RET call(JsObject _this, const ARGS & ... args) const throws(JsException)
 		{
 			JsArguments jsargs(_this, sizeof ... (args));
 

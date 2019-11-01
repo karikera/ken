@@ -19,11 +19,11 @@ AsyncFile::AsyncFile(AText16 filename) noexcept
 AsyncFile::~AsyncFile() noexcept
 {
 }
-void AsyncFile::writeImpl(const void * data, size_t size) noexcept
+void AsyncFile::$write(const void * data, size_t size) noexcept
 {
 	AddRef();
 	m_cascader([this, data = ABuffer(data, size)] {
-		m_file->writeImpl(data.data(), data.size());
+		m_file->$write(data.data(), data.size());
 		Release();
 	});
 }

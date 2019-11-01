@@ -186,7 +186,7 @@ void xmlMain() noexcept
 {
 	io::BufferedIStream<io::FileStream<char>> fis(File::open(u"tester.vcxproj"));
 	fis.skipto("KR.props");
-	cout << fis.read(30) << endl;
+	cout << (TText)fis.read(30) << endl;
 
 	XmlParser parser(File::open(u"tester.vcxproj"), [](Text message) {
 		cerr << message << endl;

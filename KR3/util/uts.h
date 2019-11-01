@@ -23,7 +23,7 @@ namespace kr
 	public:
 
 		template <class _Derived, typename C, class _Info>
-		void writeTo(OutStream<_Derived, C, _Info> *str) const // NotEnoughSpaceException
+		void writeTo(OutStream<_Derived, C, _Info> *str) const throws(NotEnoughSpaceException)
 		{
 			// RFC1123 "wkd, DD MMM YYYY hh:mm:ss GMT"
 			*str << _pri_::DATETEXT<C>::wkday[tm_wday] << (C)',' << (C)' '

@@ -9,9 +9,7 @@ namespace kr
 {
 	namespace win
 	{
-
-
-		class DragFileList:public TIndexIterable<DragFileList>
+		class DragFileList:public MakeIndexIterable<DragFileList, Text16>
 		{
 		public:
 			DragFileList(HDROP drop) noexcept;

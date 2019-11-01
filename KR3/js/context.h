@@ -14,6 +14,7 @@ namespace kr
 		KRJS_EXPORT ~JsRuntime() noexcept;
 		KRJS_EXPORT static JsValue global() noexcept;
 		KRJS_EXPORT static JsValue run(Text16 fileName, Text16 source) throws(JsException);
+		KRJS_EXPORT static JsValue run(Text16 fileName, Text16 source, uintptr_t sourceContext) throws(JsException);
 		static JsValue run(Text16 source) throws(JsException);
 
 		KRJS_EXPORT static void setRuntime(const JsRawRuntime& runtime) noexcept;

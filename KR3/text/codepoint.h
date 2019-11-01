@@ -11,7 +11,15 @@ namespace kr
 		View<T> m_text;
 
 	public:
-		static void next(View<T> * text) noexcept;
+		static void next(View<T>* text) noexcept
+		{
+			if (meml<charset>::isDbcs(**text))
+			{
+				(*text)++;
+				if (text->empty()) return;
+			}
+			(*text)++;
+		}
 
 		class Iterator
 		{
@@ -68,3 +76,11 @@ namespace kr
 		return CodePoint<T>(text);
 	}
 }
+
+template <>
+void kr::CodePoint<char, kr::Charset::Utf8>::next(kr::View<char>* text) noexcept;
+
+template <>
+void kr::CodePoint<char16_t, kr::Charset::Default>::next(kr::View<char16_t>* text) noexcept;
+template <>
+void kr::CodePoint<char32_t, kr::Charset::Default>::next(kr::View<char32_t>* text) noexcept;

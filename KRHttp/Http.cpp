@@ -88,18 +88,18 @@ kr::HttpStatus kr::HttpConnection::open(Text url, const HttpConnectionRequest * 
 {
 	close();
 
-	Text host = url.find("://");
+	Text host = url.subarr(url.find("://"));
 	_assert(host != nullptr);
 	host += 3;
 
-	Text end = host.find('/');
-	if(end != nullptr) host = host.cut(end);
+	pcstr end = host.find('/');
+	if (end != nullptr) host = host.cut(end);
 	
 	end = host.find(':');
 	word port;
 	if(end != nullptr)
 	{
-		port = (word)(end+1).to_int();
+		port = (word)host.subarr(end+1).to_int();
 		host = host.cut(end);
 	}
 	else port = 80;
@@ -135,7 +135,7 @@ kr::HttpStatus kr::HttpConnection::open(Text url, const HttpConnectionRequest * 
 	}
 	m_socket->write(sendbuffer);
 
-	HttpStatus statusCode = HttpUndefined;
+	HttpStatus statusCode = HttpStatus::Undefined;
 
 	try
 	{
@@ -184,11 +184,11 @@ void kr::HttpConnection::download(pcstr16 filename) throws(Error)
 	do
 	{
 		Buffer buffer = get().cast<void>();
-		file->writeImpl(buffer.data(), buffer.size());
+		file->$write(buffer.data(), buffer.size());
 	}
 	while (next());
 }
-size_t kr::HttpConnection::readImpl(char * dest, size_t size)
+size_t kr::HttpConnection::$read(char * dest, size_t size)
 {
 	auto text = m_socket.text();
 	if (!text.empty())

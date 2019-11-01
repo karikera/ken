@@ -187,26 +187,27 @@ template <typename LAMBDA>
 void kr::GDIReUnit::_textLoop(Text16 text, LAMBDA &lambda) noexcept
 {
 	int lineHeight = (int)(m_pDC->getTextHeight()*m_fLineHeight);
-	Text16 pFind2, pFind = text;
+	Text16 findtx = text;
 	ivec2 pt = (ivec2)(m_offset * m_vDPMM);
 	pt.x += m_nCursorX;
-	pFind2 = pFind.find(u'\n');
-	if (pFind2 != nullptr)
+	
+	pcstr16 find = findtx.find(u'\n');
+	if (find != nullptr)
 	{
-		lambda(pFind.cut(pFind2), pt);
+		lambda(findtx.cut(find), pt);
 		pt.y += (int)lineHeight;
-		pFind = pFind2 + 1;
+		findtx.subarr_self(find + 1);
 		pt.x -= m_nCursorX;
 		m_nCursorX = 0;
 
-		while ((pFind2 = pFind.find(u'\n')) != nullptr)
+		while ((find = findtx.find(u'\n')) != nullptr)
 		{
-			lambda(pFind.cut(pFind2), pt);
+			lambda(findtx.cut(find), pt);
 			pt.y += (int)lineHeight;
-			pFind = pFind2 + 1;
+			findtx.subarr_self(find + 1);
 		}
 	}
-	int lastX = lambda(pFind, pt);
+	int lastX = lambda(findtx, pt);
 	pt.x -= m_nCursorX;
 
 	m_nCursorX = lastX - pt.x;

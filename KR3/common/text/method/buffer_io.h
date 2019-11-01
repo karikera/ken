@@ -44,13 +44,13 @@ namespace kr
 					this->~BufferIOMethod();
 					new(this) BufferIOMethod(nullptr);
 				}
-				void pick(Component * pos) noexcept
+				void pick(InternalComponent* pos) noexcept
 				{
 					_assert(begin() <= pos && pos < end());
 					size_t sz = size() - 1;
 					_resize(sz);
 
-					Component* last = begin() + sz;
+					InternalComponent* last = begin() + sz;
 					if (pos != last) *pos = move(*last);
 
 					callDestructor(last);
@@ -61,8 +61,8 @@ namespace kr
 					size_t sz = size() - 1;
 					_resize(sz);
 
-					Component* data = begin();
-					Component* last = data + sz;
+					InternalComponent* data = begin();
+					InternalComponent* last = data + sz;
 					if (i != sz) data[i] = move(*last);
 
 					callDestructor(last);
@@ -73,7 +73,7 @@ namespace kr
 					size_t sz = size() - 1;
 					_resize(sz);
 
-					InternalComponent* data = (InternalComponent*)begin();
+					InternalComponent* data = begin();
 					InternalComponent* pos = data + i;
 					InternalComponent* last = data + sz;
 
@@ -167,15 +167,15 @@ namespace kr
 					if (osize == 0)
 						throw EofException();
 					osize--;
-					InternalComponent out = move(((InternalComponent*)begin())[osize]);
+					InternalComponent out = move((begin())[osize]);
 					_resize(osize);
 					return move(out);
 				}
 
-				void cut_self(const ComponentRef* newend) noexcept
+				void cut_self(const Component* newend) noexcept
 				{
 					_assert(begin() <= newend && newend <= end());
-					_resize(newend - (ComponentRef*)begin());
+					_resize((InternalComponent*)newend - begin());
 				}
 				void cut_self(Ref _v) noexcept
 				{
@@ -242,7 +242,7 @@ namespace kr
 				{
 					size_t sz = size();
 					_assert(i < sz);
-					InternalComponent * axis = (InternalComponent*)begin() + i;
+					InternalComponent * axis = begin() + i;
 					InternalComponent out = move(*axis);
 					kr::mema::ctor_move_d(axis, axis + 1, sz - i - 1);
 					_setSize(sz - 1);
@@ -253,14 +253,14 @@ namespace kr
 					size_t sz = size();
 					_resize(nsize);
 					if (nsize > sz)
-						mema::ctor((InternalComponent*)begin() + sz, nsize - sz);
+						mema::ctor(begin() + sz, nsize - sz);
 				}
 				void resizeUp(size_t nsize) throws(NotEnoughSpaceException)
 				{
 					size_t sz = size();
 					if (nsize <= sz) return;
 					_resize(nsize);
-					mema::ctor((InternalComponent*)begin() + sz, nsize - sz);
+					mema::ctor(begin() + sz, nsize - sz);
 				}
 				template <typename ... ARGS>
 				void initResize(size_t nsize, const ARGS & ... args) throws(NotEnoughSpaceException)
@@ -269,12 +269,12 @@ namespace kr
 					_resize(nsize);
 					if (nsize > sz)
 					{
-						Component * beg = begin();
-						Component * end = beg + nsize;
+						InternalComponentRef * beg = begin();
+						InternalComponentRef* end = beg + nsize;
 						beg += sz;
 						do
 						{
-							new(beg) Component(args ...);
+							new(beg) InternalComponent(args ...);
 							beg++;
 						}
 						while (beg != end);
@@ -294,8 +294,8 @@ namespace kr
 				template <typename LAMBDA>
 				bool removeMatchL(const LAMBDA &lambda) throws(...)
 				{
-					Component* i = begin();
-					Component* to = end();
+					InternalComponent* i = begin();
+					InternalComponent* to = end();
 
 					for (;i != to; i++)
 					{
@@ -316,8 +316,8 @@ namespace kr
 				template <typename LAMBDA>
 				void removeMatchAllL(const LAMBDA &lambda) throws(...)
 				{
-					Component* ptr = begin();
-					Component* to = end();
+					InternalComponent* ptr = begin();
+					InternalComponent* to = end();
 
 					for (;;)
 					{
@@ -326,7 +326,7 @@ namespace kr
 						ptr++;
 					}
 
-					Component* moveto = ptr;
+					InternalComponent* moveto = ptr;
 
 					callDestructor(ptr++);
 
@@ -338,7 +338,7 @@ namespace kr
 						}
 						else
 						{
-							new(moveto++) Component(move(*ptr));
+							new(moveto++) InternalComponent(move(*ptr));
 							callDestructor(ptr++);
 						}
 					}
@@ -349,7 +349,7 @@ namespace kr
 				template <typename S> void serialize(S &s) throws(...)
 				{
 					s.serializeSize(this);
-					for (Component & c : *this)
+					for (InternalComponent& c : *this)
 					{
 						s & c;
 					}
@@ -363,38 +363,60 @@ namespace kr
 				{
 					size_t sz = data.size();
 					_alloc(sz, sz + szable);
-					Component * beg = begin();
+					InternalComponent* beg = begin();
 					mema::ctor(beg, sz);
 					resize(data.copyTo(beg));
 				}
 
-				template <typename _Derived, class _Parent>
-				BufferIOMethod(const Printable<_Derived, Component, _Parent> & _data) throws(NotEnoughSpaceException)
+				template <typename _Derived, bool _writeTo, bool a, bool b, class _Parent>
+				BufferIOMethod(const Bufferable<_Derived, BufferInfo<Component, true, _writeTo, a, b, _Parent>> & _data) throws(NotEnoughSpaceException)
+				{
+					size_t sz = _data.size();
+					_alloc(sz, sz + a);
+					InternalComponent* beg = begin();
+					mema::ctor(beg, sz);
+					_data.copyTo(beg);
+					resize(sz);
+				}
+				template <typename _Derived, bool _writeTo, bool a, bool b, class _Parent>
+				BufferIOMethod(const Bufferable<_Derived, BufferInfo<AutoComponent, true, _writeTo, a, b, _Parent>>& _data) throws(NotEnoughSpaceException)
+				{
+					size_t sz = _data.template sizeAs<Component>();
+					_alloc(sz, sz + a);
+					InternalComponent* beg = begin();
+					mema::ctor(beg, sz);
+					_data.template copyTo<Component>(beg);
+					resize(sz);
+				}
+
+				template <typename _Derived, bool a, bool b, class _Parent>
+				BufferIOMethod(const Bufferable<_Derived, BufferInfo<Component, false, true, a, b, _Parent> >& _data) throws(NotEnoughSpaceException)
 				{
 					_data.writeTo(this);
 				}
-				template <typename _Derived, bool szable, bool b, class _Parent>
-				BufferIOMethod(const Bufferable<_Derived, BufferInfo<Component, false, szable, b, _Parent>> & _data) throws(NotEnoughSpaceException)
-				{
-					size_t sz = _data.size();
-					_alloc(sz, sz + szable);
-					Component * beg = begin();
-					mema::ctor(beg, sz);
-					resize(_data.copyTo(beg));
-				}
-				template <typename _Derived, bool szable, bool b, class _Parent>
-				BufferIOMethod(const Bufferable<_Derived, BufferInfo<AutoComponent, false, szable, b, _Parent>> & _data) throws(NotEnoughSpaceException)
-				{
-					size_t sz = _data.template sizeAs<Component>();
-					_alloc(sz, sz + szable);
-					Component * beg = begin();
-					mema::ctor(beg, sz);
-					resize(_data.template copyTo<Component>(beg));
-				}
 				template <typename _Derived, bool a, bool b, class _Parent>
-				explicit BufferIOMethod(Bufferable<_Derived, BufferInfo<Component, true, a, b, _Parent>> && _mv) throws(NotEnoughSpaceException)
+				BufferIOMethod(const Bufferable<_Derived, BufferInfo<AutoComponent, false, true, a, b, _Parent> >& _data) throws(NotEnoughSpaceException)
+				{
+					_data.writeTo(this);
+				}
+
+
+				// ??
+				template <typename _Derived, bool a, bool b, class _Parent>
+				explicit BufferIOMethod(Bufferable<_Derived, BufferInfo<Component, false, false, a, b, _Parent>> && _mv) throws(NotEnoughSpaceException)
 				{
 					_move(_mv.begin(), _mv.size());
+				}
+
+				template <typename _Wrapped>
+				BufferIOMethod(const Writable<Component, _Wrapped>& _data) throws(NotEnoughSpaceException)
+				{
+					_data.writeTo(this);
+				}
+				template <typename _Wrapped>
+				BufferIOMethod(const Writable<AutoComponent, _Wrapped>& _data) throws(NotEnoughSpaceException)
+				{
+					_data.writeTo(this);
 				}
 
 				Component * c_str() noexcept

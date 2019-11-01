@@ -2,6 +2,10 @@
 
 #include <KR3/main.h>
 
+#ifndef NO_USE_FILESYSTEM
+#include <KR3/fs/file.h>
+
+#endif
 
 namespace kr
 {
@@ -33,15 +37,15 @@ namespace kr
 
 			static constexpr size_t SIZE = -1;
 		};;
-		class Hex :public Encoder<Hex, char, char>
+		class Hex :public Encoder<Hex, char, void>
 		{
 		public:
 			using Encoder::Encoder;
-			static size_t length(Text text) noexcept;
-			static size_t encode(char * out, Text text) noexcept;
-			static void encode(Writer * out, Text * text) noexcept;
+			static size_t length(Buffer text) noexcept;
+			static size_t encode(char * out, Buffer text) noexcept;
+			static void encode(Writer * out, Buffer* text) noexcept;
 			static size_t delength(Text text) noexcept = delete;
-			static void decode(Writer *out, Text * text) noexcept = delete;
+			static void decode(BufferWriter *out, Text * text) noexcept = delete;
 
 			static constexpr size_t SIZE = -1;
 		};
@@ -58,37 +62,87 @@ namespace kr
 
 			static constexpr size_t SIZE = -1;
 		};
-		class Sha1 :public Encoder<Sha1, char, char>
+		template <typename Algorithm>
+		class Hasher :public OutStream<Hasher<Algorithm>, AutoComponent, StreamInfo<false, Bufferable<Hasher<Algorithm>, BufferInfo<AutoComponent, true, false, false, true, Algorithm> > > >
 		{
 		public:
-			using Encoder::Encoder;
-			static size_t length(Text text) noexcept;
-			static size_t encode(char * out, Text text) noexcept;
-			static void encode(Writer *out, Text * text) noexcept;
-			static void encode2(Writer *out, Text * text) noexcept;
+			using Algorithm::update;
+			using Algorithm::finish;
+			using Algorithm::SIZE;
 
+			Hasher() = default;
+
+			template <typename _Derived, typename _C, bool _szable, bool _readonly, typename _Parent>
+			Hasher(const Bufferable<_Derived, BufferInfo<_C, false, false, _szable, _readonly, _Parent>> &data) noexcept
+			{
+				update(data.template cast<void>());
+			}
+			template <typename C>
+			void $write(const C* data, size_t _sz) noexcept
+			{
+				update(Buffer(data, _sz * sizeof(internal_component_t<C>)));
+			}
+			template <typename C>
+			size_t $sizeAs() const noexcept
+			{
+				return (SIZE + sizeof(internal_component_t<C>) - 1) / sizeof(internal_component_t<C>);
+			}
+			template <typename C>
+			size_t $copyTo(C* dest) const noexcept
+			{
+				finish(dest);
+				return $sizeAs<C>();
+			}
+
+			static TBuffer hash(File * file) noexcept
+			{
+				Hasher hasher;
+				hasher.passThrough(file->stream<void>());
+				delete file;
+				return (TBuffer)hasher;
+			}
+		};
+
+		class Sha1Context
+		{
+		public:
 			static constexpr size_t SIZE = 20;
+			Sha1Context() noexcept;
+			void reset() noexcept;
+			void update(Buffer input) noexcept;
+			void finish(void* out) const noexcept;
+
+		private:
+			byte m_context[90];
 		};
-		class Sha256 :public Encoder<Sha256, char, char>
+		class Sha256Context
 		{
 		public:
-			using Encoder::Encoder;
-			static size_t length(Text text) noexcept;
-			static size_t encode(char * out, Text text) noexcept;
-			static void encode(Writer *out, Text * text) noexcept;
-
 			static constexpr size_t SIZE = 32;
+			Sha256Context() noexcept;
+			void reset() noexcept;
+			void update(Buffer input) noexcept;
+			void finish(void* out) const noexcept;
+
+		private:
+			byte m_context[112];
 		};
-		class Md5 :public Encoder<Md5, char, char>
+		class Md5Context
 		{
 		public:
-			using Encoder::Encoder;
-			static size_t length(Text text) noexcept;
-			static size_t encode(char * out, Text text) noexcept;
-			static void encode(Writer *out, Text * text) noexcept;
-
 			static constexpr size_t SIZE = 16;
+			Md5Context() noexcept;
+			void reset() noexcept;
+			void update(Buffer input) noexcept;
+			void finish(void* out) const noexcept;
+
+		private:
+			byte m_context[88];
 		};
+
+		using Sha1 = Hasher<Sha1Context>;
+		using Sha256 = Hasher<Sha256Context>;
+		using Md5 = Hasher<Md5Context>;
 	}
 
 	namespace io
@@ -99,7 +153,5 @@ namespace kr
 		using UriOStream = OStreamEncoder<Derived, encoder::Uri>;
 		template <typename Derived>
 		using Base64OStream = OStreamEncoder<Derived, encoder::Base64>;
-		template <typename Derived>
-		using Sha1OStream = OStreamEncoder<Derived, encoder::Sha1>;
 	}
 }

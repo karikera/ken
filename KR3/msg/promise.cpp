@@ -116,6 +116,7 @@ void PromiseRaw::_deleteCascade() noexcept
 }
 void PromiseRaw::_setState(State state) noexcept
 {
+	_assert(m_state == State::Pending);
 	m_state = state;
 	PromiseManager * manager = PromiseManager::getInstance();
 	*manager->m_pprocess = this;
@@ -143,7 +144,25 @@ void PromiseRaw::_readdNext(PromiseRaw * next) noexcept
 	next->m_psibling = &next->m_sibling;
 	_addNext(next);
 }
+std::exception_ptr* PromiseRaw::_rejectValue() noexcept
+{
+	static_assert(sizeof(PromiseRaw) % alignof(std::exception_ptr) == 0, "alignment match");
+	return (std::exception_ptr*)(this + 1);
+}
+void PromiseRaw::_rejectException(std::exception_ptr data) noexcept
+{
+	new(_rejectValue()) std::exception_ptr(move(data));
+	PromiseRaw::_rejectCommit();
+}
+void PromiseRaw::_reject() noexcept
+{
+	_rejectException(std::current_exception());
+}
 
+void Promise<void>::connect(DeferredPromise<void>* prom) noexcept
+{
+	_addNext(prom);
+}
 PromiseVoid * Promise<void>::resolve() noexcept
 {
 	PromiseVoid * prom = _new PromiseVoid();
@@ -184,20 +203,7 @@ void Promise<void>::_resolve() noexcept
 {
 	_resolveCommit();
 }
-void Promise<void>::_rejectException(std::exception_ptr data) noexcept
-{
-	new(_rejectValue()) std::exception_ptr(move(data));
-	_rejectCommit();
-}
-void Promise<void>::_reject() noexcept
-{
-	_rejectException(std::current_exception());
-}
 void * Promise<void>::_resolveValue() noexcept
 {
 	return nullptr;
-}
-std::exception_ptr * Promise<void>::_rejectValue() noexcept
-{
-	return (std::exception_ptr*)&m_data;
 }

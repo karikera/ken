@@ -63,93 +63,44 @@ namespace kr
 		static bool createFullDirectory(Text16 str) noexcept;
 		static bool removeFullDirectory(Text16 path) noexcept;
 		static bool removeShell(Text16 path) noexcept;
-		
-		template <typename T>
-		inline Array<T> readAll() throws(TooBigException)
+
+		template <typename C>
+		using WritableFile = Writable<C, io::StreamableStream<File, C>*, true >;
+
+		template <typename C>
+		inline WritableFile<C> readAll() throws(TooBigException)
 		{
-			dword size = size32();
-			Array<T> arr(size);
-			readImpl(arr.begin(), size);
-			return arr;
+			return { this->stream<C>(), sizep() };
 		}
-		template <typename T>
-		inline Array<T> readAllSz() throws(TooBigException)
-		{
-			dword size = size32();
-			Array<T> arr(size+1);
-			arr[size] = (T)'\0';
-			readImpl(arr.begin(), size);
-			return arr;
-		}
-		template <typename T>
-		inline TmpArray<T> readAllTemp() throws(TooBigException)
-		{
-			dword size = size32();
-			TmpArray<T> arr(size / sizeof(T));
-			readImpl(arr.begin(), size / sizeof(T) * sizeof(T));
-			return arr;
-		}
-		template <typename T, typename CHR>
-		static inline Array<T> openAsArrayT(const CHR * name) throws(TooBigException, Error)
+		template <typename C, typename CHR>
+		static inline WritableFile<C> openAsArrayT(const CHR* name) throws(TooBigException, Error)
 		{
 			Must<File> file = open(name);
-			return file->readAll<T>();
+			return file->readAll<C>();
 		}
-		template <typename T, typename CHR>
-		static inline Array<T> openAsSzArrayT(const CHR* name) throws(TooBigException, Error)
+		template <typename C>
+		static inline WritableFile<C> openAsArray(const char * name) throws(TooBigException, Error)
 		{
-			Must<File> file = open(name);
-			return file->readAllSz<T>();
+			return openAsArrayT<C,char>(name);
 		}
-		template <typename T>
-		static inline Array<T> openAsArray(const char * name) throws(TooBigException, Error)
+		template <typename C>
+		static inline WritableFile<C> openAsArray(const char16* name) throws(TooBigException, Error)
 		{
-			return openAsArrayT<T,char>(name);
+			return openAsArrayT<C, char16>(name);
 		}
-		template <typename T>
-		static inline Array<T> openAsArray(const char16 * name) throws(TooBigException, Error)
-		{
-			return openAsArrayT<T, char16>(name);
-		}
-		template <typename T>
-		static inline Array<T> openAsSzArray(const char* name) throws(TooBigException, Error)
-		{
-			return openAsSzArrayT<T, char>(name);
-		}
-		template <typename T>
-		static inline Array<T> openAsSzArray(const char16* name) throws(TooBigException, Error)
-		{
-			return openAsSzArrayT<T, char16>(name);
-		}
-		template <typename T, typename CHR>
-		static inline TmpArray<T> openAsArrayTempT(const CHR * name) throws(TooBigException, Error)
-		{
-			Must<File> file = open(name);
-			return file->readAllTemp<T>();
-		}
-		template <typename T>
-		static inline TmpArray<T> openAsArrayTemp(const char * name) throws(TooBigException, Error)
-		{
-			return openAsArrayTempT<T, char>(name);
-		}
-		template <typename T>
-		static inline TmpArray<T> openAsArrayTemp(const char16 * name) throws(TooBigException, Error)
-		{
-			return openAsArrayTempT<T, char16>(name);
-		}
-		template <typename T, typename CHR>
-		static inline void saveFromArrayT(const CHR * name, View<T> arr) throws(TooBigException, Error)
+		template <typename C, typename CHR>
+		static inline void saveFromArrayT(const CHR * name, View<C> arr) throws(TooBigException, Error)
 		{
 			Must<File> file = create(name);
-			return file->writeImpl(arr.begin(), arr.sizeBytes());
+			return file->$write(arr.begin(), arr.sizeBytes());
 		}
-		template <typename T>
-		static inline void saveFromArray(const char * name, View<T> arr) throws(Error)
+		template <typename C>
+		static inline void saveFromArray(const char * name, View<C> arr) throws(Error)
 		{
 			return saveFromArrayT(name, arr);
 		}
-		template <typename T>
-		static inline void saveFromArray(const char16 * name, View<T> arr) throws(Error)
+		template <typename C>
+		static inline void saveFromArray(const char16 * name, View<C> arr) throws(Error)
 		{
 			return saveFromArrayT(name, arr);
 		}
@@ -173,10 +124,11 @@ namespace kr
 		// 지정된 크기만큼 md5 해시를 생성하고 파일 포인터를 읽기 전 위치로 돌려놓는다.
 		void md5(size_t sz, byte _dest[16]) throws(Error);
 
-		dword size32() throws(TooBigException);
+		uint32_t size32() throws(TooBigException);
 		filesize_t size() noexcept;
-		void writeImpl(cptr buff, size_t len) throws(Error);
-		size_t readImpl(ptr buff, size_t len) throws(EofException);
+		size_t sizep() throws(TooBigException);
+		void $write(cptr buff, size_t len) throws(Error);
+		size_t $read(ptr buff, size_t len) throws(EofException);
 
 		static filetime_t getLastModifiedTime(pcstr16 filename) throws(Error);
 		filetime_t getLastModifiedTime() noexcept;
@@ -226,30 +178,30 @@ namespace kr
 	};
 
 	template <typename Component>
-	class ModuleName :public Bufferable<ModuleName<Component>, BufferInfo<Component, true, true, false>>
+	class ModuleName :public Bufferable<ModuleName<Component>, BufferInfo<Component, false, false, true, false>>
 	{
 	private:
 		BArray<Component, File::NAMELEN> m_buffer;
 
 	public:
 		ModuleName(const Component * name = nullptr) noexcept;
-		Component * begin() noexcept
+		Component * $begin() noexcept
 		{
 			return m_buffer.begin();
 		}
-		Component * end() noexcept
+		Component * $end() noexcept
 		{
 			return m_buffer.end();
 		}
-		const Component * begin() const noexcept
+		const Component * $begin() const noexcept
 		{
 			return m_buffer.begin();
 		}
-		const Component * end() const noexcept
+		const Component * $end() const noexcept
 		{
 			return m_buffer.end();
 		}
-		size_t size() const noexcept
+		size_t $size() const noexcept
 		{
 			return m_buffer.size();
 		}
@@ -292,18 +244,18 @@ namespace kr
 		void * m_handle;
 	};
 
-	class MappedFile:public Bufferable<MappedFile, BufferInfo<void, true, false, false>>
+	class MappedFile:public Bufferable<MappedFile, BufferInfo<void, false, false, false, false>>
 	{
 	public:
 		// Close file handle when it's destroyed
 		MappedFile(File * file) throws(Error, TooBigException);
 		MappedFile(const char16 * filename) throws(Error, TooBigException);
 		~MappedFile() noexcept;
-		size_t size() const noexcept;
-		void * begin() noexcept;
-		void * end() noexcept;
-		const void * begin() const noexcept;
-		const void * end() const noexcept;
+		size_t $size() const noexcept;
+		void * $begin() noexcept;
+		void * $end() noexcept;
+		const void * $begin() const noexcept;
+		const void * $end() const noexcept;
 
 	private:
 		Must<File> m_file;

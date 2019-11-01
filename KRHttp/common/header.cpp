@@ -77,6 +77,7 @@ void kr::HttpHeader::set(Text header) noexcept
 		Text line = header.readwith_e("\r\n");
 		if (line == nullptr || line.empty()) break;
 		Text name = line.readwith(":");
+		if (name == nullptr) continue;
 		if (line.startsWith(' ')) line++;
 		m_map[name] = line;
 	}

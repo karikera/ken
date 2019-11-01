@@ -100,7 +100,7 @@ namespace kr
 	public:
 		static JsClassT<JsObject>& classObject;
 
-		JsObjectT(const JsArguments & args) throws(JsObjectT);
+		KRJS_EXPORT JsObjectT(const JsArguments & args) throws(JsObjectT);
 		~JsObjectT() noexcept;
 		// 객체를 생성합니다
 		static JsObject newInstanceRaw(JsArgumentsIn args);

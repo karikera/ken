@@ -27,6 +27,7 @@ namespace kr
 			{
 				reset();
 			}
+			VIStream(const VIStream&) = default;
 
 			VIStream(FILE * file) noexcept
 				: m_stream(file)
@@ -51,12 +52,12 @@ namespace kr
 			{
 			}
 
-			size_t readImpl(C* data, size_t sz)
+			size_t $read(C* data, size_t sz)
 			{
 				return m_read(m_stream, data, sz);
 			}
 
-			void reset()
+			void reset() noexcept
 			{
 				m_read = [](void * stream, C * data, size_t sz)->size_t { throw EofException(); };
 			}
@@ -76,6 +77,7 @@ namespace kr
 			{
 				reset();
 			}
+			VOStream(const VOStream&) = default;
 
 			VOStream(FILE * file) noexcept
 				: m_stream(file)
@@ -100,12 +102,14 @@ namespace kr
 			{
 			}
 
-			void writeImpl(const C* data, size_t sz)
+
+
+			void $write(const C* data, size_t sz)
 			{
 				return m_write(m_stream, data, sz);
 			}
 
-			void reset()
+			void reset() noexcept
 			{
 				m_write = [](void * stream, const C * data, size_t sz) { throw EofException(); };
 			}
@@ -128,13 +132,25 @@ namespace kr
 				m_read = [](void * stream, C * data, size_t sz)->size_t { return ((S*)stream)->read(data, sz); };
 			}
 
-			void writeImpl(const C* data, size_t sz)
+			VIOStream() noexcept
+			{
+				reset();
+			}
+			VIOStream(const VIOStream&) = default;
+
+			void $write(const C* data, size_t sz)
 			{
 				return m_write(m_stream, data, sz);
 			}
-			size_t readImpl(C* data, size_t sz)
+			size_t $read(C* data, size_t sz)
 			{
 				return m_read(m_stream, data, sz);
+			}
+
+			void reset()
+			{
+				m_write = [](void* stream, const C* data, size_t sz) { throw EofException(); };
+				m_read = [](void* stream, C* data, size_t sz)->size_t { throw EofException(); };
 			}
 		};
 	}

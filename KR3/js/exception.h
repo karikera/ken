@@ -49,13 +49,15 @@ namespace kr
 		//JsString message;
 
 		// JsException();
-		KRJS_EXPORT JsException(JsRawException message) noexcept;
 		KRJS_EXPORT JsException(Text16 message) noexcept;
 
 		// It will free string after out of scope
 		KRJS_EXPORT Text16 toString() noexcept;
+		KRJS_EXPORT JsValue getValue() noexcept;
 
 	private:
+		JsException() = default;
+
 		JsRawException m_exception;
 	};
 }

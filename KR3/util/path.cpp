@@ -13,11 +13,11 @@ template <> bool CurrentDirectory::set<char>(const char * text) const noexcept
 {
 	return SetCurrentDirectoryA(text) != FALSE;
 }
-template <> size_t CurrentDirectory::copyTo<char>(char * dest) const noexcept
+template <> size_t CurrentDirectory::$copyTo<char>(char * dest) const noexcept
 {
 	return GetCurrentDirectoryA(MAX_PATH, dest);
 }
-template <> size_t CurrentDirectory::sizeAs<char>() const noexcept
+template <> size_t CurrentDirectory::$sizeAs<char>() const noexcept
 {
 	return GetCurrentDirectoryA(0, nullptr) - 1;
 }
@@ -26,11 +26,11 @@ template <> bool CurrentDirectory::set<char16>(const char16 * text) const noexce
 {
 	return SetCurrentDirectoryW(wide(text)) != FALSE;
 }
-template <> size_t CurrentDirectory::copyTo<char16>(char16 * dest) const noexcept
+template <> size_t CurrentDirectory::$copyTo<char16>(char16 * dest) const noexcept
 {
 	return GetCurrentDirectoryW(MAX_PATH, wide(dest));
 }
-template <> size_t CurrentDirectory::sizeAs<char16>() const noexcept
+template <> size_t CurrentDirectory::$sizeAs<char16>() const noexcept
 {
 	return GetCurrentDirectoryW(0, nullptr) - 1;
 }
@@ -39,11 +39,11 @@ template <> bool CurrentDirectory::set<wchar_t>(const wchar_t * text) const noex
 {
 	return SetCurrentDirectoryW(text) != FALSE;
 }
-template <> size_t CurrentDirectory::copyTo<wchar_t>(wchar_t * dest) const noexcept
+template <> size_t CurrentDirectory::$copyTo<wchar_t>(wchar_t * dest) const noexcept
 {
 	return GetCurrentDirectoryW(MAX_PATH, dest);
 }
-template <> size_t CurrentDirectory::sizeAs<wchar_t>() const noexcept
+template <> size_t CurrentDirectory::$sizeAs<wchar_t>() const noexcept
 {
 	return GetCurrentDirectoryW(0, nullptr) - 1;
 }
@@ -65,12 +65,12 @@ template <> bool CurrentDirectory::set<char>(const char * text) const noexcept
 	s_virtualCurrentPath = (Text)text;
 	return true;
 }
-template <> size_t CurrentDirectory::copyTo<char>(char * dest) const noexcept
+template <> size_t CurrentDirectory::$copyTo<char>(char * dest) const noexcept
 {
 	s_virtualCurrentPath = (Text)dest;
 	return s_virtualCurrentPath.size();
 }
-template <> size_t CurrentDirectory::sizeAs<char>() const noexcept
+template <> size_t CurrentDirectory::$sizeAs<char>() const noexcept
 {
 	return s_virtualCurrentPath.size();
 }
@@ -80,11 +80,11 @@ template <> bool CurrentDirectory::set<char16>(const char16 * text) const noexce
 	s_virtualCurrentPath = toAcp((Text16)text);
 	return true;
 }
-template <> size_t CurrentDirectory::copyTo<char16>(char16 * dest) const noexcept
+template <> size_t CurrentDirectory::$copyTo<char16>(char16 * dest) const noexcept
 {
 	return acpToUtf16((Text)"").copyTo(dest);
 }
-template <> size_t CurrentDirectory::sizeAs<char16>() const noexcept
+template <> size_t CurrentDirectory::$sizeAs<char16>() const noexcept
 {
 	return acpToUtf16(s_virtualCurrentPath).size();
 }

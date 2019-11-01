@@ -227,7 +227,7 @@ void LangWriter::flush() noexcept
 {
 	m_os.flush();
 }
-void LangWriter::writeImpl(const char * data, size_t size)
+void LangWriter::$write(const char * data, size_t size)
 {
 	auto iterable = Text(data, size).splitIterable('\n');
 	auto iter = iterable.begin();

@@ -15,15 +15,16 @@ namespace kr
 				CLASS_HEADER(IStreamMethod, InStream<IStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>);
 			public:
 				INHERIT_ARRAY();
-				
+
 				using Super::Super;
+
 				using Super::addBegin;
 				using Super::setBegin;
 
-				using Parent::begin;
-				using Parent::end;
-				using Parent::size;
-				using Parent::empty;
+				using Super::begin;
+				using Super::end;
+				using Super::size;
+				using Super::empty;
 
 				Self& operator ++() noexcept
 				{
@@ -56,6 +57,17 @@ namespace kr
 				{
 					addBegin(-value);
 					return *static_cast<Self*>(this);
+				}
+
+				inline void subarr_self(size_t _size) noexcept
+				{
+					_assert(_size <= size());
+					addBegin(_size);
+				}
+				inline void subarr_self(const Component* _ptr) noexcept
+				{
+					_assert(_ptr == nullptr || begin() <= _ptr && _ptr <= end());
+					setBegin(_ptr);
 				}
 
 				constexpr IStreamMethod() noexcept = default;
@@ -129,14 +141,10 @@ namespace kr
 					setEnd(comp);
 					return Ref(comp, endptr);
 				}
-				void cut_self(const ComponentRef* newend) noexcept
+				void cut_self(const Component* newend) noexcept
 				{
 					_assert(begin() <= newend && newend <= end());
 					setEnd((InternalComponent*)newend);
-				}
-				void cut_self(Ref _v) noexcept
-				{
-					return cut_self(_v.begin());
 				}
 				void cut_self(size_t _len) noexcept
 				{
