@@ -218,6 +218,12 @@ namespace kr
 		Component ** m_end;
 	};
 
+	Text readArgument(Text& line) noexcept;
+	Text16 readArgument(Text16& line) noexcept;
+
+	Text unwrapQuot(char* text) noexcept;
+	Text16 unwrapQuot(char16* text) noexcept;
+
 	EXTERN_FULL_CHAR_CLASS(ParameterTokenizer);
 	EXTERN_FULL_CHAR_CLASS(Parameter);
 }

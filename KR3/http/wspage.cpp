@@ -1,5 +1,4 @@
-#include <KR3/main.h>
-
+#include "stdafx.h"
 #include "wspage.h"
 
 #include <KR3/data/crypt.h>

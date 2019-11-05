@@ -1,6 +1,7 @@
-#include <KR3/main.h>
+#include "stdafx.h"
 
 #include "fslpolicy.h"
+
 
 using namespace kr;
 

@@ -145,9 +145,9 @@ namespace kr
 		if (sizeof(C) == sizeof(char16))
 			udout << Text16((const char16*)chr, sz);
 		else
-			dout << toAcp(View<C>(chr, sz));
+			dout << toAnsi(View<C>(chr, sz));
 #else
-		dout << toAcp(View<C>(chr, sz));
+		dout << toAnsi(View<C>(chr, sz));
 #endif
 	}
 	template <typename C>

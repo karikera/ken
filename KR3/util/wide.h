@@ -25,6 +25,10 @@ namespace kr
 	{
 		return wide(tsz.c_str());
 	}
+	inline wchar_t* wide(TSZ16&& tsz) noexcept
+	{
+		return wide(tsz.c_str());
+	}
 
 	namespace _pri_
 	{

@@ -17,7 +17,7 @@ namespace kr
 		struct numunwrap<meta::numlist<idx ...> >
 		{
 			template <typename FUNC>
-			static JsValue call(FUNC func, const JsArguments & args) throws(JsException);
+			static JsValue call(const FUNC &func, const JsArguments & args) throws(JsException);
 		};
 		using ccfunc = JsFunctionT<RET(ARGS ...)>;
 		using counter = meta::make_numlist_counter<sizeof ... (ARGS)>;

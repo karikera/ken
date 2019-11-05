@@ -51,9 +51,10 @@ inline void templatebuildtest() noexcept
 	static const auto to = meta::literal_as<char>("\"\"");
 
 	View<char> a = (View<char>)from;
-
+	
 	TSZ dest;
 	dest << currentDirectory;
+	dest << a.filter([](char chr) { return chr; });
 	
 	TSZ16 dest16;
 	wide(dest16);

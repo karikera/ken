@@ -50,6 +50,7 @@ namespace kr
 
 		// JsException();
 		KRJS_EXPORT JsException(Text16 message) noexcept;
+		KRJS_EXPORT JsException(JsException&& _move) noexcept;
 
 		// It will free string after out of scope
 		KRJS_EXPORT Text16 toString() noexcept;

@@ -637,7 +637,27 @@ size_t kr::_pri_::msize_impl(const void * data) noexcept
 #endif
 }
 
-#ifdef KR_MEMORY_OBSERVER
+#ifdef NDEBUG
+
+void kr::disableKrMemoryObserver(bool disabled) noexcept
+{
+}
+void kr::setAllocCounterBreak(int counter) noexcept
+{
+}
+
+#else
+
+#ifndef _MSC_VER
+void* operator new(size_t sz)
+{
+	return krmalloc(size);
+}
+void operator delete(void* p)
+{
+	krfree(p);
+}
+#endif
 
 void kr::disableKrMemoryObserver(bool disabled) noexcept
 {
@@ -653,22 +673,4 @@ void kr::setAllocCounterBreak(int counter) noexcept
 	s_allocCounterBreakEnabled = true;
 }
 
-#ifndef _MSC_VER
-void * operator new(size_t sz)
-{
-	return krmalloc(size);
-}
-void operator delete(void * p)
-{
-	krfree(p);
-}
-#endif
-
-#else
-void kr::disableKrMemoryObserver(bool disabled) noexcept
-{
-}
-void kr::setAllocCounterBreak(int counter) noexcept
-{
-}
 #endif

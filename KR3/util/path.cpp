@@ -77,7 +77,7 @@ template <> size_t CurrentDirectory::$sizeAs<char>() const noexcept
 
 template <> bool CurrentDirectory::set<char16>(const char16 * text) const noexcept
 {
-	s_virtualCurrentPath = toAcp((Text16)text);
+	s_virtualCurrentPath = toAnsi((Text16)text);
 	return true;
 }
 template <> size_t CurrentDirectory::$copyTo<char16>(char16 * dest) const noexcept

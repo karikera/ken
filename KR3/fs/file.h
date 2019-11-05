@@ -63,20 +63,22 @@ namespace kr
 		static bool createFullDirectory(Text16 str) noexcept;
 		static bool removeFullDirectory(Text16 path) noexcept;
 		static bool removeShell(Text16 path) noexcept;
-
+		
 		template <typename C>
-		using WritableFile = Writable<C, io::StreamableStream<File, C>*, true >;
-
-		template <typename C>
-		inline WritableFile<C> readAll() throws(TooBigException)
+		inline Writable<C, io::StreamableStream<File, C>*, true > readAll() throws(TooBigException)
 		{
 			return { this->stream<C>(), sizep() };
 		}
+
+		template <typename C>
+		using WritableFile = Writable<C, Keep<io::StreamableStream<File, C>>, true >;
+
 		template <typename C, typename CHR>
 		static inline WritableFile<C> openAsArrayT(const CHR* name) throws(TooBigException, Error)
 		{
-			Must<File> file = open(name);
-			return file->readAll<C>();
+			Keep<io::StreamableStream<File, C>> file = open(name)->template stream<C>();
+			size_t size = file->sizep();
+			return { std::move(file), size };
 		}
 		template <typename C>
 		static inline WritableFile<C> openAsArray(const char * name) throws(TooBigException, Error)

@@ -99,6 +99,12 @@
     <ClInclude Include="fs\installer.h" />
     <ClInclude Include="fs\jsonconfig.h" />
     <ClInclude Include="fs\watcher.h" />
+    <ClInclude Include="http\fslpolicy.h" />
+    <ClInclude Include="http\header.h" />
+    <ClInclude Include="http\http.h" />
+    <ClInclude Include="http\httpd.h" />
+    <ClInclude Include="http\wsclient.h" />
+    <ClInclude Include="http\wspage.h" />
     <ClInclude Include="js\arguments.h" />
     <ClInclude Include="js\cast.h" />
     <ClInclude Include="js\class.h" />
@@ -156,7 +162,7 @@
     <ClInclude Include="util\bitmap.h" />
     <ClInclude Include="util\bufferqueue.h" />
     <ClInclude Include="util\dump.h" />
-    <ClInclude Include="util\fetch.h" />
+    <ClInclude Include="http\fetch.h" />
     <ClInclude Include="util\hashtester.h" />
     <ClInclude Include="common\intrinsic.h" />
     <ClInclude Include="common\text\iterator.h" />
@@ -207,7 +213,7 @@
     <ClInclude Include="common\text\wrap.h" />
     <ClInclude Include="math\interpolation.h" />
     <ClInclude Include="meta\retype.h" />
-    <ClInclude Include="util\httpstatus.h" />
+    <ClInclude Include="http\httpstatus.h" />
     <ClInclude Include="util\lister.h" />
     <ClInclude Include="util\logger.h" />
     <ClInclude Include="util\namedenum.h" />
@@ -332,6 +338,12 @@
     <ClCompile Include="fs\installer.cpp" />
     <ClCompile Include="fs\jsonconfig.cpp" />
     <ClCompile Include="fs\watcher.cpp" />
+    <ClCompile Include="http\fslpolicy.cpp" />
+    <ClCompile Include="http\header.cpp" />
+    <ClCompile Include="http\Http.cpp" />
+    <ClCompile Include="http\httpd.cpp" />
+    <ClCompile Include="http\wsclient.cpp" />
+    <ClCompile Include="http\wspage.cpp" />
     <ClCompile Include="js\arguments.cpp" />
     <ClCompile Include="js\cast.cpp" />
     <ClCompile Include="js\chakra.cpp" />
@@ -380,7 +392,7 @@
     <ClCompile Include="util\bufferqueue.cpp" />
     <ClCompile Include="util\dump.cpp" />
     <ClCompile Include="util\envvar.cpp" />
-    <ClCompile Include="util\fetch.cpp" />
+    <ClCompile Include="http\fetch.cpp" />
     <ClCompile Include="util\logger.cpp" />
     <ClCompile Include="util\parameter.cpp" />
     <ClCompile Include="util\path.cpp" />

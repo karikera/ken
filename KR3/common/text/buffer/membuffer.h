@@ -85,6 +85,249 @@ namespace kr
 		}
 	};
 
+	template <typename C>
+	class FilteredBuffer :public Bufferable<FilteredBuffer<C>, BufferInfo<C, true, true> >
+	{
+	private:
+		const View<C> m_text;
+		C(*const m_filter)(C);
+	public:
+		using InternalComponent = internal_component_t<C>;
+
+		FilteredBuffer(View<C> text, InternalComponent(*filter)(InternalComponent)) noexcept
+			:m_text(text), m_filter(filter)
+		{
+		}
+		template <typename Derived, typename Info>
+		void $writeTo(OutStream<Derived, C, Info>* dest) const noexcept
+		{
+			WriteLock<OutStream<Derived, C, Info> > lock(dest, m_text.size());
+			InternalComponent * ptr = lock.begin();
+			for (InternalComponent chr : m_text)
+			{
+				*ptr++ = m_filter(chr);
+			}
+		}
+		size_t $copyTo(C* dest) const noexcept
+		{
+			InternalComponent* ptr = (InternalComponent*)dest;
+			for (InternalComponent chr : m_text)
+			{
+				*ptr++ = m_filter(chr);
+			}
+			return m_text.size();
+		}
+
+		size_t size() const noexcept
+		{
+			return m_text.size();
+		}
+	};
+
+	template <typename C>
+	class SplitIterator :public MakeIterableIterator<SplitIterator<C>, View<C>>
+	{
+	private:
+	public:
+		const C* m_ref;
+		const C* m_next;
+		const C* m_end;
+		const C* m_done;
+		C m_chr;
+
+	public:
+		SplitIterator() = default;
+		SplitIterator(View<C> _this, C chr) noexcept
+			: m_chr(move(chr))
+		{
+			m_ref = _this.begin();
+			m_end = _this.end();
+			m_next = _this.find_e(m_chr);
+			m_done = m_end + 1;
+		}
+		bool isEnd() const noexcept
+		{
+			return m_ref == m_done;
+		}
+		void next() noexcept
+		{
+			m_ref = m_next;
+			m_ref++;
+			if (m_ref == m_done) return;
+			m_next = View<C>(m_ref, m_end).find_e(m_chr);
+		}
+		View<C> value() const noexcept
+		{
+			return View<C>(m_ref, m_next);
+		}
+	};
+
+	template <typename C>
+	class TextSplitIterator :public MakeIterableIterator<TextSplitIterator<C>, View<C>>
+	{
+	private:
+		const C* m_ref;
+		const C* m_next;
+		const C* m_end;
+		const C* m_done;
+		View<C> m_chr;
+
+	public:
+		TextSplitIterator() = default;
+		TextSplitIterator(View<C> _this, View<C> chr) noexcept
+			: m_chr(chr)
+		{
+			m_ref = _this.begin();
+			m_end = _this.end();
+			m_next = _this.find_e(m_chr);
+			m_done = m_end + m_chr.size();
+		}
+		bool isEnd() const noexcept
+		{
+			return m_ref == m_done;
+		}
+		void next() noexcept
+		{
+			m_ref = m_next;
+			m_ref += m_chr.size();
+			if (m_ref == m_done) return;
+			m_next = View<C>(m_ref, m_end).find_e(m_chr);
+		}
+		View<C> value() const noexcept
+		{
+			return View<C>(m_ref, m_next);
+		}
+	};
+
+	template <typename C>
+	class ReverseSplitIterator :public MakeIterableIterator<ReverseSplitIterator<C>, View<C>>
+	{
+	private:
+		const C* m_ref;
+		const C* m_next;
+		const C* m_begin;
+		const C* m_done;
+		C m_chr;
+
+	public:
+		ReverseSplitIterator() = default;
+		ReverseSplitIterator(View<C> _this, C chr) noexcept
+			: m_chr(move(chr))
+		{
+			m_begin = _this.begin();
+			m_ref = _this.end();
+			m_next = _this.find_r(m_chr);
+			if (m_next == nullptr) m_next = m_begin;
+			m_done = m_begin - 1;
+		}
+		bool isEnd() const noexcept
+		{
+			return m_ref == m_done;
+		}
+		void next() noexcept
+		{
+			m_ref = m_next;
+			m_ref--;
+			if (m_ref == m_done) return;
+			m_next = View<C>(m_begin, m_ref).find_r(m_chr);
+			if (m_next == nullptr) m_next = m_begin;
+		}
+		View<C> value() const noexcept
+		{
+			return View<C>(m_next, m_ref);
+		}
+	};
+
+	template <typename C>
+	class ReverseTextSplitIterator :public MakeIterableIterator<ReverseTextSplitIterator<C>, View<C>>
+	{
+	private:
+		const C* m_ref;
+		const C* m_next;
+		const C* m_begin;
+		const C* m_done;
+		View<C> m_chr;
+
+	public:
+		ReverseTextSplitIterator() = default;
+		ReverseTextSplitIterator(View<C> _this, View<C> chr) noexcept
+			: m_chr(chr)
+		{
+			m_begin = _this.begin();
+			m_ref = _this.end();
+			m_next = _this.find_r(m_chr);
+			if (m_next == nullptr) m_next = m_begin;
+			else m_next += m_chr.size();
+			m_done = m_begin - m_chr.size();
+		}
+		bool isEnd() const noexcept
+		{
+			return m_ref == m_done;
+		}
+		void next() noexcept
+		{
+			m_ref = m_next;
+			m_ref -= m_chr.size();
+			if (m_ref == m_done) return;
+			m_next = View<C>(m_begin, m_ref).find_r(m_chr);
+			if (m_next == nullptr) m_next = m_begin;
+			else m_next += m_chr.size();
+		}
+		View<C> value() const noexcept
+		{
+			return View<C>(m_next, m_ref);
+		}
+	};
+
+	template <typename C>
+	class LoopIterator :public MakeIterableIterator<LoopIterator<C>, internal_component_t<C>&>
+	{
+	private:
+		using InternalComponent = internal_component_t<C>;
+		InternalComponent* m_ptr;
+		InternalComponent* m_end;
+		InternalComponent* m_ptr2;
+		InternalComponent* m_end2;
+
+	public:
+		LoopIterator() = default;
+		LoopIterator(InternalComponent* ptr, InternalComponent* end, InternalComponent* ptr2, InternalComponent* end2) noexcept
+		{
+			m_ptr = ptr;
+			m_end = end;
+			m_ptr2 = ptr2;
+			m_end2 = end2;
+			if (m_ptr == m_end)
+			{
+				m_ptr = m_ptr2;
+				m_end = m_end2;
+				m_ptr2 = nullptr;
+				if (m_ptr == m_end)
+				{
+					m_ptr = m_ptr2;
+				}
+			}
+		}
+		void next() noexcept
+		{
+			m_ptr++;
+			if (m_ptr == m_end)
+			{
+				m_ptr = m_ptr2;
+				m_end = m_end2;
+				m_ptr2 = nullptr;
+			}
+		}
+		bool isEnd() const noexcept
+		{
+			return m_ptr == nullptr;
+		}
+		InternalComponent& value() const noexcept
+		{
+			return *m_ptr;
+		}
+	};
+
 	namespace buffer
 	{
 		template <typename Derived, typename Info>
@@ -582,6 +825,10 @@ namespace kr
 				return View<NewComponent>((NewComponent*)begin(), (NewComponent*)end());
 			}
 
+			FilteredBuffer<Component> filter(InternalComponent(*filter)(InternalComponent)) const noexcept
+			{
+				return FilteredBuffer<Component>(*this, filter);
+			}
 			template <class Converter, class _Derived, typename _Info>
 			void replace(OutStream<_Derived, typename Converter::Component, _Info> * _out, Ref _tar, View<typename Converter::Component> _to) const // NotEnoughSpaceException
 			{
@@ -627,230 +874,30 @@ namespace kr
 				replace<Ref>(_out, _tar, _to);
 			}
 
-			class SplitIterator:public MakeIterableIterator<SplitIterator, Ref>
+			SplitIterator<Component> splitIterable(const InternalComponent &chr) const noexcept
 			{
-			private:
-			public:
-				const Component* m_ref;
-				const Component* m_next;
-				const Component* m_end;
-				const Component* m_done;
-				Component m_chr;
-
-			public:
-				SplitIterator() = default;
-				SplitIterator(const This * _this, Component chr) noexcept
-					: m_chr(move(chr))
-				{
-					m_ref = _this->begin();
-					m_end = _this->end();
-					m_next = _this->find_e(m_chr);
-					m_done = m_end + 1;
-				}
-				bool isEnd() const noexcept
-				{
-					return m_ref == m_done;
-				}
-				void next() noexcept
-				{
-					m_ref = m_next;
-					m_ref++;
-					if (m_ref == m_done) return;
-					m_next = Ref(m_ref, m_end).find_e(m_chr);
-				}
-				Ref value() const noexcept
-				{
-					return Ref(m_ref, m_next);
-				}
-			};
-			
-			class TextSplitIterator :public MakeIterableIterator<TextSplitIterator, Ref>
-			{
-			private:
-				const Component* m_ref;
-				const Component* m_next;
-				const Component* m_end;
-				const Component* m_done;
-				Ref m_chr;
-
-			public:
-				TextSplitIterator() = default;
-				TextSplitIterator(const This * _this, Ref chr) noexcept
-					: m_chr(chr)
-				{
-					m_ref = _this->begin();
-					m_end = _this->end();
-					m_next = _this->find_e(m_chr);
-					m_done = m_end + m_chr.size();
-				}
-				bool isEnd() const noexcept
-				{
-					return m_ref == m_done;
-				}
-				void next() noexcept
-				{
-					m_ref = m_next;
-					m_ref += m_chr.size();
-					if (m_ref == m_done) return *this;
-					m_next = Ref(m_ref, m_end).find_e(m_chr).begin();
-					return *this;
-				}
-				Ref value() const noexcept
-				{
-					return Ref(m_ref, m_next);
-				}
-			};
-			
-			class ReverseSplitIterator :public MakeIterableIterator<ReverseSplitIterator, Ref>
-			{
-			private:
-				const Component* m_ref;
-				const Component* m_next;
-				const Component* m_begin;
-				const Component* m_done;
-				Component m_chr;
-
-			public:
-				ReverseSplitIterator() = default;
-				ReverseSplitIterator(const This * _this, Component chr) noexcept
-					: m_chr(move(chr))
-				{
-					m_begin = _this->begin();
-					m_ref = _this->end();
-					m_next = _this->find_r(m_chr);
-					if (m_next == nullptr) m_next = m_begin;
-					m_done = m_begin - 1;
-				}
-				bool isEnd() const noexcept
-				{
-					return m_ref == m_done;
-				}
-				void next() noexcept
-				{
-					m_ref = m_next;
-					m_ref--;
-					if (m_ref == m_done) return *this;
-					m_next = Ref(m_begin, m_ref).find_r(m_chr).begin();
-					if (m_next == nullptr) m_next = m_begin;
-					return *this;
-				}
-				Ref value() const noexcept
-				{
-					return Ref(m_next, m_ref);
-				}
-			};
-
-			class ReverseTextSplitIterator:public MakeIterableIterator<ReverseTextSplitIterator, Ref>
-			{
-			private:
-				const Component* m_ref;
-				const Component* m_next;
-				const Component* m_begin;
-				const Component* m_done;
-				Ref m_chr;
-
-			public:
-				ReverseTextSplitIterator() = default;
-				ReverseTextSplitIterator(const This * _this, Ref chr) noexcept
-					: m_chr(chr)
-				{
-					m_begin = _this->begin();
-					m_ref = _this->end();
-					m_next = _this->find_r(m_chr);
-					if (m_next == nullptr) m_next = m_begin;
-					else m_next += m_chr.size();
-					m_done = m_begin - m_chr.size();
-				}
-				bool isEnd() const noexcept
-				{
-					return m_ref == m_done;
-				}
-				void next() noexcept
-				{
-					m_ref = m_next;
-					m_ref -= m_chr.size();
-					if (m_ref == m_done) return;
-					m_next = Ref(m_begin, m_ref).find_r(m_chr).begin();
-					if (m_next == nullptr) m_next = m_begin;
-					else m_next += m_chr.size();
-				}
-				Ref value() const noexcept
-				{
-					return Ref(m_next, m_ref);
-				}
-			};
-
-			class LoopIterator:public MakeIterableIterator<LoopIterator, InternalComponent&>
-			{
-			private:
-				InternalComponent * m_ptr;
-				InternalComponent * m_end;
-				InternalComponent * m_ptr2;
-				InternalComponent * m_end2;
-
-			public:
-				LoopIterator() = default;
-				LoopIterator(const This * _this, InternalComponent* ptr, InternalComponent* end, InternalComponent* ptr2, InternalComponent* end2) noexcept
-				{
-					m_ptr = ptr;
-					m_end = end;
-					m_ptr2 = ptr2;
-					m_end2 = end2;
-					if (m_ptr == m_end)
-					{
-						m_ptr = m_ptr2;
-						m_end = m_end2;
-						m_ptr2 = nullptr;
-						if (m_ptr == m_end)
-						{
-							m_ptr = m_ptr2;
-						}
-					}
-				}
-				void next() noexcept
-				{
-					m_ptr++;
-					if (m_ptr == m_end)
-					{
-						m_ptr = m_ptr2;
-						m_end = m_end2;
-						m_ptr2 = nullptr;
-					}
-				}
-				bool isEnd() const noexcept
-				{
-					return m_ptr == nullptr;
-				}
-				InternalComponent & value() const noexcept
-				{
-					return *m_ptr;
-				}
-			};
-
-			SplitIterator splitIterable(const InternalComponent &chr) const noexcept
-			{
-				return { this, chr };
+				return { *this, chr };
 			}
-			TextSplitIterator splitIterable(Ref chr) const noexcept
+			TextSplitIterator<Component> splitIterable(Ref chr) const noexcept
 			{
-				return { this, chr };
+				return { *this, chr };
 			}
-			ReverseSplitIterator reverseSplitIterable(const InternalComponent &chr) const noexcept
+			ReverseSplitIterator<Component> reverseSplitIterable(const InternalComponent &chr) const noexcept
 			{
-				return { this, chr };
+				return { *this, chr };
 			}
-			ReverseTextSplitIterator reverseSplitIterable(Ref chr) const noexcept
+			ReverseTextSplitIterator<Component> reverseSplitIterable(Ref chr) const noexcept
 			{
-				return { this, chr };
+				return { *this, chr };
 			}
 
-			LoopIterator loopIterable(size_t offset) noexcept
+			LoopIterator<Component> loopIterable(size_t offset) noexcept
 			{
 				InternalComponent * _begin = begin();
 				InternalComponent * startAt = _begin + offset;
-				return LoopIterator(this, startAt, end(), _begin, startAt);
+				return { startAt, end(), _begin, startAt };
 			}
-			LoopIterator loopIterable(size_t offset, size_t length) noexcept
+			LoopIterator<Component> loopIterable(size_t offset, size_t length) noexcept
 			{
 				InternalComponent * _begin = begin();
 				InternalComponent * startAt = _begin + offset;
@@ -860,11 +907,11 @@ namespace kr
 
 				if (endAt > _end)
 				{
-					return LoopIterator(this, startAt, _end, _begin, endAt - sz);
+					return { startAt, _end, _begin, endAt - sz };
 				}
 				else
 				{
-					return LoopIterator(this, startAt, _end, nullptr, _end);
+					return { startAt, _end, nullptr, _end };
 				}
 			}
 			

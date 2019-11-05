@@ -6,8 +6,8 @@
 
 #ifdef WIN32
 
-#include <KRHttp/httpd.h>
-#include <KRHttp/wspage.h>
+#include <KR3/http/httpd.h>
+#include <KR3/http/wspage.h>
 
 using namespace kr;
 

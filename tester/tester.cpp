@@ -33,7 +33,7 @@ public:
 	{
 	}
 
-	Array<complex>::LoopIterator iterable() noexcept
+	LoopIterator<complex> iterable() noexcept
 	{
 		return m_sum.loopIterable(m_offset);
 	}

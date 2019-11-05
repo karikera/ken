@@ -995,13 +995,17 @@ win::Process * win::Process::open(ProcessId id) noexcept
 }
 win::Process::Pair win::Process::execute(pstr strCommand, pcstr strPath, ProcessOptions opts) noexcept
 {
+	return execute(nullptr, strCommand, strPath, opts);
+}
+win::Process::Pair win::Process::execute(pcstr application, pstr strCommand, pcstr strPath, ProcessOptions opts) noexcept
+{
 	STARTUPINFOA si = { sizeof(STARTUPINFOA), };
 	PROCESS_INFORMATION pi;
 	DWORD flags = 0;
 	if (opts.suspended()) flags |= CREATE_SUSPENDED;
 	if (opts.console()) flags |= CREATE_NEW_CONSOLE;
 	if (opts.detached()) flags |= DETACHED_PROCESS;
-	if (!CreateProcessA(nullptr, strCommand, nullptr, nullptr, false, flags, nullptr, strPath, &si, &pi))
+	if (!CreateProcessA(application, strCommand, nullptr, nullptr, false, flags, nullptr, strPath, &si, &pi))
 	{
 		return { nullptr, nullptr };
 	}
@@ -1009,13 +1013,17 @@ win::Process::Pair win::Process::execute(pstr strCommand, pcstr strPath, Process
 }
 win::Process::Pair win::Process::execute(pstr16 strCommand, pcstr16 strPath, ProcessOptions opts) noexcept
 {
+	return execute(nullptr, strCommand, strPath, opts);
+}
+win::Process::Pair win::Process::execute(pcstr16 application, pstr16 strCommand, pcstr16 strPath, ProcessOptions opts) noexcept
+{
 	STARTUPINFOW si = { sizeof(STARTUPINFOW), };
 	PROCESS_INFORMATION pi;
 	DWORD flags = 0;
 	if (opts.suspended()) flags |= CREATE_SUSPENDED;
 	if (opts.console()) flags |= CREATE_NEW_CONSOLE;
 	if (opts.detached()) flags |= DETACHED_PROCESS;
-	if (!CreateProcessW(nullptr, wide(strCommand), nullptr, nullptr, false, flags, nullptr, wide(strPath), &si, &pi))
+	if (!CreateProcessW(wide(application), wide(strCommand), nullptr, nullptr, false, flags, nullptr, wide(strPath), &si, &pi))
 	{
 		return { nullptr, nullptr };
 	}

@@ -1,4 +1,4 @@
-#include <KR3/util/fetch.h>
+#include <KR3/http/fetch.h>
 #include <KR3/util/path.h>
 
 #include "gltexture.h"

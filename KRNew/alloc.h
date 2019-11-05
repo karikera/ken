@@ -217,16 +217,17 @@ namespace kr
 }
 
 
-#ifdef KR_MEMORY_OBSERVER
+#ifdef NDEBUG
+#define kr_alloc(sz, ...)			((::kr::autoptr)::kr::alloc<__VA_ARGS__>::allocate(sz))
+#else
+
 #define kr_alloc(sz, ...)			((::kr::autoptr)reline_new(::kr::alloc<__VA_ARGS__>::allocate(sz)))
 
 #ifndef _MSC_VER
-void * operator new(size_t sz);
-void operator delete(void * p);
+void* operator new(size_t sz);
+void operator delete(void* p);
 #endif
 
-#else
-#define kr_alloc(sz, ...)			((::kr::autoptr)::kr::alloc<__VA_ARGS__>::allocate(sz))
 #endif
 #define kr_free(ptr, ...)			(::kr::alloc<__VA_ARGS__>::free(ptr))
 #define kr_expand(ptr, sz, ...)		(::kr::alloc<__VA_ARGS__>::expand(ptr,sz))

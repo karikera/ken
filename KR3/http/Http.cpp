@@ -1,5 +1,4 @@
-#include <KR3/main.h>
-
+#include "stdafx.h"
 #include "http.h"
 
 #include <KR3/wl/windows.h>

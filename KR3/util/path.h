@@ -193,69 +193,90 @@ namespace kr
 			}
 			return out;
 		}
-
-		template <typename ... T>
-		static void joinAppend(TSZ * dest, const T & ... inputs) noexcept
+		
+		template <typename T>
+		static void joinEx(T * dest, View<Text> texts, bool resolve, C seper = sep) noexcept
 		{
-			std::initializer_list<Text> texts = { inputs ... };
+			dest->clear();
+			if (texts.empty()) return;
 
-			const Text * iter = texts.begin();
-			const Text * end = texts.end();
-			if (iter == end) return;
+			bool skip_sep;
 
-			size_t protocolIdx;
+			const Text* iter;
+			Text text;
 
+			const Text* begin = texts.begin();
+			const Text* rend = begin - 1;
+			const Text* end = texts.end();
+			const Text* riter = end - 1;
+
+			for (;riter != rend; riter--)
 			{
-				auto info = getProtocolInfo(*dest);
-
+				text = *riter;
+				auto info = getProtocolInfo(text);
+				if (!info.isAbsolute) continue;
+				
 				if (info.protocol != nullptr)
 				{
-					protocolIdx = info.protocol.begin() - dest->begin();
+					*dest << info.protocol;
+#ifdef WIN32
+					if (seper != '/') dest->change('/', seper);
+#endif
+
+					text.setBegin(info.protocol.end());
+					iter = riter;
+					skip_sep = info.hasSeperator;
+					goto _find_rpath;
 				}
 				else
 				{
-					protocolIdx = 0;
+					text++;
+					iter = riter;
+					riter--;
+					goto _find_protocol;
 				}
 			}
-			
-			bool skip_sep = endsWithSeperator(*dest);
-
-			for (; iter != end; iter++)
+			iter = begin;
+			goto _find_start;
+		_find_protocol:
+			for (;riter != rend; riter--)
 			{
-				Text text = *iter;
+				Text tx = *riter;
+				auto info = getProtocolInfo(tx);
+				if (info.protocol == nullptr) continue;
 
-				auto info = getProtocolInfo(text);
-				if (info.isAbsolute)
-				{
-					if (info.protocol != nullptr)
-					{
-						dest->clear();
-						*dest << info.protocol;
-						protocolIdx = info.protocol.size();
-						text.setBegin(info.protocol.end());
-						skip_sep = info.hasSeperator;
-					}
-					else
-					{
-						skip_sep = false;
-						dest->cut_self(protocolIdx);
-						text++;
-					}
-				}
-				else
-				{
-					if (dest->empty())
-					{
-						skip_sep = true;
-					}
-				}
+				*dest << info.protocol;
+#ifdef WIN32
+				if (seper != '/') dest->change('/', seper);
+#endif
+				tx.setBegin(info.protocol.end());
+				skip_sep = info.hasSeperator;
+				goto _find_rpath;
+			}
+			skip_sep = false;
+			goto _find_rpath;
+		_find_start:
+			if (resolve)
+			{
+				*dest << currentDirectory;
+				skip_sep = false;
+			}
+			else
+			{
+				skip_sep = true;
+			}
+
+			for (;iter != end; iter++)
+			{
+				text = *iter;
+			_find_rpath:
 				
 				for (;;)
 				{
 #ifdef WIN32
 					Text name = text.readwith_y(SEPERATOR);
 #else
-					Text name = text.readwith(sep);
+					Text name = text.readwith(seper);
 #endif
 					if (name != nullptr)
 					{
@@ -278,7 +299,7 @@ namespace kr
 									switch (dest->size())
 									{
 									case 1:
-										if (dest->get(0) == sep)
+										if (dest->get(0) == seper)
 										{
 											*dest << name;
 											skip_sep = false;
@@ -294,7 +315,7 @@ namespace kr
 									case 2:
 										if (dest->get(0) == '.' && dest->get(1) == '.')
 										{
-											*dest << sep;
+											*dest << seper;
 											*dest << (C)'.';
 											*dest << (C)'.';
 											skip_sep = false;
@@ -303,9 +324,9 @@ namespace kr
 										break;
 									default:
 										const C* end = dest->end();
-										if (end[-1] == '.' && end[-2] == '.' && end[-3] == sep)
+										if (end[-1] == '.' && end[-2] == '.' && end[-3] == seper)
 										{
-											*dest << sep;
+											*dest << seper;
 											*dest << (C)'.';
 											*dest << (C)'.';
 											skip_sep = false;
@@ -314,14 +335,13 @@ namespace kr
 										break;
 									}
 									const C* findend;
-
 									if (skip_sep)
 									{
-										findend = dest->cut(dest->end()-1).find_r(sep);
+										findend = dest->cut(dest->end()-1).find_r(seper);
 									}
 									else
 									{
-										findend = dest->find_r(sep);
+										findend = dest->find_r(seper);
 									}
 									if (findend == nullptr)
 									{
@@ -333,7 +353,7 @@ namespace kr
 										dest->cut_self(findend);
 										if (dest->empty())
 										{
-											*dest << sep;
+											*dest << seper;
 											skip_sep = true;
 										}
 									}
@@ -344,7 +364,7 @@ namespace kr
 								}
 							}
 							if (skip_sep) skip_sep = false;
-							else *dest << sep;
+							else *dest << seper;
 							*dest << name;
 						}
 					}
@@ -353,18 +373,20 @@ namespace kr
 						if (!text.empty())
 						{
 							if (skip_sep) skip_sep = false;
-							else *dest << sep;
+							else *dest << seper;
 							*dest << text;
+						}
+						else
+						{
+							if (!skip_sep)
+							{
+								*dest << seper;
+								skip_sep = true;
+							}
 						}
 						break;
 					}
 				}
-			}
-
-			if (endsWithSeperator(end[-1]))
-			{
-				*dest << sep;
-				skip_sep = true;
 			}
 		}
 
@@ -374,90 +396,38 @@ namespace kr
 		// ("/dir", "name" ,"nextdir") -> "/dir/name/nextdir"
 		// ("dir", "/name" ,"nextdir") -> "/name/nextdir"
 		// ("/dir", "/name" ,"nextdir") -> "/name/nextdir"
-		template <typename ... T>
-		static TSZ join(const T & ... inputs) noexcept
+		static TSZ join(View<Text> texts, C seper = sep) noexcept
 		{
 			TSZ dest;
-			joinAppend(&dest, inputs...);
+			joinEx(&dest, texts, false, seper);
 			return dest;
 		}
 
-		static void resolveTo(TSZ * dest, Text path) noexcept
+		// ("dir", "name" ,"nextdir") -> "dir/name/nextdir"
+		// ("dir", "name" ,"nextdir/") -> "dir/name/nextdir/"
+		// ("dir/", "name/" ,"nextdir/") -> "dir/name/nextdir/"
+		// ("/dir", "name" ,"nextdir") -> "/dir/name/nextdir"
+		// ("dir", "/name" ,"nextdir") -> "/name/nextdir"
+		// ("/dir", "/name" ,"nextdir") -> "/name/nextdir"
+		static TSZ join(Text text, C seper = sep) noexcept
 		{
-			switch (path.size())
-			{
-			case 0: *dest << currentDirectory; break;
-			case 1:
-				switch (path[0])
-				{
-				case sep:
-#ifdef WIN32
-				case (C)'/':
-#endif
-					*dest << sep;
-					break;
-				case (C)'.':
-					*dest << currentDirectory;
-					break;
-				default:
-					*dest << currentDirectory << sep << path[0];
-					break;
-				}
-				break;
-			default:
-				Text read = path;
-				if (isSeperator(*read))
-				{
-					read++;
-				}
-#ifdef WIN32
-				else if (path[1] == (C)':')
-				{
-					*dest << path[0] << (C)':';
-					read += 2;
-					if (read.empty()) break;
-					if (isSeperator(*read))
-						read++;
-				}
-#endif
-				else
-				{
-					*dest << currentDirectory;
-				}
-				while (!read.empty())
-				{
-					Text dir;
-#ifdef WIN32
-					dir = read.readwith_ye(SEPERATOR);
-#else
-					dir = read.readwith_e(sep);
-#endif
-					switch (dir.size())
-					{
-					case 0: continue;
-					case 1:
-						if (dir[0] == '.') continue;
-						break;
-					case 2:
-						if (dir[0] == '.' && dir[1] == '.')
-						{
-							const C* parent = dest->find_r(sep);
-							if (parent != nullptr) dest->cut_self(parent);
-							continue;
-						}
-						break;
-					}
-					*dest << sep << dir;
-				}
-				break;
-			}
+			TSZ dest;
+			joinEx(&dest, { text }, false, seper);
+			return dest;
 		}
 
 		// "dirname/../../basename.ext" -> "/absolute/path/basename.ext"
-		static TSZ resolve(Text path) noexcept
+		static TSZ resolve(Text path, C seper = sep) noexcept
 		{
 			TSZ dest;
-			resolveTo(&dest, path);
+			joinEx(&dest, { path }, true, seper);
+			return dest;
+		}
+
+		static TSZ resolve(View<Text> paths, C seper = sep) noexcept
+		{
+			TSZ dest;
+			joinEx(&dest, paths, true, seper);
 			return dest;
 		}
 	};

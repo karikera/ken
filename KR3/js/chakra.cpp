@@ -597,6 +597,11 @@ kr::JsException::JsException(kr::Text16 message) noexcept
 	m_exception = InternalTools::createError(message).m_data;
 	s_currentScope->add(JsRawData(m_exception));
 }
+kr::JsException::JsException(JsException&& _move) noexcept
+{
+	m_exception = _move.m_exception;
+	_move.m_exception = JS_INVALID_REFERENCE;
+}
 kr::Text16 kr::JsException::toString() noexcept
 {
 	return JsRawData(m_exception).toString().as<Text16>();
@@ -858,16 +863,14 @@ kr::JsRuntime::~JsRuntime() noexcept
 kr::JsValue kr::JsRuntime::run(Text16 fileName, Text16 source) throws(JsException)
 {
 	JsRawData result;
-	TText16 buf;
-	jsthrow(JsRunScript(szlize(source, &buf), s_sourceContextCounter++, wide(source.data()), &result.m_data));
+	jsthrow(JsRunScript(szlize(source, &TText16()), s_sourceContextCounter++, szlize(fileName, &TText16()), &result.m_data));
 	s_currentScope->add(result);
 	return result;
 }
 kr::JsValue kr::JsRuntime::run(Text16 fileName, Text16 source, uintptr_t sourceContext) throws(JsException)
 {
 	JsRawData result;
-	TText16 buf;
-	jsthrow(JsRunScript(szlize(source, &buf), sourceContext, wide(source.data()), &result.m_data));
+	jsthrow(JsRunScript(szlize(source, &TText16()), sourceContext, szlize(fileName, &TText16()), &result.m_data));
 	s_currentScope->add(result);
 	return result;
 }

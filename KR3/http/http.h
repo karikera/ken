@@ -6,9 +6,9 @@
 #include <KR3/io/selfbufferedstream.h>
 #include <KR3/data/crypt.h>
 #include <KR3/net/socket.h>
-#include <KR3/util/httpstatus.h>
+#include <KR3/http/httpstatus.h>
 
-#include "common/header.h"
+#include "header.h"
 
 
 namespace kr

@@ -16,6 +16,7 @@ namespace kr
 		class Data:public Referencable<Data>
 		{
 		public:
+			virtual ~Data() noexcept;
 			KRJS_EXPORT JsValue create() noexcept;
 			virtual JsValue call(const JsArguments & args) throws(JsException) = 0;
 		};
@@ -27,7 +28,10 @@ namespace kr
 
 		public:
 			LambdaWrap(LAMBDA lambda) noexcept
-				:m_lambda(lambda)
+				:m_lambda(move(lambda))
+			{
+			}
+			~LambdaWrap() noexcept
 			{
 			}
 			virtual JsValue call(const JsArguments & args) throws(JsException) override
@@ -106,7 +110,7 @@ namespace kr
 		// 사용 가능한 타입: bool, int, float, double, std::wstring
 		template <typename LAMBDA> JsFunctionT(LAMBDA func) noexcept
 		{
-			auto lambda = [func](const JsArguments & args)->JsValue
+			auto lambda = [func = move(func)](const JsArguments & args)->JsValue
 			{
 				return JsMeta<LAMBDA>::Call::call(func, args);
 			};
@@ -135,5 +139,5 @@ kr::JsValue kr::JsFunction::make(LAMBDA func) noexcept
 template <typename LAMBDA>
 kr::JsValue kr::JsFunction::makeT(LAMBDA func) noexcept
 {
-	return typename JsMeta<LAMBDA>::ccfunc(func).create();
+	return typename JsMeta<LAMBDA>::ccfunc(move(func)).create();
 }

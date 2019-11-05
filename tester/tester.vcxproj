@@ -177,9 +177,6 @@
     <ProjectReference Include="..\KRApp\KRApp.vcxproj">
       <Project>{de83e736-47ac-475f-9db8-8ddf22b70bf5}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRHttp\KRHttp.vcxproj">
-      <Project>{d7aa1504-0276-4ef1-9647-753c57ad3df3}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\KRNew\KRNew.vcxproj">
       <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
     </ProjectReference>

@@ -132,8 +132,10 @@ namespace kr
 			using ThreadRoutine = unsigned long (CT_STDCALL *)(void* lpThreadParameter);
 			
 			static Process * open(ProcessId id) noexcept;
-			static Pair execute(pstr strCommand, pcstr strPath = nullptr, ProcessOptions opts = ProcessOptions()) noexcept;
-			static Pair execute(pstr16 strCommand, pcstr16 strPath = nullptr, ProcessOptions opts = ProcessOptions()) noexcept;
+			static Pair execute(pstr command, pcstr currentDirectory = nullptr, ProcessOptions opts = ProcessOptions()) noexcept;
+			static Pair execute(pcstr application, pstr command, pcstr currentDirectory, ProcessOptions opts = ProcessOptions()) noexcept;
+			static Pair execute(pstr16 command, pcstr16 currentDirectory = nullptr, ProcessOptions opts = ProcessOptions()) noexcept;
+			static Pair execute(pcstr16 application, pstr16 command, pcstr16 currentDirectory, ProcessOptions opts = ProcessOptions()) noexcept;
 
 			bool terminate() noexcept;
 			Module * getFirstModule() noexcept;

@@ -369,11 +369,11 @@ namespace kr
 		return (Utf16ToUtf8)tx;
 	}
 	
-	inline Text toAcp(Text tx) noexcept
+	inline Text toAnsi(Text tx) noexcept
 	{
 		return tx;
 	}
-	inline Utf16ToAnsi toAcp(Text16 tx) noexcept
+	inline Utf16ToAnsi toAnsi(Text16 tx) noexcept
 	{
 		return (Utf16ToAnsi)tx;
 	}

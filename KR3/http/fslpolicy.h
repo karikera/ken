@@ -2,6 +2,7 @@
 
 #include <KR3/net/socket.h>
 #include <KR3/net/mtnet.h>
+#include <KR3/main.h>
 
 namespace kr
 {

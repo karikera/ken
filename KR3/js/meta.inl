@@ -8,7 +8,7 @@ template <size_t ... idx>
 template <typename FUNC>
 kr::JsValue kr::JsMetaLambda<RET(CLASS::*)(ARGS ...)>
 	::numunwrap<kr::meta::numlist<idx ...>>
-	::call(FUNC fn, const JsArguments & args) throws(JsException)
+	::call(const FUNC& fn, const JsArguments & args) throws(JsException)
 {
 	size_t n = args.size();
 	return fn((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);

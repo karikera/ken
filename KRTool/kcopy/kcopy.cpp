@@ -2,19 +2,12 @@
 #include <KR3/fs/installer.h>
 #include <KR3/fs/file.h>
 #include <KR3/util/path.h>
+#include <KR3/util/parameter.h>
 #include <iostream>
 
-using namespace kr;
+#include <KR3/wl/windows.h>
 
-Text16 unwrapQuot(char16 * text) noexcept
-{
-	if (*text == '\"') text++;
-	char16 * textend = mem16::find(text, '\0') - 1;
-	if (*textend == '\"') *textend-- = '\0';
-	if (*textend == '\\') *textend-- = '\\';
-	else if (*textend == '/') *textend-- = '/';
-	return Text16(text, textend+1);
-}
+using namespace kr;
 
 int CT_CDECL wmain(int argn, char16 ** args)
 {
@@ -28,19 +21,25 @@ int CT_CDECL wmain(int argn, char16 ** args)
 	Text16 src = unwrapQuot(args[1]);
 	Text16 dest = unwrapQuot(args[2]);
 	
-	if (File::isDirectory(src.data()))
+	int error;
+
+	if (path16.endsWithSeperator(src) || File::isDirectory(src.data()))
 	{
 		if (argn >= 4)
 		{
 			Text16 regexp = unwrapQuot(args[3]);
 			Installer installer(dest, src, regexp);
 			installer.all();
+			if (installer.m_errorCount != 0) error = GetLastError();
+			else error = S_OK;
 			ucout << u"Copied " << installer.m_copyCount << u", Failed " << installer.m_errorCount << u", Latest " << installer.m_skipCount << endl;
 		}
 		else
 		{
 			Installer installer(dest, src);
 			installer.all();
+			if (installer.m_errorCount != 0) error = GetLastError();
+			else error = S_OK;
 			ucout << u"Copied " << installer.m_copyCount << u", Failed " << installer.m_errorCount << u", Latest " << installer.m_skipCount << endl;
 		}
 	}
@@ -48,34 +47,55 @@ int CT_CDECL wmain(int argn, char16 ** args)
 	{
 		TSZ16 ndest;
 
-		if (File::isDirectory(dest.data()))
+		if (path16.endsWithSeperator(dest))
 		{
-			ndest << dest << u'\\' << path16.basename(src);
-			ndest.c_str();
+			ndest << dest << path16.basename(src) << nullterm;
 			dest = ndest;
 		}
-		int latest = 0;
-		int errored = 0;
-		int copyed = 0;
+		else if (File::isDirectory(dest.data()))
+		{
+			ndest << dest << u'\\' << path16.basename(src) << nullterm;
+			dest = ndest;
+		}
 		try
 		{
 			filetime_t src_modified = File::getLastModifiedTime(src.data());
 			filetime_t dest_modified = File::getLastModifiedTime(dest.data());
 			if (src_modified > dest_modified) throw 0;
-			latest++;
+			ucout << path16.basename(src) << u" latest" << endl;
+
+			error = S_OK;
 		}
 		catch (...)
 		{
 			if (File::copy(dest.data(), src.data()))
 			{
-				copyed++;
+				ucout << path16.basename(src) << u" copied" << endl;
+				error = S_OK;
 			}
 			else
 			{
-				errored++;
+				error = GetLastError();
+				if (error != ERROR_PATH_NOT_FOUND)
+				{
+					ucerr << path16.basename(src) << u" failed" << endl;
+				}
+				else
+				{
+					File::createFullDirectory(path16.dirname(dest));
+					if (File::copy(dest.data(), src.data()))
+					{
+						ucout << path16.basename(src) << u" copied" << endl;
+						error = S_OK;
+					}
+					else
+					{
+						ucerr << path16.basename(src) << u" failed" << endl;
+						error = GetLastError();
+					}
+				}
 			}
 		}
-		
-		ucout << u"Copied " << copyed << u", Failed " << errored << u", Latest " << latest << endl;
 	}
+	return error;
 }

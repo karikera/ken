@@ -156,10 +156,8 @@ namespace kr
 			void $write(const Component* _data, size_t _size)
 			{
 				size_t _nsize = Encoder::length(View<Component>(_data, _size));
-				WriteLock<Base> lockData(_nsize);
-				lockData.lock(base());
+				WriteLock<Base> lockData(base(), _nsize);
 				Encoder::encode(&ArrayWriter<Component>(lockData.begin(), _nsize), &View<Component>(_data, _size));
-				lockData.unlock(base());
 			}
 		};
 	}

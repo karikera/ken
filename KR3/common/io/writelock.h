@@ -14,49 +14,42 @@ namespace kr
 		class WriteLockImpl<S, false, T, sz, nullterm>
 		{
 		private:
+			S* const m_stream;
 			T m_buffer[sz + (nullterm ? 1 : 0)];
 
 		public:
-			WriteLockImpl() noexcept
+			WriteLockImpl(S* stream) noexcept
+				:m_stream(stream)
 			{
+			}
+			~WriteLockImpl()
+			{
+				m_stream->write(m_buffer, sz);
 			}
 			T* begin() noexcept
 			{
 				return m_buffer;
-			}
-			size_t lock(S * stream) throws(NotEnoughSpaceException)
-			{
-			}
-			void unlock(S* stream) throws(NotEnoughSpaceException)
-			{
-				stream->write(m_buffer, sz);
 			}
 		};;
 		template <typename S, typename T, bool nullterm>
 		class WriteLockImpl<S, false, T, (size_t)-1, nullterm>
 		{
 		private:
+			S* const m_stream;
 			TmpArray<T> m_buffer;
 
 		public:
-			WriteLockImpl(size_t sz) noexcept
-				: m_buffer(sz,sz +(nullterm ? 1 : 0))
+			WriteLockImpl(S* stream, size_t sz) noexcept
+				: m_stream(stream), m_buffer(sz,sz +(nullterm ? 1 : 0))
 			{
 			}
-			~WriteLockImpl() noexcept
+			~WriteLockImpl()
 			{
+				m_stream->write(m_buffer.begin(), m_buffer.size());
 			}
 			T* begin() noexcept
 			{
 				return m_buffer.begin();
-			}
-			size_t lock(S * stream) throws(NotEnoughSpaceException)
-			{
-				return m_buffer.size();
-			}
-			void unlock(S * stream) throws(NotEnoughSpaceException)
-			{
-				stream->write(m_buffer.begin(), m_buffer.size());
 			}
 		};;
 		template <typename S, typename T, size_t sz, bool nullterm> 
@@ -67,21 +60,17 @@ namespace kr
 
 		public:
 
-			WriteLockImpl() noexcept
+			WriteLockImpl(S * stream) noexcept
+			{
+				stream->padding(sz + (nullterm ? 1 : 0));
+				m_ptr = stream->prepare(sz);
+			}
+			~WriteLockImpl()
 			{
 			}
 			T* begin() noexcept
 			{
 				return m_ptr;
-			}
-			size_t lock(S * stream) throws(NotEnoughSpaceException)
-			{
-				stream->padding(sz+(nullterm ? 1 : 0));
-				m_ptr = stream->prepare(sz);
-				return sz;
-			}
-			void unlock(S * stream) throws(NotEnoughSpaceException)
-			{
 			}
 		};;
 		template <typename S, typename T, bool nullterm> 
@@ -92,31 +81,27 @@ namespace kr
 			size_t m_size;
 
 		public:
-			WriteLockImpl(size_t sz) noexcept
+			WriteLockImpl(S* stream, size_t sz) noexcept
 			{
 				m_size = sz;
+				stream->padding(m_size + (nullterm ? 1 : 0));
+				m_ptr = stream->prepare(m_size);
+			}
+			~WriteLockImpl()
+			{
 			}
 			T* begin() noexcept
 			{
 				return m_ptr;
 			}
-			size_t lock(S * stream) throws(NotEnoughSpaceException)
-			{
-				stream->padding(m_size + (nullterm ? 1 : 0));
-				m_ptr = stream->prepare(m_size);
-				return m_size;
-			}
-			void unlock(S * stream) throws(NotEnoughSpaceException)
-			{
-			}
 		};;
 	}
 
 	template <class DATA, size_t size, bool nullterm> class WriteLock
-		:public _pri_::WriteLockImpl<DATA, DATA::accessable, typename DATA::Component, size, nullterm>
+		:public _pri_::WriteLockImpl<DATA, DATA::accessable, typename DATA::InternalComponent, size, nullterm>
 	{
 		static_assert(IsOStream<DATA>::value, "DATA is not OutStream");
-		using Super = _pri_::WriteLockImpl<DATA, DATA::accessable, typename DATA::Component, size, nullterm>;
+		using Super = _pri_::WriteLockImpl<DATA, DATA::accessable, typename DATA::InternalComponent, size, nullterm>;
 	public:
 		using Super::Super;
 		using Super::begin;

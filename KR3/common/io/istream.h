@@ -33,6 +33,32 @@ namespace kr
 			}
 		};
 		template <typename T>
+		class PointableContainer<Keep<T> >
+		{
+		private:
+			Keep<T> m_data;
+
+		public:
+			using Component = typename T::Component;
+
+			PointableContainer(Keep<T>&& data) noexcept
+				:m_data(move(data))
+			{
+			}
+			PointableContainer(const Keep<T>& data) noexcept
+				:m_data(data)
+			{
+			}
+			const T* operator ->() const noexcept
+			{
+				return m_data;
+			}
+			T* operator ->() noexcept
+			{
+				return m_data;
+			}
+		};
+		template <typename T>
 		class PointableContainer<T*>
 		{
 		private:

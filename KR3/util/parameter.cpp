@@ -334,5 +334,51 @@ View<Component> ParameterT<Component>::_checkShortCut(Component shortCut) throws
 	}
 }
 
+template <typename C>
+inline View<C> _readArgument(View<C>& line) noexcept
+{
+	if (line.empty()) return line;
+	if (*line == '"')
+	{
+		line++;
+		View<C> out = line.readwith_e('"');
+		line.skipspace();
+		return out;
+	}
+	else
+	{
+		View<C> out = line.readwith_e(' ');
+		line.skipspace();
+		return out;
+	}
+}
+template <typename C>
+inline View<C> _unwrapQuot(C* text) noexcept
+{
+	if (*text == '\"') text++;
+	C* textend = memt<sizeof(C)>::find(text, (C)'\0') - 1;
+	if (*textend == '\"') *textend-- = '\0';
+	return View<C>(text, textend + 1);
+}
+
+Text kr::readArgument(Text& line) noexcept
+{
+	return _readArgument(line);
+}
+Text16 kr::readArgument(Text16& line) noexcept
+{
+	return _readArgument(line);
+}
+
+Text kr::unwrapQuot(char* text) noexcept
+{
+	return _unwrapQuot(text);
+}
+Text16 kr::unwrapQuot(char16* text) noexcept
+{
+	return _unwrapQuot(text);
+}
+
+
 DEFINE_FULL_CHAR_CLASS(kr::ParameterTokenizer);
 DEFINE_FULL_CHAR_CLASS(kr::Parameter);

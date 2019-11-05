@@ -5,9 +5,9 @@
 #include <KR3/net/mtnet.h>
 #include <KR3/mt/thread.h>
 #include <KR3/data/map.h>
-#include <KR3/util/httpstatus.h>
+#include <KR3/http/httpstatus.h>
 
-#include "common/header.h"
+#include "header.h"
 
 namespace kr
 {

@@ -76,7 +76,7 @@ ThreadPoolWinImpl* ThreadPoolWinImpl::getInstance() noexcept
 void ThreadPoolWinImpl::attach(Task* work) noexcept
 {
 	if (!QueueUserWorkItem([](void* context) {
-			auto* work = (Task*)context;
+			Must<Task> work = (Task*)context;
 			work->call();
 			return (DWORD)0;
 		}, work, 0))

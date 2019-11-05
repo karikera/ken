@@ -1,5 +1,4 @@
-#include <KR3/main.h>
-
+#include "stdafx.h"
 #include "httpd.h"
 
 #include <KR3/fs/file.h>

@@ -1,4 +1,4 @@
-#include <KR3/main.h>
+#include "stdafx.h"
 
 #ifdef NO_USE_SOCKET
 

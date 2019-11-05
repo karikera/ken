@@ -146,7 +146,8 @@ bool File::createFullDirectory(Text16 str) noexcept
 		{
 			if (nstr[1] == ':' && path16.isSeperator(nstr[2]))
 			{
-				nstr+=3;
+				temp << nstr.cut(3);
+				nstr += 3;
 			}
 		}
 		else

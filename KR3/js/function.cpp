@@ -4,6 +4,10 @@
 using namespace kr;
 
 
+JsFunction::Data::~Data() noexcept
+{
+}
+
 JsFunction::JsFunction() noexcept
 {
 	m_data = nullptr;
