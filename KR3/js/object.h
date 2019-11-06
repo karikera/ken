@@ -132,7 +132,7 @@ namespace kr
 
 	ATTR_ANY _pri_::JsClassInfo JsObjectT<JsObject>::s_classInfo(JsObject::className, -1,
 		[](const JsArguments& args) { return _new JsObject(args); }, 
-		[]{}, true);
+		[]{}, false);
 
 	ATTR_ANY JsClassT<JsObject>& JsObjectT<JsObject>::classObject = *s_classInfo.get<JsObject>();
 

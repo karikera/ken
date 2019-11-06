@@ -85,7 +85,7 @@ Installer::Result Installer::copy(pcstr16 dest, pcstr16 src, Text16 msg) noexcep
 		time_t dtime = File::getLastModifiedTime(dest);
 		if (stime <= dtime)
 		{
-			return Copied;
+			return Skipped;
 		}
 	}
 	catch (Error&)
@@ -101,7 +101,7 @@ Installer::Result Installer::copy(pcstr16 dest, pcstr16 src, Text16 msg) noexcep
 	}
 	else
 	{
-		return Skipped;
+		return Copied;
 	}
 }
 

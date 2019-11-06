@@ -267,7 +267,7 @@ namespace kr
 				return out;
 			}
 			
-			static JsRawData createClass(JsRawData name, JsClass::CTOR ctor, JsPropertyIdRef prototypeId) noexcept
+			static JsRawData createClass(JsRawData name, JsClass::CTOR ctor, JsPropertyIdRef prototypeId, JsPropertyIdRef constructorId) noexcept
 			{
 				JsRawData cls;
 				jsassert(JsCreateNamedFunction(name.m_data, InternalTools::nativeConstructorCallback, ctor, &cls.m_data));
@@ -277,15 +277,20 @@ namespace kr
 				jsassert(JsCreateObject(&prototype.m_data));
 				s_currentScope->add(prototype);
 				jsassert(JsSetProperty(cls.m_data, prototypeId, prototype.m_data, true));
+				jsassert(JsSetProperty(prototype.m_data, constructorId, cls.m_data, true));
 				return cls;
 			}
-			static void extends(JsRawData child, JsRawData parent, JsPropertyIdRef prototypeId, JsPropertyIdRef constructorId) noexcept
+			static void extends(JsRawData child, JsRawData parent, JsPropertyIdRef prototypeId) noexcept
 			{
-				JsRawData prototype;
-				jsassert(JsGetProperty(parent.m_data, prototypeId, &prototype.m_data));
-				s_currentScope->add(prototype);
-				jsassert(JsSetProperty(child.m_data, prototypeId, prototype.m_data, true));
-				jsassert(JsSetProperty(child.m_data, constructorId, parent.m_data, true));
+				JsRawData parentPrototype;
+				JsRawData childPrototype;
+				jsassert(JsGetProperty(parent.m_data, prototypeId, &parentPrototype.m_data));
+				s_currentScope->add(parentPrototype);
+				jsassert(JsGetProperty(child.m_data, prototypeId, &childPrototype.m_data));
+				s_currentScope->add(childPrototype);
+				
+				jsassert(JsSetPrototype(child.m_data, parent.m_data));
+				jsassert(JsSetPrototype(childPrototype.m_data, parentPrototype.m_data));
 			}
 			static ATTR_NORETURN void throwException(JsRawException exception) throws(JsException)
 			{
@@ -618,9 +623,23 @@ kr::JsObjectT<kr::JsObject>::JsObjectT(const JsArguments& args) throws(JsObjectT
 }
 
 // property id
+kr::JsPropertyId::JsPropertyId() noexcept
+	:m_data(JS_INVALID_REFERENCE)
+{
+}
 kr::JsPropertyId::JsPropertyId(pcstr16 name) noexcept
 {
 	jsassert(JsGetPropertyIdFromName(wide(name), &m_data));
+}
+kr::JsPropertyId::JsPropertyId(const JsPropertyId& name) noexcept
+	:m_data(name.m_data)
+{
+	JsAddRef(m_data, nullptr);
+}
+kr::JsPropertyId::JsPropertyId(JsPropertyId&& name) noexcept
+	:m_data(move(name.m_data))
+{
+	name.m_data = JS_INVALID_REFERENCE;
 }
 kr::JsPropertyId::JsPropertyId(const JsRawPropertyId& name) noexcept
 	:m_data(name)
@@ -684,9 +703,9 @@ kr::JsClass kr::JsClass::_createChild(Text16 _name, CTOR ctor) const noexcept
 {
 	JsScope scope;
 	JsRawData name(_name);
-	JsRawData cls = InternalTools::createClass(name,  ctor, s_prototypeId);
+	JsRawData cls = InternalTools::createClass(name,  ctor, s_prototypeId, s_constructorId);
 	scope.add(cls);
-	InternalTools::extends(cls, *this, s_prototypeId, s_constructorId);
+	InternalTools::extends(cls, *this, s_prototypeId);
 	return scope.returnValue(cls);
 }
 void kr::JsClass::setField(Text16 _name, const JsValue &_v) throws(JsException)
@@ -945,14 +964,14 @@ kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 		{
 			JsRawData* cls = m_classes.prepare(1);
 			JsRawData name(info.m_name);
-			*cls = InternalTools::createClass(name, info.m_ctor, m_prototypeId);
+			*cls = InternalTools::createClass(name, info.m_ctor, m_prototypeId, s_constructorId);
 			*info.get() = *cls;
 			if (info.m_isGlobal)
 			{
 				jsassert(JsSetIndexedProperty(m_global, name.m_data, cls->m_data));
 			}
 
-			if (info.m_parentIndex != -1) InternalTools::extends(*cls, m_classes[info.m_parentIndex], m_prototypeId, m_constructorId);
+			if (info.m_parentIndex != -1) InternalTools::extends(*cls, m_classes[info.m_parentIndex], m_prototypeId);
 			info.m_initMethods();
 		}
 	}

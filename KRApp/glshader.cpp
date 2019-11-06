@@ -1,5 +1,5 @@
 #include "glshader.h"
-#include <KR3/util/fetch.h>
+#include <KR3/http/fetch.h>
 
 using namespace kr;
 

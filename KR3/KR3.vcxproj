@@ -354,6 +354,7 @@
     <ClCompile Include="js\news.cpp" />
     <ClCompile Include="js\object.cpp" />
     <ClCompile Include="js\persistent.cpp" />
+    <ClCompile Include="js\propertyid.cpp" />
     <ClCompile Include="js\rawdata.cpp" />
     <ClCompile Include="js\string.cpp" />
     <ClCompile Include="js\value.cpp" />

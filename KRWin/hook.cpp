@@ -404,7 +404,7 @@ void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, in
 	{
 		write(0x24);
 	}
-	write(offset);
+	writeas(offset);
 }
 void CodeWriter::sub(Register dest, char chr) noexcept
 {

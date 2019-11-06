@@ -1019,6 +1019,9 @@
     <ClCompile Include="http\fetch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="js\propertyid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="math\coord\vector_data.inl">

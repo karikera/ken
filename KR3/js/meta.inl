@@ -54,7 +54,7 @@ kr::JsValue kr::JsMeta<RET(CLASS::*)(ARGS ...)>
 	::call(RET(CLASS::*fn)(ARGS ...), const JsArguments & args) throws(JsException)
 {
 	CLASS * _this = args.getThis().getNativeObject<CLASS>();
-	if (_this == nullptr) throw JsException(u"Invalid this object");
+	if (_this == nullptr) throw JsException(TSZ16() << u"this is not " << CLASS::className);
 	size_t n = args.size();
 	return (_this->*fn)((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
 }
@@ -66,7 +66,7 @@ kr::JsValue kr::JsMeta<void(CLASS::*)(ARGS ...)>
 	::call(void(CLASS::*fn)(ARGS ...), const JsArguments & args) throws(JsException)
 {
 	CLASS * _this = args.getThis().getNativeObject<CLASS>();
-	if (_this == nullptr) throw JsException(u"Invalid this object");
+	if (_this == nullptr) throw JsException(TSZ16() << u"this is not " << CLASS::className);
 	size_t n = args.size();
 	(_this->*fn)((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
 	return undefined;
