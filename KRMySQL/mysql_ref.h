@@ -9,6 +9,8 @@ typedef struct st_mysql_stmt MYSQL_STMT;
 typedef char		my_bool;
 typedef struct st_mysql MYSQL;
 typedef struct st_mysql_field MYSQL_FIELD;
+typedef struct st_mysql_res MYSQL_RES;
+typedef char** MYSQL_ROW;
 
 enum enum_field_types { MYSQL_TYPE_DECIMAL, MYSQL_TYPE_TINY,
                         MYSQL_TYPE_SHORT,  MYSQL_TYPE_LONG,

@@ -11,16 +11,24 @@ namespace kr
 	public:
 		Parser(io::VIStream<char> is) noexcept;
 
-		bool isNextWhiteSpace();
-		void skipWhiteSpace();
+		bool isNextWhiteSpace() throws(EofException);
+		void skipWhiteSpace() throws(...);
+		void skipToY(Text needle) throws(EofException);
+		void skipTo(Text needle) throws(EofException);
+		void skipTo(char needle) throws(EofException);
+		void skipToLine() throws(EofException);
 		void mustWhiteSpace() throws(InvalidSourceException);
-		int getLine() noexcept;
+		size_t getLine() noexcept;
+		void skip(size_t sz) throws(EofException);
 		template <typename _Derived, typename _Info>
-		size_t readToSpace(OutStream<_Derived, char, _Info> * os) throws(NotEnoughSpaceException);
-		TSZ readToSpace();
+		size_t readToSpace(OutStream<_Derived, char, _Info> * os) throws(EofException);
+		TSZ readToSpace() throws(EofException);
+		template <typename _Derived, typename _Info>
+		size_t readToLine(OutStream<_Derived, char, _Info>* os) throws(EofException);
+		TSZ readToLine() throws(EofException);
 
 		template <typename _Derived, typename _Info>
-		void readWithUnslash(OutStream<_Derived, char, _Info> * dest, char needle) throws(EofException, NotEnoughSpaceException)
+		void readWithUnslash(OutStream<_Derived, char, _Info> * dest, char needle) throws(EofException)
 		{
 			for (;;)
 			{
@@ -28,7 +36,7 @@ namespace kr
 					const char needles[] = { (char)'\\', needle };
 					pcstr finded = text.find_y(Text(needles, countof(needles)));
 					if (finded != nullptr)
-						m_line += (int)text.cut(finded).count('\n');
+						m_line += text.cut(finded).count('\n');
 					return finded;
 				});
 				char findedchr = m_is.read();
@@ -40,20 +48,25 @@ namespace kr
 				else return;
 			}
 		}
-		TSZ readWithUnslash(char needle);
-		void skipWithUnslash(char needle);
+		TSZ readWithUnslash(char needle) throws(EofException);
+		void skipWithUnslash(char needle) throws(EofException);
 
 		io::BufferedIStream<io::VIStream<char>, true> * is() noexcept;
 		io::BufferedIStream<io::VIStream<char>, true> * operator->() noexcept;
 
 	protected:
 		io::BufferedIStream<io::VIStream<char>, true> m_is;
-		int m_line;
+		size_t m_line;
 	};
 
 	template <typename _Derived, typename _Info>
-	size_t Parser::readToSpace(OutStream<_Derived, char, _Info> * os) throws(NotEnoughSpaceException)
+	size_t Parser::readToSpace(OutStream<_Derived, char, _Info> * os) throws(EofException)
 	{
 		return m_is.readto_y(os, Text::WHITE_SPACE);
+	}
+	template <typename _Derived, typename _Info>
+	size_t Parser::readToLine(OutStream<_Derived, char, _Info>* os) throws(EofException)
+	{
+		return m_is.readto_y(os, "\r\n");
 	}
 }

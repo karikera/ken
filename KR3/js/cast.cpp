@@ -35,19 +35,19 @@ Text16 _pri_::JsCast::toInner(const TText16& _value) noexcept
 {
 	return _value;
 }
-JsRawData _pri_::JsCast::toInner(JsNewObject_t) noexcept
+JsObjectRawData _pri_::JsCast::toInner(JsNewObject_t) noexcept
 {
 	return (JsRawData)JsNewObject;
 }
-JsRawData _pri_::JsCast::toInner(JsNewArray arr) noexcept
+JsObjectRawData _pri_::JsCast::toInner(JsNewArray arr) noexcept
 {
 	return (JsRawData)arr;
 }
-JsRawData _pri_::JsCast::toInner(JsNewArrayBuffer arr) noexcept
+JsArrayBufferRawData _pri_::JsCast::toInner(JsNewArrayBuffer arr) noexcept
 {
 	return (JsRawData)arr;
 }
-JsRawData _pri_::JsCast::toInner(JsNewTypedArray arr) noexcept
+JsTypedArrayRawData _pri_::JsCast::toInner(JsNewTypedArray arr) noexcept
 {
 	return (JsRawData)arr;
 }
@@ -55,9 +55,9 @@ JsRawData _pri_::JsCast::toInner(const JsPersistent& value) noexcept
 {
 	return (JsRawData)value;
 }
-JsRawData _pri_::JsCast::toInner(JsObject* object) noexcept
+JsObjectRawData _pri_::JsCast::toInner(JsObject* object) noexcept
 {
-	return *object;
+	return (JsRawData)object->m_data;
 }
 
 template <>

@@ -72,7 +72,7 @@
       </CustomListItems>
     </Expand>
   </Type>
-  <Type Name="kr::ary::data::AccessableData&lt;*,*&gt;">
+  <Type Name="kr::ary::AccessableData&lt;*,*&gt;">
     <DisplayString Condition="m_begin != 0">{m_begin,[m_end-m_begin]}</DisplayString>
     <DisplayString Condition="m_begin == 0">null</DisplayString>
     <StringView Condition="m_begin != 0">m_begin,[m_end-m_begin]</StringView>
@@ -84,7 +84,7 @@
       </ArrayItems>
     </Expand>
   </Type>
-  <Type Name="kr::ary::data::ReadableData&lt;*,*&gt;">
+  <Type Name="kr::ary::ReadableData&lt;*,*&gt;">
     <DisplayString Condition="m_begin != 0">{m_begin,[m_end-m_begin]}</DisplayString>
     <DisplayString Condition="m_begin == 0">null</DisplayString>
     <StringView Condition="m_begin != 0">m_begin,[m_end-m_begin]</StringView>
@@ -96,7 +96,7 @@
       </ArrayItems>
     </Expand>
   </Type>
-  <Type Name="kr::ary::data::AllocatedForm&lt;*,*,*&gt;">
+  <Type Name="kr::ary::AllocatedForm&lt;*,*,*&gt;">
     <DisplayString Condition="(size_t*)m_begin != ((size_t*)&amp;kr::_pri_::ZERO_MEMORY + 1)">{m_begin,[(((size_t*)m_begin)[-1])]}</DisplayString>
     <DisplayString Condition="(size_t*)m_begin == ((size_t*)&amp;kr::_pri_::ZERO_MEMORY + 1)">null</DisplayString>
     <StringView Condition="(size_t*)m_begin != ((size_t*)&amp;kr::_pri_::ZERO_MEMORY + 1)">m_begin,[(((size_t*)m_begin)[-1])]</StringView>
@@ -108,7 +108,7 @@
       </ArrayItems>
     </Expand>
   </Type>
-  <Type Name="kr::ary::data::BufferedForm&lt;*,*,*&gt;">
+  <Type Name="kr::ary::BufferedForm&lt;*,*,*&gt;">
     <DisplayString>{($T2*)m_buffer,[m_size]}</DisplayString>
     <StringView>($T2*)m_buffer,[m_size]</StringView>
     <Expand HideRawView="true">

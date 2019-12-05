@@ -25,10 +25,13 @@ OVERLAPPED* IOState::_overlapped() noexcept
 	return (OVERLAPPED*)this;
 }
 
+#pragma warning(push)
+#pragma warning(disable:26495)
 DirectoryWatcher::DirectoryWatcher() noexcept
 {
 	m_dir = nullptr;
 }
+#pragma warning(pop)
 DirectoryWatcher::~DirectoryWatcher() noexcept
 {
 	_assert(m_dir == nullptr);
@@ -73,15 +76,15 @@ void DirectoryWatcher::_request() noexcept
 
 					switch (pfni->Action)
 					{
-					case FILE_ACTION_ADDED: _this->onCreate(filename); break;
-					case FILE_ACTION_REMOVED: _this->onDelete(filename); break;
+					case FILE_ACTION_ADDED: _this->onCreated(filename); break;
+					case FILE_ACTION_REMOVED: _this->onDeleted(filename); break;
 					case FILE_ACTION_MODIFIED: _this->onModified(filename); break;
 					case FILE_ACTION_RENAMED_OLD_NAME:
 						_this->m_oldfilename.clear();
 						_this->m_oldfilename << filename;
 						break;
 					case FILE_ACTION_RENAMED_NEW_NAME:
-						_this->onRename(_this->m_oldfilename, filename);
+						_this->onRenamed(filename, _this->m_oldfilename);
 						break;
 					}
 

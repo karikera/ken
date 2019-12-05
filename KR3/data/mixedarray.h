@@ -57,7 +57,7 @@ namespace kr
 			_new((TYPE*)dest) TYPE();
 		}
 		template <typename LAMBDA>
-		void foreach(LAMBDA lambda) noexcept
+		void foreach(LAMBDA &&lambda) noexcept
 		{
 			byte * src = m_buffer;
 			byte * send = m_buffer + m_size;
@@ -113,7 +113,7 @@ namespace kr
 
 			foreach([&](auto * src)
 			{
-				using TYPE = std::remove_pointer_t<decltype(src)>;
+				using TYPE = remove_pointer_t<decltype(src)>;
 				dword code = (dword)types_t::index_of<TYPE>::value;
 				*(dword*)dest = code;
 				dest += sizeof(dword);

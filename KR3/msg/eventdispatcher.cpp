@@ -136,7 +136,7 @@ void EventDispatcher::_remove(DispatchedEvent * event) noexcept
 		DispatchedEvent *& dptr = m_dispatched[idx];
 		DispatchedEvent * old = dptr;
 		dptr = m_dispatched[count - 1];
-		m_events.pick(idx);
+		m_events.pick(idx+1);
 	}
 
 	m_insert.leave();

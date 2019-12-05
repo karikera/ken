@@ -9,7 +9,8 @@ namespace kr
 	class TaskQueue:public TaskLambdaPost<TaskQueue>
 	{
 	public:
-		void process() noexcept;
+		// 받은 Task에서 예외를 던지는걸 고려한다
+		void process() throws(...);
 		void wait() noexcept;
 		void wake() noexcept;
 

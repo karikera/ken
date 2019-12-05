@@ -82,14 +82,14 @@ namespace test
 				AText dest;
 				Process process(Process::Shell, u"echo for test");
 				io::BufferedIStream<Process> is(&process);
-				dest.passThrough(&is);
+				dest << is.readAll();
 				Assert::AreEqual(dest.c_str(), "for test\r\n");
 			}
 
 			{
 				Process process(Process::Shell, u"dir");
 				io::BufferedIStream<Process> is(&process);
-				cout.passThrough(&is);
+				cout << is.readAll();
 			}
 		}
 

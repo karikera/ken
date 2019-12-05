@@ -37,9 +37,9 @@ namespace kr
 		void start() noexcept;
 		bool closed() noexcept;
 		template <typename LAMBDA>
-		bool postL(LAMBDA lambda)
+		bool postL(LAMBDA &&lambda)
 		{
-			return m_thread->post(lambda);
+			return m_thread->post(forward<LAMBDA>(lambda));
 		}
 		void quit(int exitCode) noexcept;
 		void join() noexcept;

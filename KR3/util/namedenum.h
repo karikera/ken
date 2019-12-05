@@ -30,10 +30,10 @@ namespace kr
 		};
 	}
 	template <typename ENUM>
-	class EnumClass:public Bufferable<EnumClass<ENUM>, BufferInfo<char, false, false, true, true>>
+	class EnumClass:public Bufferable<EnumClass<ENUM>, BufferInfo<char, method::Memory, true, true>>
 	{
 	public:
-		EnumClass() noexcept = default;
+		EnumClass() = default;
 		inline EnumClass(ENUM value) noexcept;
 		inline operator ENUM() const noexcept;
 		inline Text getText() const noexcept;

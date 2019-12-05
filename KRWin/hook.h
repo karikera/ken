@@ -140,11 +140,8 @@ namespace kr
 			RSP,
 			RBP,
 			RSI,
-			RDI
-		};
+			RDI,
 
-		enum Register2
-		{
 			R8,
 			R9,
 			R10,
@@ -160,6 +157,20 @@ namespace kr
 			QwordPtr
 		};
 
+		enum class BitType
+		{
+			Byte,
+			Full,
+		};
+
+		enum class AccessType
+		{
+			Normal,
+			Write,
+			Read,
+			Lea,
+		};
+		
 		class CodeWriter :public ArrayWriter<byte>
 		{
 		public:
@@ -172,27 +183,27 @@ namespace kr
 #ifdef _M_X64
 			void mov(Register r, dword to) noexcept;
 			void mov(Register r, qword to) noexcept;
-			void mov(Register2 r, qword to) noexcept;
 			void jump64(void* to, Register r) noexcept;
 			void call64(void* to, Register r) noexcept;
 			void jump(Register r) noexcept;
 			void call(Register r) noexcept;
-			void call(Register2 r) noexcept;
 #endif
 			void push(Register r) noexcept;
 			void pop(Register r) noexcept;
 			void mov(Register dest, Register src) noexcept;
-			void mov(Register dest, Register2 src) noexcept;
-			void mov(Register2 dest, Register src) noexcept;
-			void mov(Register2 dest, Register2 src) noexcept;
-			void movb(Register2 dest, Register2 src) noexcept;
-			void mov(AddressPointerRule address, Register dest, int8_t offset, Register src) noexcept;
-			void mov(Register dest, AddressPointerRule address, Register src, int8_t offset) noexcept;
-			void mov(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept;
+			void movb(Register dest, Register src) noexcept;
+			void movex(BitType bittype, Register reg1, Register reg2, AccessType atype, int32_t offset) noexcept;
+			void mov(AddressPointerRule address, Register dest, Register src) noexcept;
+			void mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept;
+			void mov(Register dest, AddressPointerRule address, Register src, int32_t offset = 0) noexcept;
+			void lea(Register dest, Register src, int32_t offset = 0) noexcept;
 			void sub(Register dest, char chr) noexcept;
 			void add(Register dest, char chr) noexcept;
+			void test(Register dest, Register src) noexcept;
 			void jump(void* to, Register tmp) noexcept;
 			void call(void* to, Register tmp) noexcept;
+			void jz(int32_t offset) noexcept;
+			void jnz(int32_t offset) noexcept;
 			void ret() noexcept;
 
 		};

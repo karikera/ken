@@ -30,4 +30,4 @@ private:
 
 extern AText16 g_filename;
 
-void must(char chr, char must);
+void must(char chr, char must) throws(ErrMessage);

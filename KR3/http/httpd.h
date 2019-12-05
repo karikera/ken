@@ -24,9 +24,9 @@ namespace kr
 		virtual ~Page() noexcept;
 		virtual void process(HttpClient * client) = 0;
 		template <typename LAMBDA>
-		static Page* make(LAMBDA lambda) noexcept
+		static Page* make(LAMBDA &&lambda) noexcept
 		{
-			return _new LambdaPage<LAMBDA>(move(lambda));
+			return _new LambdaPage<decay_t<LAMBDA> >(forward<LAMBDA>(lambda));
 		}
 	private:
 	};
@@ -37,7 +37,12 @@ namespace kr
 	public:
 		LAMBDA m_lambda;
 
-		LambdaPage(LAMBDA lambda) noexcept
+		LambdaPage(const LAMBDA &lambda) noexcept
+			:m_lambda(lambda)
+		{
+		}
+
+		LambdaPage(LAMBDA&& lambda) noexcept
 			:m_lambda(move(lambda))
 		{
 		}
@@ -181,7 +186,7 @@ namespace kr
 	private:
 		void _readHeadLine() throws(ThrowRetry, NotEnoughSpaceException);
 
-		enum State
+		enum class State
 		{
 			ReadHeader,
 			ReadPostData,

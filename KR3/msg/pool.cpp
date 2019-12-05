@@ -6,6 +6,67 @@
 
 using namespace kr;
 
+struct QuitWork :Task
+{
+	void operator ()() override
+	{
+		throw QuitException(0);
+	}
+};
+
+namespace
+{
+	int taskThread(TaskQueue* queue) noexcept
+	{
+		return dump_wrap([queue] {
+			try
+			{
+				for (;;)
+				{
+					queue->process();
+					queue->wait();
+				}
+			}
+			catch (QuitException & quit)
+			{
+				return quit.exitCode;
+			}
+			});
+	}
+}
+
+TaskThread::TaskThread() noexcept
+{
+	m_quited = false;
+	m_thread.create<TaskQueue, taskThread>(this);
+	ondebug(m_thread.setName("KEN TaskThread"));
+}
+TaskThread::~TaskThread() noexcept
+{
+	postQuit();
+	m_thread.join();
+	clearTask(); // 작업이 전부 끝난뒤 지우는 게 낫지 않을까?
+}
+ThreadObject TaskThread::getThreadObject() noexcept
+{
+	return m_thread;
+}
+void TaskThread::postQuit() noexcept
+{
+	if (m_quited) return;
+	attach(_new QuitWork);
+	m_quited = true;
+}
+void TaskThread::attach(Task* task) noexcept
+{
+	if (m_quited)
+	{
+		task->cancel();
+		return;
+	}
+	TaskQueue::attach(task);
+}
+
 ThreadPoolKrImpl::ThreadPoolKrImpl(int cpuCount) noexcept
 {
 	m_threads.resize(cpuCount);
@@ -13,10 +74,9 @@ ThreadPoolKrImpl::ThreadPoolKrImpl(int cpuCount) noexcept
 	uint number = 0;
 	for (ThreadObject & thread : m_threads)
 	{
-		thread.create<ThreadPoolKrImpl, &ThreadPoolKrImpl::_thread>(this);
+		thread.create<TaskQueue, &taskThread>(this);
 		ondebug(thread.setName(TSZ() << "KEN ThreadPoolKrImpl " << decf(number++, 2)));
 	}
-	// QueueUserWorkItem();
 }
 ThreadPoolKrImpl::ThreadPoolKrImpl() noexcept
 	:ThreadPoolKrImpl(getCPUCount())
@@ -24,48 +84,22 @@ ThreadPoolKrImpl::ThreadPoolKrImpl() noexcept
 }
 ThreadPoolKrImpl::~ThreadPoolKrImpl() noexcept
 {
-	struct QuitWork :Task
-	{
-		void operator ()() override
-		{
-			throw QuitException(0);
-		}
-	};
-	clearTask();
-
 	for (ThreadObject thread : m_threads)
 	{
-		QuitWork* work = _new QuitWork;
-		attach(work);
+		attach(_new QuitWork);
 	}
 	for (ThreadObject thread : m_threads)
 	{
 		thread.join();
 	}
+	clearTask(); // 작업이 전부 끝난뒤 지우는 게 낫지 않을까?
+
 	m_threads = nullptr;
 }
 ThreadPoolKrImpl * ThreadPoolKrImpl::getInstance() noexcept
 {
 	static ThreadPoolKrImpl instance;
 	return &instance;
-}
-int ThreadPoolKrImpl::_thread() noexcept
-{
-	return dump_wrap([this] {
-		try
-		{
-			for (;;)
-			{
-				process();
-				wait();
-			}
-		}
-		catch (QuitException & quit)
-		{
-			wake();
-			return quit.exitCode;
-		}
-	});
 }
 
 ThreadPoolWinImpl* ThreadPoolWinImpl::getInstance() noexcept

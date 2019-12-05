@@ -5,11 +5,10 @@
 
 namespace kr
 {
-	enum undefined_t
+	class undefined_t final
 	{
-		undefined
 	};
-
+	static constexpr const undefined_t undefined = undefined_t();
 
 	namespace _pri_
 	{

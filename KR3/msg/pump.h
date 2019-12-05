@@ -45,7 +45,7 @@ namespace kr
 			size_t getRefCount() noexcept;
 
 			template <typename LAMBDA>
-			static Timer * create(timepoint at, LAMBDA lambda) noexcept;
+			static Timer * create(timepoint at, LAMBDA &&lambda) noexcept;
 		protected:
 			virtual void call() = 0;
 
@@ -66,21 +66,21 @@ namespace kr
 		void attach(Timer * newnode) noexcept;
 
 		template <typename LAMBDA>
-		void post(LAMBDA lambda) noexcept
+		void post(LAMBDA &&lambda) noexcept
 		{
-			return attach(Timer::create(timepoint::now(), move(lambda)));
+			return attach(Timer::create(timepoint::now(), forward<LAMBDA>(lambda)));
 		}
 
 		template <typename LAMBDA>
-		void post(timepoint at, LAMBDA lambda) noexcept
+		void post(timepoint at, LAMBDA &&lambda) noexcept
 		{
-			return attach(Timer::create(at, move(lambda)));
+			return attach(Timer::create(at, forward<LAMBDA>(lambda)));
 		}
 
 		template <typename LAMBDA>
-		Timer* makePost(timepoint at, LAMBDA lambda) noexcept
+		Timer* makePost(timepoint at, LAMBDA &&lambda) noexcept
 		{
-			Timer * node = Timer::create(at, move(lambda));
+			Timer * node = Timer::create(at, forward<LAMBDA>(lambda));
 			node->AddRef();
 			if (attach(node))
 			{
@@ -91,15 +91,15 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		void post(duration wait, LAMBDA lambda) noexcept
+		void post(duration wait, LAMBDA &&lambda) noexcept
 		{
-			return post(timepoint::now() + wait, move(lambda));
+			return post(timepoint::now() + wait, forward<LAMBDA>(lambda));
 		}
 
 		template <typename LAMBDA>
-		Timer* makePost(duration wait, LAMBDA lambda) noexcept
+		Timer* makePost(duration wait, LAMBDA &&lambda) noexcept
 		{
-			return makePost(Timer::create(timepoint::now() + wait, move(lambda)));
+			return makePost(Timer::create(timepoint::now() + wait, forward<LAMBDA>(lambda)));
 		}
 
 		// events를 대기한다.
@@ -153,18 +153,20 @@ namespace kr
 
 	namespace _pri_
 	{
-		template <typename LAMBDA, size_t argn>
+		template <size_t argn>
 		struct CallWithParamIfHas
 		{
-			static void call(LAMBDA & lambda, EventPump::Timer * param) noexcept
+			template <typename LAMBDA>
+			static void call(LAMBDA && lambda, EventPump::Timer * param) noexcept
 			{
 				lambda(param);
 			}
 		};
-		template <typename LAMBDA>
-		struct CallWithParamIfHas<LAMBDA, 0>
+		template <>
+		struct CallWithParamIfHas<0>
 		{
-			static void call(LAMBDA & lambda, EventPump::Timer * param) noexcept
+			template <typename LAMBDA>
+			static void call(LAMBDA && lambda, EventPump::Timer * param) noexcept
 			{
 				lambda();
 			}
@@ -172,22 +174,22 @@ namespace kr
 	}
 
 	template <typename LAMBDA>
-	static EventPump::Timer * EventPump::Timer::create(timepoint at, LAMBDA lambda) noexcept
+	static EventPump::Timer * EventPump::Timer::create(timepoint at, LAMBDA &&lambda) noexcept
 	{
 		struct LambdaWrap :public Timer
 		{
-			LAMBDA m_lambda;
-			LambdaWrap(LAMBDA lambda, timepoint at) noexcept
-				: Timer(at), m_lambda(move(lambda))
+			decay_t<LAMBDA> m_lambda;
+			LambdaWrap(LAMBDA &&lambda, timepoint at) noexcept
+				: Timer(at), m_lambda(forward<LAMBDA>(lambda))
 			{
 			}
 			void call() override
 			{
 				constexpr size_t argn = meta::function<LAMBDA>::args_t::size;
-				_pri_::CallWithParamIfHas<LAMBDA, argn>::call(m_lambda, this);
+				_pri_::CallWithParamIfHas<argn>::call(m_lambda, this);
 			}
 		};
-		return _new LambdaWrap(move(lambda), at);
+		return _new LambdaWrap(forward<LAMBDA>(lambda), at);
 	}
 
 	class EventThread

@@ -235,7 +235,7 @@ namespace cbs
 		inline void _makeTexture(D3D11Device* device, const char * strName);
 		inline void _makeBuffer(D3D11Device * device, DataList<VertexLayout> basic_vl, DataList<VertexLayout> skinned_vl);
 		template <typename LAMBDA>
-		inline void _callEachNode(aiNode * node, LAMBDA &lambda);
+		inline void _callEachNode(aiNode * node, LAMBDA &&lambda);
 
 		struct MeshExtra
 		{

@@ -33,7 +33,7 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		static CallableT * wrap(LAMBDA lambda);
+		static CallableT * wrap(LAMBDA &&lambda);
 	};
 
 	template <typename RET, typename ... ARGS, typename LAMBDA> 
@@ -43,8 +43,11 @@ namespace kr
 		LAMBDA m_lambda;
 
 	public:
-		inline LambdaCallable(LAMBDA lambda)
-			:m_lambda(move(lambda))
+		LambdaCallable(const LAMBDA &lambda)
+			:m_lambda(lambda)
+		{
+		}
+		LambdaCallable(LAMBDA &&lambda)
 		{
 		}
 		~LambdaCallable() noexcept override
@@ -63,14 +66,14 @@ namespace kr
 		CallableT<RET(ARGS...)> * m_callable;
 
 	public:
-		CallablePtrT() noexcept = default;
+		CallablePtrT() = default;
 		CallablePtrT(CallableT<RET(ARGS...)> * _callable) noexcept
 		{
 			m_callable = _callable;
 		}
 		template <typename LAMBDA>
 		CallablePtrT(LAMBDA _lambda)
-			:CallablePtrT(CallableT<RET(ARGS...)>::wrap(move(_lambda)))
+			:CallablePtrT(CallableT<RET(ARGS...)>::wrap(forward<LAMBDA>(_lambda)))
 		{
 		}
 		operator CallableT<RET(ARGS...)>* () const noexcept
@@ -133,9 +136,9 @@ namespace kr
 
 	template <typename RET, typename ... ARGS>
 	template <typename LAMBDA>
-	CallableT<RET(ARGS...)> * CallableT<RET(ARGS...)>::wrap(LAMBDA lambda)
+	CallableT<RET(ARGS...)> * CallableT<RET(ARGS...)>::wrap(LAMBDA &&lambda)
 	{
-		return _new LambdaCallable<RET(ARGS...), LAMBDA>(move(lambda));
+		return _new LambdaCallable<RET(ARGS...), LAMBDA>(forward<LAMBDA>(lambda));
 	}
 
 	template <typename RET, typename ... ARGS>
@@ -158,7 +161,7 @@ namespace kr
 		Lambda(const Lambda & _copy) noexcept;
 		Lambda(Lambda && _move) noexcept;
 		template <typename LAMBDA>
-		Lambda(LAMBDA lambda) noexcept;
+		Lambda(LAMBDA &&lambda) noexcept;
 		~Lambda() noexcept;
 		void clear() noexcept;
 		bool empty() noexcept;
@@ -209,11 +212,11 @@ namespace kr
 	}
 	template <size_t sz, typename RET, typename ... ARGS>
 	template <typename LAMBDA>
-	Lambda<sz, RET(ARGS ...)>::Lambda(LAMBDA lambda) noexcept
+	Lambda<sz, RET(ARGS ...)>::Lambda(LAMBDA &&lambda) noexcept
 	{
-		static_assert(sizeof(LAMBDA) <= sizeof(m_lambda), "Lambda size unmatch");
-		m_table = LambdaTable<RET(ARGS ...)>::template get<LAMBDA>();
-		new((LAMBDA*)m_lambda) LAMBDA(lambda);
+		static_assert(sizeof(decay_t<LAMBDA>) <= sizeof(m_lambda), "Lambda size unmatch");
+		m_table = LambdaTable<RET(ARGS ...)>::template get<decay_t<LAMBDA>>();
+		new((decay_t<LAMBDA>*)m_lambda) decay_t<LAMBDA>(forward<LAMBDA>(lambda));
 	}
 	template <size_t sz, typename RET, typename ... ARGS>
 	Lambda<sz, RET(ARGS ...)>::~Lambda() noexcept

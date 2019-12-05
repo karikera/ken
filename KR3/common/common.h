@@ -10,27 +10,39 @@ namespace kr
 		}
 	}
 
-	inline dword& hidword(qword & qw)
+	inline qword makeqword(dword lo, dword hi) noexcept
 	{
-		return *((dword*)&qw + 1);
+		return (qword)hi << 32 | (qword)lo;
 	}
-	inline dword& lodword(qword & qw)
+	inline qword makedword(word lo, word hi) noexcept
+	{
+		return (dword)hi << 16 | (dword)lo;
+	}
+	inline qword makeword(byte lo, byte hi) noexcept
+	{
+		return (word)hi << 8 | (word)lo;
+	}
+	inline dword& lodword(qword& qw) noexcept
 	{
 		return *(dword*)&qw;
 	}
-	inline word& hiword(dword & qw)
+	inline dword& hidword(qword & qw) noexcept
+	{
+		return *((dword*)&qw + 1);
+	}
+	inline word& hiword(dword & qw) noexcept
 	{
 		return *((word*)&qw + 1);
 	}
-	inline word& loword(dword & qw)
+	inline word& loword(dword & qw) noexcept
 	{
 		return *(word*)&qw;
 	}
-	inline byte& hibyte(word & qw)
+	inline byte& hibyte(word & qw) noexcept
 	{
 		return *((byte*)&qw + 1);
 	}
-	inline byte& lobyte(word & qw)
+	inline byte& lobyte(word & qw) noexcept
 	{
 		return *(byte*)&qw;
 	}
@@ -92,8 +104,8 @@ namespace kr
 }
 #define static_assert_with_type(cmp, ...) static_assert(::kr::_pri_::StaticAssertForType<cmp, __VA_ARGS__>::value, #cmp);
 
-#define unpackR(...)  { ::kr::_pri_::_unpack(((__VA_ARGS__), 0) ...); }
-#define unpack(...)  { using expander = int[]; (void)expander {0, ((__VA_ARGS__), 0)...}; }
+#define unpackR(...)  (::kr::_pri_::_unpack(((__VA_ARGS__), 0) ...))
+#define unpack(...)  (void)((__VA_ARGS__), ...)
 
 #define CHARSET_CONSTLIZE(charset, code) \
 switch (charset) { \

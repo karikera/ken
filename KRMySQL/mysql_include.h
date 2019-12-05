@@ -10,6 +10,5 @@
 #pragma warning(push)
 #pragma warning(disable:4996)
 #undef _WIN32_WINNT
-#include <my_global.h>
-#include <mysql.h>
+#include <mysql/mysql.h>
 #pragma warning(pop)

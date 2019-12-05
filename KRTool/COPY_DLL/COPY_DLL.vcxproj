@@ -84,9 +84,9 @@
     <PreBuildEvent />
     <CustomBuild>
       <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
-@echo done &gt; %(Identity).log
+@echo done &gt; $(IntDir)%(Identity).log
 </Command>
-      <Outputs>%(Identity).log</Outputs>
+      <Outputs>$(IntDir)%(Identity).log</Outputs>
       <Message>%(Identity)</Message>
     </CustomBuild>
   </ItemDefinitionGroup>
@@ -95,9 +95,9 @@
     <PreBuildEvent />
     <CustomBuild>
       <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
-@echo done &gt; %(Identity).log
+@echo done &gt; $(IntDir)%(Identity).log
 </Command>
-      <Outputs>%(Identity).log</Outputs>
+      <Outputs>$(IntDir)%(Identity).log</Outputs>
       <Message>%(Identity)</Message>
     </CustomBuild>
   </ItemDefinitionGroup>
@@ -106,9 +106,9 @@
     <PreBuildEvent />
     <CustomBuild>
       <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
-@echo done &gt; %(Identity).log
+@echo done &gt; $(IntDir)%(Identity).log
 </Command>
-      <Outputs>%(Identity).log</Outputs>
+      <Outputs>$(IntDir)%(Identity).log</Outputs>
       <Message>%(Identity)</Message>
     </CustomBuild>
   </ItemDefinitionGroup>
@@ -117,9 +117,9 @@
     <PreBuildEvent />
     <CustomBuild>
       <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
-@echo done &gt; %(Identity).log
+@echo done &gt; $(IntDir)%(Identity).log
 </Command>
-      <Outputs>%(Identity).log</Outputs>
+      <Outputs>$(IntDir)%(Identity).log</Outputs>
       <Message>%(Identity)</Message>
     </CustomBuild>
   </ItemDefinitionGroup>

@@ -35,24 +35,25 @@ namespace kr
 		}
 	};;
 
-	class ihv_t
+	class ihv_t final
 	{
-		inline bool operator ==(cptr v) noexcept
+	public:
+		inline bool operator ==(cptr v) const noexcept
 		{
 			return v == (cptr) - 1;
 		}
-		inline bool operator !=(cptr v) noexcept
+		inline bool operator !=(cptr v) const noexcept
 		{
 			return v != (cptr) - 1;
 		}
-		inline friend bool operator ==(cptr v, ihv_t&) noexcept
+		inline friend bool operator ==(cptr v, const ihv_t&) noexcept
 		{
 			return v == (cptr) - 1;
 		}
-		inline friend bool operator !=(cptr v, ihv_t&) noexcept
+		inline friend bool operator !=(cptr v, const ihv_t&) noexcept
 		{
 			return v != (cptr) - 1;
 		}
 	};
-	static ihv_t &ihv = nullref;
+	static constexpr const ihv_t ihv = ihv_t();
 }

@@ -269,7 +269,7 @@ namespace kr
 
 			struct NullColorByteData
 			{
-				NullColorByteData() noexcept = default;
+				NullColorByteData() = default;
 				NullColorByteData(byte) noexcept
 				{
 				}

@@ -51,7 +51,7 @@ namespace kr
 		char readWord(AText * out, Text mask);
 
 		template <typename LAMBDA> 
-		char readWord(LAMBDA lambda, Text mask)
+		char readWord(LAMBDA &&lambda, Text mask)
 		{
 			AText out;
 			char chr = readWord(&out);

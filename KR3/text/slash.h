@@ -50,11 +50,15 @@ namespace kr
 	{
 	private:
 		const View<C> m_text;
-		LAMBDA & m_lambda;
+		LAMBDA m_lambda;
 
 	public:
-		CustomAddSlashes(View<C> text, LAMBDA & lambda) noexcept
+		CustomAddSlashes(View<C> text, const LAMBDA & lambda) noexcept
 			: m_text(text), m_lambda(lambda)
+		{
+		}
+		CustomAddSlashes(View<C> text, LAMBDA&& lambda) noexcept
+			: m_text(text), m_lambda(move(lambda))
 		{
 		}
 
@@ -146,19 +150,19 @@ namespace kr
 	};
 
 	template <typename LAMBDA>
-	inline auto addSlashesCustom(Text text, LAMBDA& lambda) noexcept->CustomAddSlashes<char, LAMBDA>
+	inline auto addSlashesCustom(Text text, LAMBDA&& lambda) noexcept->CustomAddSlashes<char, decay_t<LAMBDA> >
 	{
-		return CustomAddSlashes<char, LAMBDA>(text, lambda);
+		return CustomAddSlashes<char, decay_t<LAMBDA> >(text, forward<LAMBDA>(lambda));
 	}
 	template <typename LAMBDA>
-	inline auto addSlashesCustom(Text16 text, LAMBDA& lambda) noexcept->CustomAddSlashes<char16, LAMBDA>
+	inline auto addSlashesCustom(Text16 text, LAMBDA&& lambda) noexcept->CustomAddSlashes<char16, decay_t<LAMBDA> >
 	{
-		return CustomAddSlashes<char16, LAMBDA>(text, lambda);
+		return CustomAddSlashes<char16, decay_t<LAMBDA> >(text, forward<LAMBDA>(lambda));
 	}
 	template <typename LAMBDA>
-	inline auto addSlashesCustom(Text32 text, LAMBDA& lambda) noexcept->CustomAddSlashes<char32, LAMBDA>
+	inline auto addSlashesCustom(Text32 text, LAMBDA&& lambda) noexcept->CustomAddSlashes<char32, decay_t<LAMBDA> >
 	{
-		return CustomAddSlashes<char32, LAMBDA>(text, lambda);
+		return CustomAddSlashes<char32, decay_t<LAMBDA> >(text, forward<LAMBDA>(lambda));
 	}
 
 	inline AddSlashes<char> addSlashes(Text text) noexcept { return text; }
@@ -168,3 +172,8 @@ namespace kr
 	inline StripSlashes<char16> stripSlashes(Text16 text) noexcept { return text; }
 	inline StripSlashes<char32> stripSlashes(Text32 text) noexcept { return text; }
 }
+
+extern template class kr::AddSlashes<char>;
+extern template class kr::StripSlashes<char>;
+extern template class kr::AddSlashes<kr::char16>;
+extern template class kr::StripSlashes<kr::char16>;

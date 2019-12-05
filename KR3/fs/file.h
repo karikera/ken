@@ -7,7 +7,7 @@ NEED_FILESYSTEM
 
 namespace kr
 {
-	class File: public io::Streamable<File>
+	class File: public io::StreamCastable<File>
 	{
 	public:
 		class Mapping
@@ -65,28 +65,28 @@ namespace kr
 		static bool removeShell(Text16 path) noexcept;
 		
 		template <typename C>
-		inline Writable<C, io::StreamableStream<File, C>*, true > readAll() throws(TooBigException)
+		inline SizedStreamBuffer<C, io::StreamableStream<File, C>* > readAll() throws(TooBigException)
 		{
 			return { this->stream<C>(), sizep() };
 		}
 
 		template <typename C>
-		using WritableFile = Writable<C, Keep<io::StreamableStream<File, C>>, true >;
+		using FileStreamBuffer = SizedStreamBuffer<C, Keep<io::StreamableStream<File, C>> >;
 
 		template <typename C, typename CHR>
-		static inline WritableFile<C> openAsArrayT(const CHR* name) throws(TooBigException, Error)
+		static inline FileStreamBuffer<C> openAsArrayT(const CHR* name) throws(TooBigException, Error)
 		{
 			Keep<io::StreamableStream<File, C>> file = open(name)->template stream<C>();
 			size_t size = file->sizep();
 			return { std::move(file), size };
 		}
 		template <typename C>
-		static inline WritableFile<C> openAsArray(const char * name) throws(TooBigException, Error)
+		static inline FileStreamBuffer<C> openAsArray(const char * name) throws(TooBigException, Error)
 		{
 			return openAsArrayT<C,char>(name);
 		}
 		template <typename C>
-		static inline WritableFile<C> openAsArray(const char16* name) throws(TooBigException, Error)
+		static inline FileStreamBuffer<C> openAsArray(const char16* name) throws(TooBigException, Error)
 		{
 			return openAsArrayT<C, char16>(name);
 		}
@@ -116,7 +116,7 @@ namespace kr
 		void toBegin() noexcept;
 		void toEnd() noexcept;
 		void skip(int64_t skip) noexcept;
-		ptr allocAll(size_t *pSize) noexcept;
+		ptr allocAll(size_t *pSize) throws(TooBigException);
 		Mapping beginMapping(filesize_t off, size_t read) throws(Error);
 		void endMapping(const Mapping& map) noexcept;
 
@@ -179,36 +179,6 @@ namespace kr
 #endif
 	};
 
-	template <typename Component>
-	class ModuleName :public Bufferable<ModuleName<Component>, BufferInfo<Component, false, false, true, false>>
-	{
-	private:
-		BArray<Component, File::NAMELEN> m_buffer;
-
-	public:
-		ModuleName(const Component * name = nullptr) noexcept;
-		Component * $begin() noexcept
-		{
-			return m_buffer.begin();
-		}
-		Component * $end() noexcept
-		{
-			return m_buffer.end();
-		}
-		const Component * $begin() const noexcept
-		{
-			return m_buffer.begin();
-		}
-		const Component * $end() const noexcept
-		{
-			return m_buffer.end();
-		}
-		size_t $size() const noexcept
-		{
-			return m_buffer.size();
-		}
-	};
-
 	class FindFile
 	{
 	public:
@@ -246,7 +216,7 @@ namespace kr
 		void * m_handle;
 	};
 
-	class MappedFile:public Bufferable<MappedFile, BufferInfo<void, false, false, false, false>>
+	class MappedFile:public Bufferable<MappedFile, BufferInfo<void, method::Memory, false, false>>
 	{
 	public:
 		// Close file handle when it's destroyed
@@ -272,9 +242,9 @@ namespace kr
 	public:
 		DirectoryScanner() noexcept;
 		template <typename LAMBDA>
-		void scan(Text16 path, const LAMBDA &lambda) noexcept;
+		void scan(Text16 path, LAMBDA &&lambda) noexcept;
 		template <typename LAMBDA>
-		void scanWithThis(Text16 path, const LAMBDA &lambda) noexcept;
+		void scanWithThis(Text16 path, LAMBDA &&lambda) noexcept;
 		pcstr16 getSzName() noexcept;
 		Text16 getPathText() noexcept;
 		Text16 getRelativeText(Text16 path) noexcept;
@@ -282,14 +252,14 @@ namespace kr
 
 	private:
 		template <typename LAMBDA>
-		void _scanOpen(Text16 path, const LAMBDA &lambda) noexcept;
+		void _scanOpen(Text16 path, LAMBDA &&lambda) noexcept;
 
 		BText16<File::NAMELEN> m_path;
 		pcstr16 m_dircut;
 	};
 
 	template <typename LAMBDA>
-	void DirectoryScanner::scan(Text16 path, const LAMBDA &lambda) noexcept
+	void DirectoryScanner::scan(Text16 path, LAMBDA &&lambda) noexcept
 	{
 		pcstr16 olddircut = m_dircut;
 		_scanOpen(path, lambda);
@@ -297,7 +267,7 @@ namespace kr
 	}
 
 	template <typename LAMBDA>
-	void DirectoryScanner::scanWithThis(Text16 path, const LAMBDA &lambda) noexcept
+	void DirectoryScanner::scanWithThis(Text16 path, LAMBDA &&lambda) noexcept
 	{
 		pcstr16 olddircut = m_dircut;
 		_scanOpen(path, lambda);
@@ -307,7 +277,7 @@ namespace kr
 	}
 
 	template <typename LAMBDA>
-	void DirectoryScanner::_scanOpen(Text16 path, const LAMBDA &lambda) noexcept
+	void DirectoryScanner::_scanOpen(Text16 path, LAMBDA &&lambda) noexcept
 	{
 		m_path.cut_self(m_dircut);
 		m_path << path;

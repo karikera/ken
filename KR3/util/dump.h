@@ -1,30 +1,47 @@
 #pragma once
 
-typedef struct _EXCEPTION_POINTERS EXCEPTION_POINTERS, *PEXCEPTION_POINTERS;
+typedef struct _EXCEPTION_POINTERS EXCEPTION_POINTERS, * PEXCEPTION_POINTERS;
 typedef PEXCEPTION_POINTERS LPEXCEPTION_POINTERS;
-extern "C" void *        __cdecl _exception_info(void);
 
 namespace kr
 {
-	namespace _pri_
-	{
-#ifdef WIN32
-		int dump(LPEXCEPTION_POINTERS ex) noexcept;
-#endif
-	}
-	void dump_now() noexcept;
+	class SEHException {
+	public:
+		PEXCEPTION_POINTERS exception;
 
-	template <typename LAMBDA> auto dump_wrap(LAMBDA lambda) -> decltype(lambda())
+		SEHException(PEXCEPTION_POINTERS exception) noexcept;
+		Text16 getErrorText() noexcept;
+		uint32_t getErrorCode() noexcept;
+	};
+
+#ifdef WIN32
+	int dump(const SEHException& ex) noexcept;
+#endif
+	void dump_now() noexcept;
+	
+	class SEHCatcher
+	{
+	private:
+		void* m_func;
+
+	public:
+		SEHCatcher() noexcept;
+		~SEHCatcher() noexcept;
+	};
+
+	template <typename LAMBDA> auto dump_wrap(LAMBDA &&lambda) -> decltype(lambda())
 	{
 #ifdef _DEBUG
 		return lambda();
 #elif defined(_MSC_VER)
-		__try
+		SEHCatcher __catcher;
+		try
 		{
 			return lambda();
 		}
-		__except(_pri_::dump((LPEXCEPTION_POINTERS)_exception_info()))
+		catch(SEHException& e)
 		{
+			dump(e);
 			return zerovar.value<decltype(lambda())>();
 		}
 #else

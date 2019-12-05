@@ -55,7 +55,7 @@ namespace kr
 			Process * process;
 			Module * module;
 
-			KR_WRITABLE_METHOD(ProcessAndModule, name,
+			KR_WRITABLE_METHOD(ProcessAndModule, name, true,
 				(m_this->getName<C>(dest, m_this->getNameLength<C>() + 1)),
 				(m_this->getNameLength<C>()));
 
@@ -204,7 +204,7 @@ namespace kr
 			Monitor* getMonitor() noexcept;
 			ivec2 getPos() noexcept;
 
-			KR_WRITABLE_METHOD(Window, text,
+			KR_WRITABLE_METHOD(Window, text, true,
 				(m_this->getText<C>(dest, m_this->getTextLength<C>() + 1)),
 				(m_this->getTextLength<C>())
 			);
@@ -315,9 +315,9 @@ namespace kr
 			static Window * find(pcstr16 className, pcstr16 windowName) noexcept;
 			static void all(CallableT<bool(Window*)> * call) noexcept;
 			template <typename LAMBDA>
-			static void all(const LAMBDA & lambda) noexcept
+			static void all(LAMBDA &&lambda) noexcept
 			{
-				LambdaCallable<bool(Window*), LAMBDA> call = lambda;
+				LambdaCallable<bool(Window*), decay_t<LAMBDA> > call(forward<LAMBDA>(lambda));
 				all(&call);
 			}
 			static Window * getForeground() noexcept;

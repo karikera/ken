@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../main.h"
 #include "../meta/number.h"
 
 typedef struct st_mysql_stmt MYSQL_STMT;

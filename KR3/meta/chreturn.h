@@ -16,8 +16,12 @@ namespace kr
 			{
 				lambda_t m_lambda;
 
-				LambdaContainer(lambda_t lambda)
+				LambdaContainer(lambda_t &&lambda)
 					:m_lambda(move(lambda))
+				{
+				}
+				LambdaContainer(const lambda_t &lambda)
+					:m_lambda(lambda)
 				{
 				}
 			};

@@ -177,7 +177,7 @@ namespace kr
 
 		template <typename T, size_t cols, bool aligned>
 		template <typename LAMBDA, typename LAMBDA2>
-		bool matrix_method_rect<T, 2, cols, aligned, matrix_data_type::right_bottom>::deltaCompare(const irect & dest, const LAMBDA & oldcallback, const LAMBDA2 & newcallback) const noexcept
+		bool matrix_method_rect<T, 2, cols, aligned, matrix_data_type::right_bottom>::deltaCompare(const irect & dest, LAMBDA && oldcallback, LAMBDA2 && newcallback) const noexcept
 		{
 			int l = dest.from.x;
 			int t = dest.from.y;
@@ -216,7 +216,7 @@ namespace kr
 
 		template <typename T, size_t cols, bool aligned>
 		template <typename LAMBDA, typename LAMBDA2>
-		bool matrix_method_rect<T, 2, cols, aligned, matrix_data_type::right_bottom>::deltaMove(const irect & dest, const LAMBDA & oldcallback, const LAMBDA2 & newcallback) noexcept
+		bool matrix_method_rect<T, 2, cols, aligned, matrix_data_type::right_bottom>::deltaMove(const irect & dest, LAMBDA && oldcallback, LAMBDA2 && newcallback) noexcept
 		{
 			if (!deltaCompare(dest, oldcallback, newcallback)) return false;
 			*this = dest;

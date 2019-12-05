@@ -248,7 +248,7 @@ void MTClient::connect(Ipv4Address v4addr, int port) throws(SocketException)
 	addr.sin_port = htons(port);
 	(Ipv4Address&)addr.sin_addr.s_addr = v4addr;
 	memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
-
+	
 	Operation * connectOperation = overlapes.alloc(this, OperationType::Connect);
 	connectOperation->owner = m_socket;
 	connectEx((SOCKET)socket, (sockaddr*)&addr, sizeof(addr), nullptr, 0, nullptr, connectOperation);

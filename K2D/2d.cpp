@@ -8,6 +8,8 @@
 
 #define gplog(ex) ([&]()->bool{ Gdiplus::Status s = (ex); if(s == Gdiplus::Ok){ return true; } std::cerr << #ex << ": Status: " << s << std::endl;  return false; })()
 
+#pragma warning(disable:26812)
+
 kr::gl::Context::Context() noexcept
 {
 	Gdiplus::GdiplusStartupInput si;
@@ -40,7 +42,7 @@ void kr::gl::Image::getBits(void * dest) noexcept
 
 		int srcnext = -width * 2 * sizeof(std::uint32_t);
 		int destnext = width  * sizeof(std::uint32_t);
-		std::uint32_t * dend = d + width * height;	
+		std::uint32_t * dend = d + (intptr_t)width * height;	
 
 		while (d != dend)
 		{

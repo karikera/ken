@@ -12,18 +12,8 @@ typedef struct HINSTANCE__ *HINSTANCE;
 namespace kr
 {
 	template <typename T>
-	class Resource: public Resource<void>
-	{
-	public:
-		Resource(HINSTANCE hModule, int id, int type) noexcept
-			:Resource<void>(hModule, id, type)
-		{	
-		}
-		operator T*() noexcept
-		{
-			return (T*)m_resource;
-		}
-	};
+	class Resource;
+
 	template <>
 	class Resource<void>
 	{
@@ -38,6 +28,23 @@ namespace kr
 		void* m_hGlobal;
 		size_t m_size;
 		void * m_resource;
+	};
+
+	template <typename T>
+	class Resource : public Resource<void>
+	{
+		using Super = Resource<void>;
+	public:
+		using Super::m_resource;
+
+		Resource(HINSTANCE hModule, int id, int type) noexcept
+			:Resource<void>(hModule, id, type)
+		{
+		}
+		operator T* () noexcept
+		{
+			return (T*)m_resource;
+		}
 	};
 
 	class ResourceFile:public Resource<void>

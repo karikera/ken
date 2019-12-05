@@ -38,7 +38,7 @@ namespace kr
 			}
 
 			template <typename Derived, typename Info>
-			inline File(io::Streamable<Derived, Info>* stream) noexcept
+			inline File(io::StreamCastable<Derived, Info>* stream) noexcept
 				: File(stream)
 			{
 			}

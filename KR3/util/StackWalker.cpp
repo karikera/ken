@@ -254,10 +254,14 @@ bool kr::StackWalker::loadModules() noexcept
 }
 bool kr::StackWalker::showCallstack() noexcept
 {
-	CONTEXT c;;
-	if (m_modulesLoaded == false) loadModules();  // ignore the result...
+	CONTEXT c;
 	GET_CURRENT_CONTEXT(c, USED_CONTEXT_FLAGS);
-
+	return showCallstack(&c);
+}
+bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
+{
+	if (m_modulesLoaded == false) loadModules();  // ignore the result...
+	
 	HANDLE hThread = GetCurrentThread();
 
 	STACKFRAME64 s;
@@ -266,29 +270,29 @@ bool kr::StackWalker::showCallstack() noexcept
 #ifdef _M_IX86
 	// normally, call ImageNtHeader() and use machine info from PE header
 	imageType = IMAGE_FILE_MACHINE_I386;
-	s.AddrPC.Offset = c.Eip;
+	s.AddrPC.Offset = ctx->Eip;
 	s.AddrPC.Mode = AddrModeFlat;
-	s.AddrFrame.Offset = c.Ebp;
+	s.AddrFrame.Offset = ctx->Ebp;
 	s.AddrFrame.Mode = AddrModeFlat;
-	s.AddrStack.Offset = c.Esp;
+	s.AddrStack.Offset = ctx->Esp;
 	s.AddrStack.Mode = AddrModeFlat;
 #elif _M_X64
 	imageType = IMAGE_FILE_MACHINE_AMD64;
-	s.AddrPC.Offset = c.Rip;
+	s.AddrPC.Offset = ctx->Rip;
 	s.AddrPC.Mode = AddrModeFlat;
-	s.AddrFrame.Offset = c.Rsp;
+	s.AddrFrame.Offset = ctx->Rsp;
 	s.AddrFrame.Mode = AddrModeFlat;
-	s.AddrStack.Offset = c.Rsp;
+	s.AddrStack.Offset = ctx->Rsp;
 	s.AddrStack.Mode = AddrModeFlat;
 #elif _M_IA64
 	imageType = IMAGE_FILE_MACHINE_IA64;
-	s.AddrPC.Offset = c.StIIP;
+	s.AddrPC.Offset = ctx->StIIP;
 	s.AddrPC.Mode = AddrModeFlat;
-	s.AddrFrame.Offset = c.IntSp;
+	s.AddrFrame.Offset = ctx->IntSp;
 	s.AddrFrame.Mode = AddrModeFlat;
-	s.AddrBStore.Offset = c.RsBSP;
+	s.AddrBStore.Offset = ctx->RsBSP;
 	s.AddrBStore.Mode = AddrModeFlat;
-	s.AddrStack.Offset = c.IntSp;
+	s.AddrStack.Offset = ctx->IntSp;
 	s.AddrStack.Mode = AddrModeFlat;
 #else
 #error "Platform not supported!"
@@ -311,7 +315,7 @@ bool kr::StackWalker::showCallstack() noexcept
 
 	for (;;)
 	{
-		if (!StackWalk64(imageType, this->m_hProcess, hThread, &s, &c,
+		if (!StackWalk64(imageType, this->m_hProcess, hThread, &s, ctx,
 			[](HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
 		{
 			SIZE_T size;
@@ -343,7 +347,19 @@ bool kr::StackWalker::showCallstack() noexcept
 		}
 		else
 		{
-			onDbgHelpErr("SymGetSymFromAddr64", GetLastError(), s.AddrPC.Offset);
+			DWORD err = GetLastError();
+			if (err == ERROR_MOD_NOT_FOUND)
+			{
+				csEntry.line = -1;
+				csEntry.filename = nullptr;
+				csEntry.function = nullptr;
+				this->onStack(&csEntry);
+				continue;
+			}
+			else
+			{
+				onDbgHelpErr("SymGetSymFromAddr64", GetLastError(), s.AddrPC.Offset);
+			}
 		}
 
 		DWORD offsetFromLine;
@@ -422,6 +438,19 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept
 {
 	TSZ16 buf;
-	buf << u"ERROR: " << (Utf8ToUtf16)(Text)function << u", GetLastError: " << gle << u" (Address: " << (void*)(uintptr_t)addr << u")\n";
+	buf << u"ERROR: " << (Utf8ToUtf16)(Text)function << u", Error: ";
+	ErrorCode(gle).getMessageTo<char16>(&buf);
+	buf << u"(0x" << hexf(gle, 8) << u')' << u" (Address: " << (void*)(uintptr_t)addr << u")\n";
 	onOutput(buf);
+}
+
+kr::StackWriter::StackWriter(CONTEXT* ctx) noexcept
+	:m_ctx(ctx)
+{
+	loadModules();
+}
+
+void kr::StackWriter::onOutput(Text16 szText) noexcept
+{
+	m_out.write(szText);
 }

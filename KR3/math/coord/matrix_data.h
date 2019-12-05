@@ -177,7 +177,7 @@ namespace kr
 			using matrix_data<T, rows, cols, aligned, type>::v;
 			using constructor_t = matrix_constructor;
 
-			matrix_constructor() noexcept = default;
+			matrix_constructor() = default;
 			ATTR_INLINE matrix_constructor(const vectors & ... args) noexcept
 			{
 				vector<T, cols, aligned> buffer[] = { args ... };

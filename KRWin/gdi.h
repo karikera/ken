@@ -8,17 +8,15 @@ namespace kr
 {
 	namespace win
 	{
-	
-		class DefaultFont
+		class DefaultFont final
 		{
 		public:
-			DefaultFont() = delete;
-			DefaultFont& operator =(Font * font) noexcept;
-			operator Font*() noexcept;
-			Font* operator ->() noexcept;
+			const DefaultFont& operator =(Font * font) const noexcept;
+			operator Font*() const noexcept;
+			Font* operator ->() const noexcept;
 		};
 
-		static DefaultFont &g_defaultFont = nullref;
+		static constexpr const DefaultFont g_defaultFont = DefaultFont();
 
 		template <typename T> class GDIObjectBase;
 		template <typename T> class GDIObject;

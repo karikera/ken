@@ -17,35 +17,60 @@ namespace kr
 		private:
 			using m = memt<sizeof(Component)>;
 			using TSZ = TempSzText<Component>;
+			using Text = View<Component>;
 			using AText = Array<Component>;
 
-			void _refill() throws(EofException)
-			{
-				m_filled = m_read = m_buffer;
-				m_filled += base()->read(m_buffer, BUFFER_SIZE);
-			}
-			void _remainFill() throws(EofException)
-			{
-				size_t remaining = m_filled - m_read;
-				if (remaining == 0)
-				{
-					return _refill();
-				}
-				if (m_read == m_buffer)
-				{
-					m_filled += base()->read(m_filled, BUFFER_SIZE - remaining);
-				}
-				else
-				{
-					mema::copy(m_buffer, m_read, remaining);
-					m_read = m_buffer;
-					m_filled = m_buffer + remaining;
-					m_filled += base()->read(m_filled, BUFFER_SIZE - remaining);
-				}
-			}
 		public:
 			using Super::read;
 			using Super::base;
+
+			template <typename Derived>
+			struct BufferSet:public HasStreamTo<Derived, Component, MakeIterableIterator<BufferSet<Derived>, Text> >
+			{
+				INHERIT_ITERATOR(MakeIterableIterator<BufferSet<Derived>, Text>);
+			private:
+				BufferedIStream* m_this;
+				Text m_buffer;
+
+			public:
+				BufferSet(BufferedIStream* _this) throws(...)
+					:m_this(_this)
+				{
+					next();
+				}
+
+				KR_STREAM_TO(os) throws(...)
+				{
+					for (Text buf : *this)
+					{
+						os->write(buf);
+					}
+				}
+
+				void next() throws(...)
+				{
+					Text buffer = m_this->getBuffer();
+					const Component* found = static_cast<Derived*>(this)->findRule(buffer);
+					if (found == nullptr)
+					{
+						m_buffer = buffer;
+						static_cast<Derived*>(this)->refillRule();
+					}
+					else
+					{
+						m_buffer = buffer.cut(found);
+						m_this = nullptr;
+					}
+				}
+				bool isEnd() noexcept
+				{
+					return m_this == nullptr;
+				}
+				View<Component> value() noexcept
+				{
+					return m_buffer;
+				}
+			};
 
 			BufferedIStream(Base* p) noexcept 
 				: Super(p)
@@ -76,12 +101,46 @@ namespace kr
 				resetStream(p->template stream<Component>());
 			}
 
+			void refill() throws(EofException)
+			{
+				m_filled = m_read = m_buffer;
+				m_filled += base()->read(m_buffer, BUFFER_SIZE);
+			}
+			void remainFill() throws(EofException)
+			{
+				size_t remaining = m_filled - m_read;
+				if (remaining == 0)
+				{
+					return refill();
+				}
+				if (m_read == m_buffer)
+				{
+					m_filled += base()->read(m_filled, BUFFER_SIZE - remaining);
+				}
+				else
+				{
+					mema::copy(m_buffer, m_read, remaining);
+					m_read = m_buffer;
+					m_filled = m_buffer + remaining;
+					m_filled += base()->read(m_filled, BUFFER_SIZE - remaining);
+				}
+			}
 			void clearBuffer() noexcept
 			{
 				m_filled = m_read = m_buffer;
 			}
+//
+//#define BUFFERSET(name, find, refill) \
+//	struct name: BufferSet<Derived>{\
+//		const Component* findRule(Text text) throws(...){ \
+//			find;\
+//		} \
+//		void refillRule() throws(...){ \
+//			refill;\
+//		} \
+//};
 
-			Component peek() throws(EofException)
+			InternalComponent peek() throws(EofException)
 			{
 				for (;;)
 				{
@@ -90,7 +149,7 @@ namespace kr
 						return *m_read;
 					}
 
-					_refill();
+					refill();
 				}
 			}
 			Ref peek(size_t count) throws(EofException, TooBigException)
@@ -103,8 +162,12 @@ namespace kr
 						return Ref(m_read, count);
 					}
 
-					_remainFill();
+					remainFill();
 				}
+			}
+			InternalComponent peekAt(size_t idx) throws(EofException, TooBigException)
+			{
+				return peek(idx + 1).get(idx);
 			}
 			bool nextIs(const Component & comp)
 			{
@@ -158,7 +221,7 @@ namespace kr
 					line = m_read + sz;
 					if (line <= m_filled) break;
 					sz = line - m_filled;
-					_refill();
+					refill();
 				}
 
 				m_read = line;
@@ -271,7 +334,7 @@ namespace kr
 			}
 
 			template <typename _Derived, typename _Info, typename LAMBDA>
-			size_t readto_L(OutStream<_Derived, Component, _Info> * dest, const LAMBDA &lambda) throws(NotEnoughSpaceException, EofException)
+			size_t readto_L(OutStream<_Derived, Component, _Info> * dest, LAMBDA &&lambda) throws(NotEnoughSpaceException, EofException)
 			{
 				size_t totalReaded = 0;
 				Component * line;
@@ -286,7 +349,7 @@ namespace kr
 						totalReaded += size;
 					}
 
-					_refill();
+					refill();
 				}
 
 				size_t len = line - m_read;
@@ -295,14 +358,14 @@ namespace kr
 				return totalReaded + len;
 			}
 			template <typename LAMBDA>
-			TSZ readto_L(const LAMBDA &lambda) throws(EofException)
+			TSZ readto_L(LAMBDA &&lambda) throws(EofException)
 			{
 				TSZ tsz;
 				readto_L(&tsz, lambda);
 				return tsz;
 			}
 			template <typename LAMBDA>
-			size_t skipto_L(const LAMBDA &lambda) throws(EofException)
+			size_t skipto_L(LAMBDA &&lambda) throws(EofException)
 			{
 				size_t readlen = 0;
 				Component * line;
@@ -317,7 +380,7 @@ namespace kr
 						readlen += size;
 					}
 
-					_refill();
+					refill();
 				}
 
 				size_t copylen = line - m_read;
@@ -364,7 +427,7 @@ namespace kr
 								totalReaded += readed;
 								m_read = m_filled - needlesize;
 							}
-							_remainFill();
+							remainFill();
 							beg = m_buffer;
 						}
 						return m_read++;
@@ -406,7 +469,7 @@ namespace kr
 								totalReaded += readed - needlesize;
 								m_read = m_filled - needlesize;
 							}
-							_remainFill();
+							remainFill();
 							beg = m_buffer;
 						}
 						return m_read++;
@@ -588,11 +651,14 @@ namespace kr
 
 			using Super::base;
 
+#pragma warning(push)
+#pragma warning(disable:26495)
 			BufferedOStream(Base* p) noexcept 
 				: Super(p)
 			{
 				m_filled = m_buffer;
 			}
+#pragma warning(pop)
 			BufferedOStream(nullptr_t) noexcept
 				: BufferedOStream((Base*)nullptr)
 			{

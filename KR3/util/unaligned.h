@@ -12,7 +12,7 @@ namespace kr
 
 	public:
 		Unaligned() = default;
-		Unaligned(const Unaligned& copy) noexcept = default;
+		Unaligned(const Unaligned& copy) = default;
 		Unaligned(const T & v) noexcept
 		{
 			*this = (Unaligned&)v;

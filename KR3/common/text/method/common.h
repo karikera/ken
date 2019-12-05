@@ -4,23 +4,20 @@ namespace kr
 {
 	namespace ary
 	{
-		namespace method
+		template <class Parent> class CommonMethod
+			:public Parent
 		{
-			template <class Parent> class Common
-				:public Parent
+			CLASS_HEADER(CommonMethod, Parent);
+		public:
+			INHERIT_ARRAY();
+
+			using Parent::Parent;
+
+			void equalOperator(const CommonMethod& from)
 			{
-				CLASS_HEADER(Common, Parent);
-			public:
-				INHERIT_ARRAY();
-
-				using Parent::Parent;
-
-				void equalOperator(const Common & from)
-				{
-					this->~Common();
-					new (this) Common(from);
-				}
-			};
-		}
+				this->~CommonMethod();
+				new (this) CommonMethod(from);
+			}
+		};
 	}
 }

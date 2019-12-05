@@ -264,6 +264,19 @@ ExecutableAllocator* ExecutableAllocator::getInstance() noexcept
 	return &alloc;
 }
 
+
+namespace
+{
+	bool regex(Register r) noexcept
+	{
+		return r >= R8;
+	}
+	byte regidx(Register r) noexcept
+	{
+		return r % R8;
+	}
+}
+
 CodeWriter::CodeWriter(ExecutableAllocator* alloc, size_t size) noexcept
 	:ArrayWriter<byte>((byte*)alloc->alloc(size), size)
 {
@@ -290,23 +303,17 @@ void CodeWriter::rcall(int32_t rpos) noexcept
 #ifdef _M_X64
 void CodeWriter::mov(Register r, dword to) noexcept
 {
-	write(0x48); // mov rax, to
+	write(regex(r) ? 0x49 : 0x48);
 	write(0xc7);
-	write(0xC0 | r);
+	write(0xC0 | regidx(r));
 	write(to);
 
 }
 void CodeWriter::mov(Register r, qword to) noexcept
 {
-	write(0x48);
-	write(0xb8 | r);
+	write(regex(r) ? 0x49 : 0x48);
+	write(0xb8 | regidx(r));
 	writeas(to);
-}
-void CodeWriter::mov(Register2 r, qword v) noexcept
-{
-	write(0x49);
-	write(0xb8 | r);
-	writeas(v);
 }
 void CodeWriter::jump64(void* to, Register r) noexcept
 {
@@ -320,91 +327,100 @@ void CodeWriter::call64(void* to, Register r) noexcept
 }
 void CodeWriter::jump(Register r) noexcept
 {
+	if (regex(r)) write(0x41);
 	write(0xff);
-	write(0xe0 | r);
+	write(0xe0 | regidx(r));
 }
 void CodeWriter::call(Register r) noexcept
 {
+	if (regex(r)) write(0x41);
 	write(0xff);
-	write(0xd0 | r);
-}
-void CodeWriter::call(Register2 r) noexcept
-{
-	write(0x41);
-	write(0xff);
-	write(0xd0 | r);
+	write(0xd0 | regidx(r));
 }
 #endif
 void CodeWriter::push(Register r) noexcept
 {
-	write(0x50 | r);
+	if (regex(r)) write(0x41);
+	write(0x50 | regidx(r));
 }
 void CodeWriter::pop(Register r) noexcept
 {
-	write(0x58 | r);
+	if (regex(r)) write(0x41);
+	write(0x58 | regidx(r));
 }
 void CodeWriter::mov(Register dest, Register src) noexcept
 {
-	write(0x48);
-	write(0x89);
-	write(0xc0 | dest | (src << 3));
+	movex(BitType::Full, dest, src, AccessType::Normal, 0);
 }
-void CodeWriter::mov(Register2 dest, Register src) noexcept
+void CodeWriter::movb(Register dest, Register src) noexcept
 {
-	write(0x49);
-	write(0x89);
-	write(0xc0 | dest | (src << 3));
+	movex(BitType::Byte, dest, src, AccessType::Normal, 0);
 }
-void CodeWriter::mov(Register dest, Register2 src) noexcept
+void CodeWriter::movex(BitType bittype, Register reg1, Register reg2, AccessType atype, int32_t offset) noexcept
 {
-	write(0x4C);
-	write(0x89);
-	write(0xc0 | dest | (src << 3));
-}
-void CodeWriter::mov(Register2 dest, Register2 src) noexcept
-{
-	write(0x4D);
-	write(0x89);
-	write(0xc0 | dest | (src << 3));
-}
-void CodeWriter::movb(Register2 dest, Register2 src) noexcept
-{
-	write(0x45);
-	write(0x88);
-	write(0xc0 | src | (dest << 3));
-}
-void CodeWriter::mov(AddressPointerRule address, Register dest, int8_t offset, Register src) noexcept
-{
-	write(0x48);
-	write(0x89);
-	write(0x40 | (src << 3) | dest);
-	if (dest == RSP)
+	write(0x40 | 
+		((byte)bittype << 3) | 
+		(regex(reg1) ? 0x01 : 0x00) | 
+		(regex(reg2) ? 0x04 : 0x00));
+
+
+	byte offsettype;
+	switch (atype)
 	{
-		write(0x24);
+	case AccessType::Normal:
+		write(0x89);
+		break;
+	case AccessType::Write:
+		write(0x89);
+		break;
+	case AccessType::Read:
+		write(0x8b);
+		break;
+	case AccessType::Lea:
+		write(0x8d);
+		break;
 	}
-	write(offset);
-}
-void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, int8_t offset) noexcept
-{
-	write(0x48);
-	write(0x8b);
-	write(0x40 | (dest << 3) | src);
-	if (src == RSP)
+
+	if (atype != AccessType::Normal)
 	{
-		write(0x24);
+		if (offset == 0)
+		{
+			offsettype = 0x00;
+		}
+		else if ((int8_t)offset == offset)
+		{
+			offsettype = 0x40;
+		}
+		else
+		{
+			offsettype = 0x80;
+		}
 	}
-	write(offset);
+	else
+	{
+		offsettype = 0xc0;
+	}
+	write(offsettype | regidx(reg1) | (regidx(reg2) << 3));
+	if (offsettype == 0xc0) return;
+	if (reg1 == RSP) write(0x24);
+	if (offsettype == 0x40) writeas<int8_t>(offset);
+	else if (offsettype == 0x80) writeas<int32_t>(offset);
+}
+void CodeWriter::mov(AddressPointerRule address, Register dest, Register src) noexcept
+{
+	mov(address, dest, 0, src);
+}
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept
+{
+	movex(BitType::Full, dest, src, AccessType::Write, offset);
 }
 void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
 {
-	write(0x48);
-	write(0x8b);
-	write(0x80 | (dest << 3) | src);
-	if (src == RSP)
-	{
-		write(0x24);
-	}
-	writeas(offset);
+	movex(BitType::Full, src, dest, AccessType::Read, offset);
+}
+void CodeWriter::lea(Register dest, Register src, int32_t offset) noexcept
+{
+	movex(BitType::Full, src, dest, AccessType::Lea, offset);
 }
 void CodeWriter::sub(Register dest, char chr) noexcept
 {
@@ -420,11 +436,17 @@ void CodeWriter::add(Register dest, char chr) noexcept
 	write(0xc0 | dest);
 	write(chr);
 }
+void CodeWriter::test(Register dest, Register src) noexcept
+{
+	write(0x48);
+	write(0x85);
+	write(0xC0 | (src << 3) | dest);
+}
 void CodeWriter::jump(void* to, Register tmp) noexcept
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
 #ifdef _M_X64
-	if (rjumppos < -(intptr_t)0x80000000 || rjumppos >= (intptr_t)0x80000000)
+	if ((int)rjumppos != rjumppos)
 	{
 		jump64(to, tmp);
 	}
@@ -440,7 +462,7 @@ void CodeWriter::call(void* to, Register tmp) noexcept
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
 #ifdef _M_X64
-	if (rjumppos < -(intptr_t)0x80000000 || rjumppos >= (intptr_t)0x80000000)
+	if ((int)rjumppos != rjumppos)
 	{
 		call64(to, tmp);
 	}
@@ -452,11 +474,38 @@ void CodeWriter::call(void* to, Register tmp) noexcept
 	rcall((int)rjumppos);
 #endif
 }
+void CodeWriter::jz(int32_t offset) noexcept
+{
+	if ((int8_t)offset == offset)
+	{
+		write(0x74);
+		write((int8_t)offset);
+	}
+	else
+	{
+		write(0x0f);
+		write(0x84);
+		writeas(offset);
+	}
+}
+void CodeWriter::jnz(int32_t offset) noexcept
+{
+	if ((int8_t)offset == offset)
+	{
+		write(0x75);
+		write((int8_t)offset);
+	}
+	else
+	{
+		write(0x0f);
+		write(0x85);
+		writeas(offset);
+	}
+}
 void CodeWriter::ret() noexcept
 {
 	write(0xc3);
 }
-
 
 void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)(), Register temp) noexcept
 {

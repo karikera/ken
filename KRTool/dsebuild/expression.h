@@ -5,9 +5,9 @@
 class Expression:public Value
 {
 public:
-	Expression(Class * type, AText name);
+	Expression(Class * type, AText name) noexcept;
 
-	Keep<Value> getSizeOf(Function * szof) override;
+	Keep<Value> getSizeOf(Function * szof) noexcept override;
 };
 class FieldReference:public Expression, public LValue
 {

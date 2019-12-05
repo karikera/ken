@@ -4,22 +4,22 @@ namespace kr
 {
 	namespace _pri_
 	{
-		template <typename T> class FinallyClass
+		template <typename LAMBDA> class FinallyClass
 		{
 		public:
-			inline FinallyClass(T lambda) noexcept;
+			inline FinallyClass(LAMBDA&& lambda) noexcept;
 			inline ~FinallyClass();
 
 		private:
-			T m_lambda;
+			LAMBDA m_lambda;
 		};
-		template <typename T> 
-		inline FinallyClass<T>::FinallyClass(T lambda) noexcept
-			:m_lambda(lambda)
+		template <typename LAMBDA> 
+		inline FinallyClass<LAMBDA>::FinallyClass(LAMBDA&& lambda) noexcept
+			:m_lambda(move(lambda))
 		{
 		}
-		template <typename T> 
-		inline FinallyClass<T>::~FinallyClass()
+		template <typename LAMBDA> 
+		inline FinallyClass<LAMBDA>::~FinallyClass()
 		{
 			m_lambda();
 		}
@@ -28,27 +28,22 @@ namespace kr
 		{
 		public:
 			template <typename LAMBDA>
-			inline StaticCode(LAMBDA lambda)
+			inline StaticCode(LAMBDA &&lambda)
 			{
 				lambda();
 			}
 		};
 
-		struct MakeFinallyHelper
+		struct MakeFinallyHelper final
 		{
-			MakeFinallyHelper() = delete;
-			~MakeFinallyHelper() = delete;
-			MakeFinallyHelper(const MakeFinallyHelper&) = delete;
-			MakeFinallyHelper& operator =(const MakeFinallyHelper&) = delete;
-
 			template <typename LAMBDA>
-			FinallyClass<LAMBDA> operator +(LAMBDA&& lambda) const noexcept
+			FinallyClass<decay_t<LAMBDA> > operator +(LAMBDA &&lambda) const noexcept
 			{
-				return lambda;
+				return forward<LAMBDA>(lambda);
 			}
 		};
 
-		static const MakeFinallyHelper & makeFinallyHelper = nullref;
+		static constexpr const MakeFinallyHelper makeFinallyHelper = MakeFinallyHelper();
 	}
 }
 

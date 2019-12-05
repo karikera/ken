@@ -14,85 +14,90 @@ namespace kr
 		class WriteLockImpl<S, false, T, sz, nullterm>
 		{
 		private:
-			S* const m_stream;
 			T m_buffer[sz + (nullterm ? 1 : 0)];
 
 		public:
-			WriteLockImpl(S* stream) noexcept
-				:m_stream(stream)
-			{
-			}
-			~WriteLockImpl()
-			{
-				m_stream->write(m_buffer, sz);
-			}
-			T* begin() noexcept
+			T* lock(S* stream) noexcept
 			{
 				return m_buffer;
+			}
+			void unlock(S* stream, size_t commit) throws(...)
+			{
+				_assert(commit <= sz);
+				stream->write(m_buffer, commit);
+			}
+			void unlock(S* stream) throws(...)
+			{
+				stream->write(m_buffer, sz);
 			}
 		};;
 		template <typename S, typename T, bool nullterm>
 		class WriteLockImpl<S, false, T, (size_t)-1, nullterm>
 		{
 		private:
-			S* const m_stream;
 			TmpArray<T> m_buffer;
 
 		public:
-			WriteLockImpl(S* stream, size_t sz) noexcept
-				: m_stream(stream), m_buffer(sz,sz +(nullterm ? 1 : 0))
+			WriteLockImpl(size_t sz) noexcept
+				: m_buffer(sz,sz +(nullterm ? 1 : 0))
 			{
 			}
-			~WriteLockImpl()
-			{
-				m_stream->write(m_buffer.begin(), m_buffer.size());
-			}
-			T* begin() noexcept
+			T* lock(S* stream) noexcept
 			{
 				return m_buffer.begin();
+			}
+			void unlock(S* stream, size_t commit) throws(...)
+			{
+				_assert(commit <= m_buffer.size());
+				stream->write(m_buffer.begin(), commit);
+			}
+			void unlock(S* stream) throws(...)
+			{
+				stream->write(m_buffer.begin(), m_buffer.size());
 			}
 		};;
 		template <typename S, typename T, size_t sz, bool nullterm> 
 		class WriteLockImpl<S, true, T, sz, nullterm>
 		{
-		private:
-			T * m_ptr;
-
 		public:
-
-			WriteLockImpl(S * stream) noexcept
+			T* lock(S* stream) throws(...)
 			{
-				stream->padding(sz + (nullterm ? 1 : 0));
-				m_ptr = stream->prepare(sz);
+				return stream->padding(sz + (nullterm ? 1 : 0));
 			}
-			~WriteLockImpl()
+			void unlock(S* stream, size_t commit) noexcept
 			{
+				_assert(commit <= sz);
+				stream->commit(commit);
 			}
-			T* begin() noexcept
+			void unlock(S* stream) noexcept
 			{
-				return m_ptr;
+				stream->commit(sz);
 			}
 		};;
 		template <typename S, typename T, bool nullterm> 
 		class WriteLockImpl<S, true, T, (size_t)-1, nullterm>
 		{
 		private:
-			T * m_ptr;
 			size_t m_size;
 
 		public:
-			WriteLockImpl(S* stream, size_t sz) noexcept
-			{
-				m_size = sz;
-				stream->padding(m_size + (nullterm ? 1 : 0));
-				m_ptr = stream->prepare(m_size);
-			}
-			~WriteLockImpl()
+			WriteLockImpl(size_t sz) noexcept
+				: m_size(sz)
 			{
 			}
-			T* begin() noexcept
+
+			T* lock(S* stream) noexcept
 			{
-				return m_ptr;
+				return (T*)stream->padding(m_size + (nullterm ? 1 : 0));
+			}
+			void unlock(S* stream, size_t commit) noexcept
+			{
+				_assert(commit <= m_size);
+				stream->commit(commit);
+			}
+			void unlock(S* stream) noexcept
+			{
+				stream->commit(m_size);
 			}
 		};;
 	}
@@ -104,12 +109,6 @@ namespace kr
 		using Super = _pri_::WriteLockImpl<DATA, DATA::accessable, typename DATA::InternalComponent, size, nullterm>;
 	public:
 		using Super::Super;
-		using Super::begin;
-
-		typename DATA::Component& operator *() noexcept
-		{
-			return *begin();
-		}
 	};;
 
 }

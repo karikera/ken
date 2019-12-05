@@ -32,8 +32,9 @@ namespace kr
 			static size_t length(Text text) noexcept;
 			static size_t encode(char * out, Text text) noexcept;
 			static void encode(Writer * out, Text * text) noexcept;
-			static size_t delength(Text text) noexcept = delete;
-			static void decode(Writer * out, Text * text) noexcept = delete;
+			static size_t delength(Text text) noexcept;
+			static size_t decode(char* out, Text text) noexcept;
+			static void decode(Writer * out, Text * text) noexcept;
 
 			static constexpr size_t SIZE = -1;
 		};;
@@ -44,8 +45,9 @@ namespace kr
 			static size_t length(Buffer text) noexcept;
 			static size_t encode(char * out, Buffer text) noexcept;
 			static void encode(Writer * out, Buffer* text) noexcept;
-			static size_t delength(Text text) noexcept = delete;
-			static void decode(BufferWriter *out, Text * text) noexcept = delete;
+			static size_t delength(Text text) noexcept;
+			static size_t decode(void* out, Text text) noexcept;
+			static void decode(BufferWriter* out, Text* text) noexcept;
 
 			static constexpr size_t SIZE = -1;
 		};
@@ -63,7 +65,7 @@ namespace kr
 			static constexpr size_t SIZE = -1;
 		};
 		template <typename Algorithm>
-		class Hasher :public OutStream<Hasher<Algorithm>, AutoComponent, StreamInfo<false, Bufferable<Hasher<Algorithm>, BufferInfo<AutoComponent, true, false, false, true, Algorithm> > > >
+		class Hasher :public OutStream<Hasher<Algorithm>, AutoComponent, StreamInfo<false, Bufferable<Hasher<Algorithm>, BufferInfo<AutoComponent, method::CopyTo, false, true, Algorithm> > > >
 		{
 		public:
 			using Algorithm::update;
@@ -73,7 +75,7 @@ namespace kr
 			Hasher() = default;
 
 			template <typename _Derived, typename _C, bool _szable, bool _readonly, typename _Parent>
-			Hasher(const Bufferable<_Derived, BufferInfo<_C, false, false, _szable, _readonly, _Parent>> &data) noexcept
+			Hasher(const Bufferable<_Derived, BufferInfo<_C, method::Memory, _szable, _readonly, _Parent>> &data) noexcept
 			{
 				update(data.template cast<void>());
 			}
@@ -97,7 +99,7 @@ namespace kr
 			static TBuffer hash(File * file) noexcept
 			{
 				Hasher hasher;
-				hasher.passThrough(file->stream<void>());
+				hasher << file->stream<void>()->readAll();
 				delete file;
 				return (TBuffer)hasher;
 			}
@@ -155,3 +157,12 @@ namespace kr
 		using Base64OStream = OStreamEncoder<Derived, encoder::Base64>;
 	}
 }
+
+extern template class kr::encoder::Encoder<kr::encoder::Uri, char, char>;
+extern template class kr::encoder::Encoder<kr::encoder::HtmlEntity, char, char>;
+extern template class kr::encoder::Encoder<kr::encoder::Hex, char, void>;
+extern template class kr::encoder::Encoder<kr::encoder::Base64, char, char>;
+
+extern template class kr::encoder::Hasher<kr::encoder::Sha1Context>;
+extern template class kr::encoder::Hasher<kr::encoder::Sha256Context>;
+extern template class kr::encoder::Hasher<kr::encoder::Md5Context>;

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <KR3/main.h>
+#include "reference.h"
+#include <KRNew/alloc.h>
+#include "intrinsic.h"
 #include "../meta/log2.h"
 
 constexpr int MOD_ADLER = 65521;
@@ -83,7 +85,7 @@ inline void kr::memt<BASE>::xor_copy(ptr _dst, cptr _src, size_t _len, dword _ke
 		constexpr size_t MASK = (1 << sizeof(uintptr_t)) - 1;
 
 		byte_end = (type*)((((size_t)_dst - 1) | MASK) + 1);
-		if (byte_end + sizeof(uintptr_t) <= byte_real_end)
+		if (byte_end + sizeof(uintptr_t)/sizeof(type) <= byte_real_end)
 		{
 			for (; byte_dest != byte_end; byte_dest++, byte_src++)
 			{
@@ -195,7 +197,7 @@ inline int kr::memt<BASE>::compare(cptr _dst, cptr _src, size_t _len) noexcept
 	{
 		constexpr size_t MASK = (1 << sizeof(uintptr_t)) - 1;
 		byte_end = (type*)((((size_t)_dst - 1) | MASK) + 1);
-		if (byte_end + sizeof(uintptr_t) <= byte_real_end)
+		if (byte_end + sizeof(uintptr_t)/sizeof(type) <= byte_real_end)
 		{
 			for (; byte_dest != byte_end; byte_dest++, byte_src++)
 			{
@@ -231,7 +233,7 @@ __left:
 	return 0;
 }
 template <>
-inline ATTR_CHECK_RETURN int kr::memt<1>::compare(cptr _dst, cptr _src, size_t _len) noexcept
+inline ATTR_NO_DISCARD int kr::memt<1>::compare(cptr _dst, cptr _src, size_t _len) noexcept
 {
 	return memcmp(_dst, _src, _len);
 }
@@ -339,7 +341,7 @@ inline auto kr::memt<BASE>::find_callback(const READCB &read, T* _tar, size_t _t
 		}
 	}
 
-	using unconstT = std::remove_const_t<T>;
+	using unconstT = remove_const_t<T>;
 	Array<unconstT> tmp(_tarlen);
 	unconstT * tmpbeg = tmp.data();
 	unconstT * tmpend = tmpbeg + _tarlen;
@@ -1214,11 +1216,11 @@ void kr::_pri_::ARRCOPY<true, true>::subs_move(void* dest, void* src, size_t siz
 	memcpy(dest, src, size);
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, true>::ctor(void * dest, size_t size) noexcept
+void kr::_pri_::ARRCOPY<true, true>::ctor(void* dest, void* dest_end) noexcept
 {
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, true>::dtor(void * dest, size_t size) noexcept
+void kr::_pri_::ARRCOPY<true, true>::dtor(void* dest, void* dest_end) noexcept
 {
 }
 template <typename T>
@@ -1275,19 +1277,17 @@ void kr::_pri_::ARRCOPY<true, false>::subs_move(T* dest, T* src, size_t size) no
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor(T * dest, size_t size) noexcept
+void kr::_pri_::ARRCOPY<true, false>::ctor(T* dest, T* dest_end) noexcept
 {
-	T * end = dest + size;
-	while (dest != end)
+	while (dest != dest_end)
 	{
 		new(dest++) T;
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::dtor(T * dest, size_t size) noexcept
+void kr::_pri_::ARRCOPY<true, false>::dtor(T* dest, T* dest_end) noexcept
 {
-	T * end = dest + size;
-	while (dest != end)
+	while (dest != dest_end)
 	{
 		(dest++)->~T();
 	}
@@ -1373,11 +1373,11 @@ void kr::_pri_::ARRCOPY<false, false>::subs_move(T* dest, T* src, size_t size) n
 	SIZE_MEM<sizeof(T)>::copy(dest, src, size);
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor(T * dest, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::ctor(T* dest, T* dest_end) noexcept
 {
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::dtor(T * dest, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::dtor(T* dest, T* dest_end) noexcept
 {
 }
 template <typename T>
@@ -1477,13 +1477,13 @@ template <typename T> T* kr::mema::alloc(const T* _src, size_t _len) noexcept
 	return _dst;
 }
 
-template <typename T> void kr::mema::ctor(T* dest, size_t size) noexcept
+template <typename T> void kr::mema::ctor(T* dest, T* dest_end) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor<T>(dest, size);
+	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor<T>(dest, dest_end);
 }
-template <typename T> void kr::mema::dtor(T* dest, size_t size) noexcept
+template <typename T> void kr::mema::dtor(T* dest, T* dest_end) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template dtor<T>(dest, size);
+	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template dtor<T>(dest, dest_end);
 }
 template <typename T> void kr::mema::subs_fill(T* dest, const T& src, size_t size) noexcept
 {

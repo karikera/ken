@@ -111,7 +111,7 @@ typename kr::map::IdMap<Parent, Cmp>::Component* kr::map::IdMap<Parent, Cmp>::_s
 
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA> 
-typename kr::map::IdMap<Parent, Cmp>::Component kr::map::IdMap<Parent, Cmp>::insertAlways(Component data, LAMBDA old) noexcept
+typename kr::map::IdMap<Parent, Cmp>::Component kr::map::IdMap<Parent, Cmp>::insertAlways(Component data, LAMBDA &&old) noexcept
 {
 	return findAct(Cmp::getKey(data),
 		[&](Component* p) { Component old = move(p);  p->value = move(data); return old; },
@@ -120,7 +120,7 @@ typename kr::map::IdMap<Parent, Cmp>::Component kr::map::IdMap<Parent, Cmp>::ins
 }
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA> 
-auto kr::map::IdMap<Parent, Cmp>::findAct(K key, LAMBDA lambda)->decltype(lambda(nullptr))
+auto kr::map::IdMap<Parent, Cmp>::findAct(K key, LAMBDA &&lambda)->decltype(lambda(nullptr))
 {
 	Component * beg = Parent::begin();
 	size_t sz = Parent::size();
@@ -128,7 +128,7 @@ auto kr::map::IdMap<Parent, Cmp>::findAct(K key, LAMBDA lambda)->decltype(lambda
 }
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA, typename LAMBDA2>
-auto kr::map::IdMap<Parent, Cmp>::findAct(K key, LAMBDA found, LAMBDA2 notfound)->decltype(found(nullptr))
+auto kr::map::IdMap<Parent, Cmp>::findAct(K key, LAMBDA &&found, LAMBDA2 &&notfound)->decltype(found(nullptr))
 {
 	return Search::search(Parent::begin(), Parent::size(), key, found, notfound);
 }
@@ -253,7 +253,7 @@ typename kr::map::SortedArray<Parent, Cmp>::Component* kr::map::SortedArray<Pare
 
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA>
-void kr::map::SortedArray<Parent, Cmp>::rankingLoop(LAMBDA lambda) noexcept
+void kr::map::SortedArray<Parent, Cmp>::rankingLoop(LAMBDA &&lambda) noexcept
 {
 	if(empty()) return;
 
@@ -285,7 +285,7 @@ void kr::map::SortedArray<Parent, Cmp>::rankingLoop(LAMBDA lambda) noexcept
 }
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA> 
-void kr::map::SortedArray<Parent, Cmp>::rankingLoop_u(LAMBDA lambda) noexcept
+void kr::map::SortedArray<Parent, Cmp>::rankingLoop_u(LAMBDA &&lambda) noexcept
 {
 	if (empty()) return;
 
@@ -315,7 +315,7 @@ void kr::map::SortedArray<Parent, Cmp>::rankingLoop_u(LAMBDA lambda) noexcept
 }
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA>
-typename kr::map::SortedArray<Parent, Cmp>::Component kr::map::SortedArray<Parent, Cmp>::insertAlways(Component data, LAMBDA old) noexcept
+typename kr::map::SortedArray<Parent, Cmp>::Component kr::map::SortedArray<Parent, Cmp>::insertAlways(Component data, LAMBDA &&old) noexcept
 {
 	return findAct(Cmp::getKey(data),
 		[&](Component* p) { Component old = move(p);  p->value = move(data); return old; },
@@ -324,7 +324,7 @@ typename kr::map::SortedArray<Parent, Cmp>::Component kr::map::SortedArray<Paren
 }
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA>
-auto kr::map::SortedArray<Parent, Cmp>::findAct(K key, LAMBDA lambda)->decltype(lambda(nullptr))
+auto kr::map::SortedArray<Parent, Cmp>::findAct(K key, LAMBDA &&lambda)->decltype(lambda(nullptr))
 {
 	Component * beg = Parent::begin();
 	size_t sz = Parent::size();
@@ -332,7 +332,7 @@ auto kr::map::SortedArray<Parent, Cmp>::findAct(K key, LAMBDA lambda)->decltype(
 }
 template <typename Parent, typename Cmp> 
 template <typename LAMBDA, typename LAMBDA2>
-auto kr::map::SortedArray<Parent, Cmp>::findAct(K key, LAMBDA found, LAMBDA2 notfound)->decltype(found(nullptr))
+auto kr::map::SortedArray<Parent, Cmp>::findAct(K key, LAMBDA &&found, LAMBDA2 &&notfound)->decltype(found(nullptr))
 {
 	return Search::search(Parent::begin(), Parent::size(), key, found, notfound);
 }

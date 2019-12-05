@@ -22,14 +22,14 @@ namespace kr
 	{
 	public:
 		template <typename LAMBDA>
-		void post(LAMBDA lambda)
+		void post(LAMBDA &&lambda)
 		{
 			struct Data :Task
 			{
-				LAMBDA m_lambda;
+				decay_t<LAMBDA> m_lambda;
 
 				Data(LAMBDA lamb)
-					:m_lambda(move(lamb))
+					:m_lambda(forward<LAMBDA>(lamb))
 				{
 				}
 				~Data() noexcept override
@@ -40,19 +40,19 @@ namespace kr
 					m_lambda();
 				}
 			};
-			static_cast<This*>(this)->attach(_new Data(move(lambda)));
+			static_cast<This*>(this)->attach(_new Data(forward<LAMBDA>(lambda)));
 		}
 
 		template <typename LAMBDA, typename CANCEL>
-		void post(LAMBDA lambda, CANCEL oncancel)
+		void post(LAMBDA &&lambda, CANCEL oncancel)
 		{
 			struct Data :Task
 			{
-				LAMBDA m_lambda;
+				decay_t<LAMBDA> m_lambda;
 				CANCEL m_oncancel;
 
 				Data(LAMBDA lamb, CANCEL oncancel)
-					:m_lambda(move(lamb)), m_oncancel(move(oncancel))
+					:m_lambda(forward<LAMBDA>(lamb)), m_oncancel(forward<CANCEL>(oncancel))
 				{
 				}
 				~Data() noexcept override
@@ -67,7 +67,7 @@ namespace kr
 					m_oncancel();
 				}
 			};
-			static_cast<This*>(this)->attach(_new Data(move(lambda), move(oncancel)));
+			static_cast<This*>(this)->attach(_new Data(forward<LAMBDA>(lambda), forward<CANCEL>(oncancel)));
 		}
 
 	};

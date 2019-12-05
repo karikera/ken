@@ -6,6 +6,7 @@
 	using Super::operator *;\
 	using Super::operator --;\
 	using Super::operator ++;\
+	using typename Super::ValueType;\
 	// using Super::operator !=;\
 	// using Super::operator ==;\
 	// using Super::operator ->;\
@@ -15,10 +16,11 @@ namespace kr
 {
 	namespace _pri_
 	{
-		template <typename Derived, typename ValueType, typename Parent = Empty>
+		template <typename Derived, typename _ValueType, typename Parent = Empty>
 		class MakeIteratorCommon:public Parent
 		{
 		public:
+			using ValueType = _ValueType;
 			using Parent::Parent;
 			ValueType operator *() const noexcept
 			{
@@ -288,5 +290,55 @@ namespace kr
 			return ConstReverseIterable(static_cast<const Derived*>(this));
 		}
 	};
+
+	template <typename Iterable, typename LAMBDA>
+	class FilterIterable :public MakeIterableIterator<FilterIterable<Iterable, LAMBDA>, decltype(((Iterable*)nullptr)->begin())>
+	{
+		INHERIT_ITERATOR(MakeIterableIterator<FilterIterable<Iterable, LAMBDA>, decltype(((Iterable*)nullptr)->begin())>);
+	private:
+		decltype(((Iterable*)nullptr)->begin()) m_iterator;
+		decltype(((Iterable*)nullptr)->end()) m_iterator_end;
+		LAMBDA m_condition;
+
+	public:
+
+		FilterIterable(Iterable& iter, LAMBDA&& lambda) noexcept
+			:m_iterator(iter.begin()),
+			m_iterator_end(iter.end()),
+			m_condition(move(lambda))
+		{
+		}
+		FilterIterable(Iterable& iter, const LAMBDA& lambda) noexcept
+			:m_iterator(iter.begin()),
+			m_iterator_end(iter.end()),
+			m_condition(lambda)
+		{
+		}
+
+		ValueType value() noexcept
+		{
+			return *m_iterator;
+		}
+
+		void next() noexcept
+		{
+			m_iterator++;
+			while (m_iterator != m_iterator_end && !m_condition(m_iterator))
+			{
+				m_iterator++;
+			}
+		}
+
+		bool isEnd() const noexcept
+		{
+			return m_iterator = m_iterator_end;
+		}
+	};
+
+	template <typename Iterable, typename LAMBDA>
+	FilterIterable<Iterable, LAMBDA> filterIterable(Iterable& iterable, LAMBDA&& lambda) noexcept
+	{
+		return { iterable, lambda };
+	}
 
 }

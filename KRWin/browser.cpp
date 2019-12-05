@@ -212,7 +212,7 @@ namespace
 		m_oleInPlaceObject->GetWindow(&hControl);
 		::ShowWindow(hControl, SW_SHOW);
 
-		m_webBrowser->Navigate(L"about:blank", &variant_t((UINT)0), nullptr, nullptr, nullptr);
+		m_webBrowser->Navigate(const_cast<BSTR>(L"about:blank"), &variant_t((UINT)0), nullptr, nullptr, nullptr);
 		return true;
 	}
 	EmbeddedBrowserImpl::~EmbeddedBrowserImpl()

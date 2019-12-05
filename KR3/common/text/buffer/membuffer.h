@@ -1,6 +1,6 @@
 #pragma once
 
-#include "commoncls.h"
+#include "../hasmethod.h"
 
 namespace kr
 {
@@ -86,7 +86,7 @@ namespace kr
 	};
 
 	template <typename C>
-	class FilteredBuffer :public Bufferable<FilteredBuffer<C>, BufferInfo<C, true, true> >
+	class FilteredBuffer :public Bufferable<FilteredBuffer<C>, BufferInfo<C, method::CopyWriteTo> >
 	{
 	private:
 		const View<C> m_text;
@@ -101,12 +101,13 @@ namespace kr
 		template <typename Derived, typename Info>
 		void $writeTo(OutStream<Derived, C, Info>* dest) const noexcept
 		{
-			WriteLock<OutStream<Derived, C, Info> > lock(dest, m_text.size());
-			InternalComponent * ptr = lock.begin();
+			WriteLock<OutStream<Derived, C, Info> > lock(m_text.size());
+			InternalComponent * ptr = lock.lock(dest);
 			for (InternalComponent chr : m_text)
 			{
 				*ptr++ = m_filter(chr);
 			}
+			lock.unlock(dest);
 		}
 		size_t $copyTo(C* dest) const noexcept
 		{
@@ -128,21 +129,22 @@ namespace kr
 	class SplitIterator :public MakeIterableIterator<SplitIterator<C>, View<C>>
 	{
 	private:
+		using IC = internal_component_t<C>;
 	public:
-		const C* m_ref;
-		const C* m_next;
-		const C* m_end;
-		const C* m_done;
-		C m_chr;
+		const IC* m_ref;
+		const IC* m_next;
+		const IC* m_end;
+		const IC* m_done;
+		IC m_chr;
 
 	public:
 		SplitIterator() = default;
-		SplitIterator(View<C> _this, C chr) noexcept
+		SplitIterator(View<C> _this, IC chr) noexcept
 			: m_chr(move(chr))
 		{
 			m_ref = _this.begin();
 			m_end = _this.end();
-			m_next = _this.find_e(m_chr);
+			m_next = (IC*)_this.find_e(m_chr);
 			m_done = m_end + 1;
 		}
 		bool isEnd() const noexcept
@@ -154,7 +156,7 @@ namespace kr
 			m_ref = m_next;
 			m_ref++;
 			if (m_ref == m_done) return;
-			m_next = View<C>(m_ref, m_end).find_e(m_chr);
+			m_next = (IC*)View<C>(m_ref, m_end).find_e(m_chr);
 		}
 		View<C> value() const noexcept
 		{
@@ -166,10 +168,12 @@ namespace kr
 	class TextSplitIterator :public MakeIterableIterator<TextSplitIterator<C>, View<C>>
 	{
 	private:
-		const C* m_ref;
-		const C* m_next;
-		const C* m_end;
-		const C* m_done;
+		using IC = internal_component_t<C>;
+
+		const IC* m_ref;
+		const IC* m_next;
+		const IC* m_end;
+		const IC* m_done;
 		View<C> m_chr;
 
 	public:
@@ -179,7 +183,7 @@ namespace kr
 		{
 			m_ref = _this.begin();
 			m_end = _this.end();
-			m_next = _this.find_e(m_chr);
+			m_next = (IC*)_this.find_e(m_chr);
 			m_done = m_end + m_chr.size();
 		}
 		bool isEnd() const noexcept
@@ -191,7 +195,7 @@ namespace kr
 			m_ref = m_next;
 			m_ref += m_chr.size();
 			if (m_ref == m_done) return;
-			m_next = View<C>(m_ref, m_end).find_e(m_chr);
+			m_next = (IC*)View<C>(m_ref, m_end).find_e(m_chr);
 		}
 		View<C> value() const noexcept
 		{
@@ -203,20 +207,22 @@ namespace kr
 	class ReverseSplitIterator :public MakeIterableIterator<ReverseSplitIterator<C>, View<C>>
 	{
 	private:
-		const C* m_ref;
-		const C* m_next;
-		const C* m_begin;
-		const C* m_done;
-		C m_chr;
+		using IC = internal_component_t<C>;
+
+		const IC* m_ref;
+		const IC* m_next;
+		const IC* m_begin;
+		const IC* m_done;
+		IC m_chr;
 
 	public:
 		ReverseSplitIterator() = default;
-		ReverseSplitIterator(View<C> _this, C chr) noexcept
+		ReverseSplitIterator(View<C> _this, IC chr) noexcept
 			: m_chr(move(chr))
 		{
 			m_begin = _this.begin();
 			m_ref = _this.end();
-			m_next = _this.find_r(m_chr);
+			m_next = (IC*)_this.find_r(m_chr);
 			if (m_next == nullptr) m_next = m_begin;
 			m_done = m_begin - 1;
 		}
@@ -229,7 +235,7 @@ namespace kr
 			m_ref = m_next;
 			m_ref--;
 			if (m_ref == m_done) return;
-			m_next = View<C>(m_begin, m_ref).find_r(m_chr);
+			m_next = (IC*)View<C>(m_begin, m_ref).find_r(m_chr);
 			if (m_next == nullptr) m_next = m_begin;
 		}
 		View<C> value() const noexcept
@@ -242,10 +248,12 @@ namespace kr
 	class ReverseTextSplitIterator :public MakeIterableIterator<ReverseTextSplitIterator<C>, View<C>>
 	{
 	private:
-		const C* m_ref;
-		const C* m_next;
-		const C* m_begin;
-		const C* m_done;
+		using IC = internal_component_t<C>;
+
+		const IC* m_ref;
+		const IC* m_next;
+		const IC* m_begin;
+		const IC* m_done;
 		View<C> m_chr;
 
 	public:
@@ -255,7 +263,7 @@ namespace kr
 		{
 			m_begin = _this.begin();
 			m_ref = _this.end();
-			m_next = _this.find_r(m_chr);
+			m_next = (IC*)_this.find_r(m_chr);
 			if (m_next == nullptr) m_next = m_begin;
 			else m_next += m_chr.size();
 			m_done = m_begin - m_chr.size();
@@ -269,7 +277,7 @@ namespace kr
 			m_ref = m_next;
 			m_ref -= m_chr.size();
 			if (m_ref == m_done) return;
-			m_next = View<C>(m_begin, m_ref).find_r(m_chr);
+			m_next = (IC*)View<C>(m_begin, m_ref).find_r(m_chr);
 			if (m_next == nullptr) m_next = m_begin;
 			else m_next += m_chr.size();
 		}
@@ -283,15 +291,15 @@ namespace kr
 	class LoopIterator :public MakeIterableIterator<LoopIterator<C>, internal_component_t<C>&>
 	{
 	private:
-		using InternalComponent = internal_component_t<C>;
-		InternalComponent* m_ptr;
-		InternalComponent* m_end;
-		InternalComponent* m_ptr2;
-		InternalComponent* m_end2;
+		using IC = internal_component_t<C>;
+		IC* m_ptr;
+		IC* m_end;
+		IC* m_ptr2;
+		IC* m_end2;
 
 	public:
 		LoopIterator() = default;
-		LoopIterator(InternalComponent* ptr, InternalComponent* end, InternalComponent* ptr2, InternalComponent* end2) noexcept
+		LoopIterator(IC* ptr, IC* end, IC* ptr2, IC* end2) noexcept
 		{
 			m_ptr = ptr;
 			m_end = end;
@@ -322,7 +330,7 @@ namespace kr
 		{
 			return m_ptr == nullptr;
 		}
-		InternalComponent& value() const noexcept
+		IC& value() const noexcept
 		{
 			return *m_ptr;
 		}
@@ -331,15 +339,18 @@ namespace kr
 	namespace buffer
 	{
 		template <typename Derived, typename Info>
-		class MemBuffer :public _pri_::CopyToOnlyImpl<Derived, typename Info::Component, Info>
+		class Memory;
+
+		template <typename Derived, typename Component, template <typename, typename> class Method, bool szable, bool readonly, typename Parent>
+		class Memory<Derived, BufferInfo<Component, Method, szable, readonly, Parent> > 
+			:public WriteToByCopyTo<Derived, Component, BufferInfo<Component, Method, szable, readonly, Parent> >
 		{
-			CLASS_HEADER(MemBuffer, _pri_::CopyToOnlyImpl<Derived, typename Info::Component, Info>);
+			CLASS_HEADER(Memory, WriteToByCopyTo<Derived, Component, BufferInfo<Component, Method, szable, readonly, Parent> >);
+			using Memory_Info = BufferInfo<Component, Method, szable, readonly, Parent>;
 		public:
 			INHERIT_COMPONENT();
 
 			using Super::Super;
-			using Info::accessable;
-			using Info::szable;
 
 			ComponentRef* data() noexcept
 			{
@@ -379,14 +390,14 @@ namespace kr
 				return size();
 			}
 
-			bool operator ==(const MemBuffer& other) const
+			bool operator ==(const Memory& other) const
 			{
 				size_t tsize = size();
 				size_t osize = other.size();
 				if (tsize != osize) return false;
 				return mem::equals(begin(), other.begin(), tsize);
 			}
-			bool operator !=(const MemBuffer& other) const
+			bool operator !=(const Memory& other) const
 			{
 				return !(*this == other);
 			}
@@ -428,7 +439,7 @@ namespace kr
 				return _v == nullptr || (begin() <= _v && _v <= end());
 			}
 			template <class _Derived, bool a, bool b, class _Parent>
-			bool contains_ptr(const Bufferable<_Derived, BufferInfo<Component, false, false, a, b, _Parent>>& _v) const noexcept
+			bool contains_ptr(const Bufferable<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>>& _v) const noexcept
 			{
 				return contains_ptr(_v.begin());
 			}
@@ -557,18 +568,22 @@ namespace kr
 			}
 			InternalComponentRef& operator *()
 			{
+				_assert(!empty());
 				return *begin();
 			}
 			const InternalComponentRef& operator *() const
 			{
+				_assert(!empty());
 				return *begin();
 			}
 			const InternalComponentRef& get(size_t index) const noexcept
 			{
+				_assert(index < size());
 				return begin()[index];
 			}
 			InternalComponentRef& get(size_t index) noexcept
 			{
+				_assert(index < size());
 				return begin()[index];
 			}
 			void set(size_t index, const InternalComponent& src) noexcept
@@ -590,119 +605,119 @@ namespace kr
 				if (_len < _len2) return false;
 				return memm::find(data(), _v.data(), _len, _len2) != nullptr;
 			}
-			const Component* find_n(const InternalComponent &_v) const noexcept
+			ComponentRef* find_n(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_n(begin(), _v, size());
+				return (ComponentRef*)memm::find_n(begin(), _v, size());
 			}
-			const Component* find_ne(const InternalComponent &_v) const noexcept
+			ComponentRef* find_ne(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_ne(begin(), _v, size());
+				return (ComponentRef*)memm::find_ne(begin(), _v, size());
 			}
-			const Component* find_ny(Ref _v) const noexcept
+			ComponentRef* find_ny(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_ny(begin(), _v.begin(), size(), _v.size());
+				return (ComponentRef*)memm::find_ny(begin(), _v.begin(), size(), _v.size());
 			}
-			const Component* find_nr(const InternalComponent &_v) const noexcept
+			ComponentRef* find_nr(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_nr(begin(), _v, size());
+				return (ComponentRef*)memm::find_nr(begin(), _v, size());
 			}
-			const Component* find_nry(Ref _v) const noexcept
+			ComponentRef* find_nry(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_nry(begin(), _v.begin(), size(), _v.size());
+				return (ComponentRef*)memm::find_nry(begin(), _v.begin(), size(), _v.size());
 			}
-			const Component* find_nye(Ref _v) const noexcept
+			ComponentRef* find_nye(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_nye(begin(), _v.begin(), size(), _v.size());
+				return (ComponentRef*)memm::find_nye(begin(), _v.begin(), size(), _v.size());
 			}
-			const Component* find(const InternalComponent &needle) const noexcept
+			ComponentRef* find(const InternalComponent &needle) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find(begin(), needle, size());
+				return (ComponentRef*)memm::find(begin(), needle, size());
 			}
-			const Component* find(Ref _v) const noexcept
+			ComponentRef* find(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
 				size_t _len = size();
 				size_t _len2 = _v.size();
 				if (_len < _len2)
 					return nullptr;
-				return memm::find(begin(), _v.begin(), _len, _len2);
+				return (ComponentRef*)memm::find(begin(), _v.begin(), _len, _len2);
 			}
-			const Component* find_e(const InternalComponent &_v) const noexcept
+			ComponentRef* find_e(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_e(begin(), _v, size());
+				return (ComponentRef*)memm::find_e(begin(), _v, size());
 			}
-			const Component* find_e(Ref _v) const noexcept
+			ComponentRef* find_e(Ref _v) const noexcept
 			{
 				const Component* finded = find(_v);
 				if (finded == nullptr) return end();
-				return finded;
+				return (ComponentRef*)finded;
 			}
-			const Component* find_y(Ref _v) const noexcept
+			ComponentRef* find_y(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_y(begin(), _v.begin(), size(), _v.size());
+				return (ComponentRef*)memm::find_y(begin(), _v.begin(), size(), _v.size());
 			}
-			const Component* find_ye(Ref _v) const noexcept
+			ComponentRef* find_ye(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_ye(begin(), _v.begin(), size(), _v.size());
+				return (ComponentRef*)memm::find_ye(begin(), _v.begin(), size(), _v.size());
 			}
-			const Component* find_r(const InternalComponent &_v) const noexcept
+			ComponentRef* find_r(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_r(begin(), _v, size());
+				return (ComponentRef*)memm::find_r(begin(), _v, size());
 			}
-			const Component* find_r(Ref _v) const noexcept
+			ComponentRef* find_r(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
 				size_t _len = size();
 				size_t _len2 = _v.size();
 				if (_len < _len2)
 					return nullptr;
-				return memm::find_r(begin(), _v.begin(), _len, _len2);
+				return (ComponentRef*)memm::find_r(begin(), _v.begin(), _len, _len2);
 			}
-			const Component* find_ry(Ref _v) const noexcept
+			ComponentRef* find_ry(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_ry(begin(), _v.begin(), size(), _v.size());
+				return (ComponentRef*)memm::find_ry(begin(), _v.begin(), size(), _v.size());
 			}
-			const Component* find_rye(Ref _v) const noexcept
+			ComponentRef* find_rye(Ref _v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_rye(begin(), _v.begin(), size(), _v.size());
+				return (ComponentRef*)memm::find_rye(begin(), _v.begin(), size(), _v.size());
 			}
-			const Component* find_re(const InternalComponent &_v) const noexcept
+			ComponentRef* find_re(const InternalComponent &_v) const noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_re(begin(), _v, size());
+				return (ComponentRef*)memm::find_re(begin(), _v, size());
 			}
-			const Component* find_re(Ref _v) const noexcept
+			ComponentRef* find_re(Ref _v) const noexcept
 			{
 				const Component* finded = find_r(_v);
 				if (finded == nullptr) return begin() - 1;
-				return finded;
+				return (ComponentRef*)finded;
 			}
 			template <typename LAMBDA>
-			const Component* find_L(const LAMBDA & lambda) const noexcept
+			ComponentRef* find_L(LAMBDA && lambda) const noexcept
 			{
 				InternalComponentRef * e = end();
 				InternalComponentRef * p = begin();
 				for (; p != e; p++)
 				{
-					if (lambda(*p)) return p;
+					if (lambda(*p)) return (ComponentRef*)p;
 				}
 				return nullptr;
 			}
 
-			const Component* end_find_r(const InternalComponent &needle) noexcept
+			ComponentRef* end_find_r(const InternalComponent &needle) noexcept
 			{
 				KR_DEFINE_MMEM();
 				const Component* _end = memm::find_r(begin(), needle, size());
@@ -710,16 +725,16 @@ namespace kr
 				{
 					Ref out;
 					out.setEnd(nullptr);
-					return out;
+					return (ComponentRef*)out;
 				}
-				return _end + 1;
+				return (ComponentRef*)(_end + 1);
 			}
-			const Component* end_find_re(const InternalComponent &needle) noexcept
+			ComponentRef* end_find_re(const InternalComponent &needle) noexcept
 			{
 				KR_DEFINE_MMEM();
-				return memm::find_re(begin(), needle, size()) + 1;
+				return (ComponentRef*)(memm::find_re(begin(), needle, size()) + 1);
 			}
-			const Component* end_find_r(Ref needle) noexcept
+			ComponentRef* end_find_r(Ref needle) noexcept
 			{
 				KR_DEFINE_MMEM();
 				size_t _len = size();
@@ -727,13 +742,13 @@ namespace kr
 				if (_len < _len2) return nullptr;
 				const Component* _end = memm::find_r(begin(), needle.begin(), _len, _len2);
 				if (_end == nullptr) return nullptr;
-				return _end + needle.size();
+				return (ComponentRef*)(_end + needle.size());
 			}
-			const Component* end_find_re(Ref needle) noexcept
+			ComponentRef* end_find_re(Ref needle) noexcept
 			{
 				const Component* finded = end_find_r(needle);
-				if (finded.end() == nullptr) return begin();
-				return finded;
+				if (finded.end() == nullptr) return (ComponentRef*)begin();
+				return (ComponentRef*)finded;
 			}
 
 			size_t pos(const InternalComponent &_v) const noexcept
@@ -832,7 +847,7 @@ namespace kr
 			template <class Converter, class _Derived, typename _Info>
 			void replace(OutStream<_Derived, typename Converter::Component, _Info> * _out, Ref _tar, View<typename Converter::Component> _to) const // NotEnoughSpaceException
 			{
-				Ref reader = *static_cast<const Bufferable<Derived, Info>*>(this);
+				Ref reader = *static_cast<const Bufferable<Derived, Memory_Info>*>(this);
 
 				for (;;)
 				{
@@ -849,7 +864,7 @@ namespace kr
 			template <class Converter, class _Derived, typename _Info>
 			void replace(OutStream<_Derived, typename Converter::Component, _Info> * _out, const InternalComponent &_tar, const internal_component_t<typename Converter::Component> &_to) const // NotEnoughSpaceException
 			{
-				Ref reader = *static_cast<const Bufferable<Derived, Info>*>(this);
+				Ref reader = *static_cast<const Bufferable<Derived, Memory_Info>*>(this);
 
 				for (;;)
 				{
@@ -1010,25 +1025,25 @@ namespace kr
 			{
 				return data() - ptr;
 			}
-			friend intptr_t operator -(const Component* ptr, const MemBuffer& ori) noexcept
+			friend intptr_t operator -(const Component* ptr, const Memory& ori) noexcept
 			{
 				return ptr - ori.data();
 			}
 			template <typename _Derived, bool _szable, bool _readonly, typename _Parent> 
-			intptr_t operator -(const MemBuffer<_Derived, BufferInfo<Component, false, false, _szable, _readonly, _Parent>>& ptr) const noexcept
+			intptr_t operator -(const Memory<_Derived, BufferInfo<Component, method::Memory, _szable, _readonly, _Parent>>& ptr) const noexcept
 			{
 				return data() - ptr.data();
 			}
-			intptr_t operator -(const MemBuffer& ptr) const noexcept
+			intptr_t operator -(const Memory& ptr) const noexcept
 			{
 				return data() - ptr.data();
 			}
 		};
 
 		template <typename Derived, typename Info>
-		class WMemBuffer :public MemBuffer<Derived, Info>
+		class WMemory :public Memory<Derived, Info>
 		{
-			CLASS_HEADER(WMemBuffer, MemBuffer<Derived, Info>);
+			CLASS_HEADER(WMemory, Memory<Derived, Info>);
 		public:
 			INHERIT_COMPONENT();
 

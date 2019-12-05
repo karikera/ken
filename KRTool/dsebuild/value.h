@@ -5,8 +5,8 @@
 class Value: public Identity
 {
 public:
-	Value(Class * type, AText name);
-	virtual ~Value();
+	Value(Class * type, AText name) noexcept;
+	virtual ~Value() noexcept;
 	Keep<Identity> find(Text str) override; // ErrMessage
 	virtual Class* getType() noexcept;
 	virtual Value* getMaxValue();

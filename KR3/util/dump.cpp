@@ -11,7 +11,44 @@
 #include <iomanip>
 #pragma comment(lib,"Dbghelp.lib")
 
-int kr::_pri_::dump(LPEXCEPTION_POINTERS ex) noexcept
+kr::SEHException::SEHException(PEXCEPTION_POINTERS exception) noexcept
+	:exception(exception)
+{
+}
+kr::Text16 kr::SEHException::getErrorText() noexcept
+{
+	switch (getErrorCode())
+	{
+	case STATUS_ACCESS_VIOLATION: return u"STATUS_ACCESS_VIOLATION";
+	case STATUS_BREAKPOINT: return u"STATUS_BREAKPOINT";
+	case STATUS_DATATYPE_MISALIGNMENT: return u"STATUS_DATATYPE_MISALIGNMENT";
+	case STATUS_FLOAT_DIVIDE_BY_ZERO: return u"STATUS_FLOAT_DIVIDE_BY_ZERO";
+	case STATUS_FLOAT_OVERFLOW: return u"STATUS_FLOAT_OVERFLOW";
+	case STATUS_FLOAT_UNDERFLOW: return u"STATUS_FLOAT_UNDERFLOW";
+	// case STATUS_FLOATING_RESEVERED_OPERAND: return u"STATUS_FLOATING_RESEVERED_OPERAND";
+	case STATUS_ILLEGAL_INSTRUCTION: return u"STATUS_ILLEGAL_INSTRUCTION";
+	case STATUS_PRIVILEGED_INSTRUCTION: return u"STATUS_PRIVILEGED_INSTRUCTION";
+	case STATUS_INTEGER_DIVIDE_BY_ZERO: return u"STATUS_INTEGER_DIVIDE_BY_ZERO";
+	case STATUS_INTEGER_OVERFLOW: return u"STATUS_INTEGER_OVERFLOW";
+	case STATUS_SINGLE_STEP: return u"STATUS_SINGLE_STEP";
+	default: return u"UNKNOWN";
+	}
+}
+uint32_t kr::SEHException::getErrorCode() noexcept
+{
+	return exception->ExceptionRecord->ExceptionCode;
+}
+
+kr::SEHCatcher::SEHCatcher() noexcept
+{
+	m_func = _set_se_translator([](unsigned int code, EXCEPTION_POINTERS* ptr) { throw SEHException(ptr); });
+}
+kr::SEHCatcher::~SEHCatcher() noexcept
+{
+	_set_se_translator((_se_translator_function)m_func);
+}
+
+int kr::dump(const SEHException& ex) noexcept
 {
 	File::createDirectory(u"dump");
 
@@ -25,7 +62,7 @@ int kr::_pri_::dump(LPEXCEPTION_POINTERS ex) noexcept
 	{
 		MINIDUMP_EXCEPTION_INFORMATION ExpParam;
 		ExpParam.ThreadId = GetCurrentThreadId();
-		ExpParam.ExceptionPointers = ex;
+		ExpParam.ExceptionPointers = ex.exception;
 		ExpParam.ClientPointers = TRUE;
 
 		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile,
@@ -38,14 +75,13 @@ int kr::_pri_::dump(LPEXCEPTION_POINTERS ex) noexcept
 	return EXCEPTION_EXECUTE_HANDLER;
 	#endif
 }
-
 void kr::dump_now() noexcept
 {
 	__try
 	{
 		*(intptr_t*)0 =0;
 	}
-	__except(_pri_::dump(GetExceptionInformation()))
+	__except(dump(GetExceptionInformation()))
 	{
 	}
 }

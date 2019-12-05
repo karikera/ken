@@ -79,6 +79,8 @@ namespace kr
 		static constexpr size_t bufferSize = SIZE;
 		static constexpr size_t bufferCount = COUNT;
 
+#pragma warning(push)
+#pragma warning(disable: 26495)
 		AtomicBufferKeeper() noexcept
 			:m_reserve(0)
 		{
@@ -87,6 +89,7 @@ namespace kr
 				v = nullptr;
 			}
 		}
+#pragma warning(pop)
 		~AtomicBufferKeeper() noexcept
 		{
 			clear();

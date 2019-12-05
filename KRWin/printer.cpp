@@ -184,7 +184,7 @@ void kr::GDIReUnit::text(Text16 text) noexcept
 	}
 }
 template <typename LAMBDA>
-void kr::GDIReUnit::_textLoop(Text16 text, LAMBDA &lambda) noexcept
+void kr::GDIReUnit::_textLoop(Text16 text, LAMBDA &&lambda) noexcept
 {
 	int lineHeight = (int)(m_pDC->getTextHeight()*m_fLineHeight);
 	Text16 findtx = text;

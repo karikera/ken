@@ -9,11 +9,13 @@ using namespace kr;
 using kr::JsonParser;
 using kr::io::FOStream;
 
-
+#pragma warning(push)
+#pragma warning(disable:26495)
 JsonConfig::ValLink::ValLink(Text _name) noexcept
 	:name(_name)
 {
 }
+#pragma warning(pop)
 JsonConfig::ValLink::~ValLink() noexcept
 {
 }

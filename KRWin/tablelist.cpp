@@ -895,8 +895,11 @@ void TableList::wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lP
 	case WM_KEYUP:
 		throw (LRESULT)0;
 	case WM_PAINT:
-		draw(PaintStruct(pWindow));
+	{
+		PaintStruct ps(pWindow);
+		draw(ps);
 		break;
+	}
 	}
 }
 

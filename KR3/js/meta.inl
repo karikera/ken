@@ -10,8 +10,7 @@ kr::JsValue kr::JsMetaLambda<RET(CLASS::*)(ARGS ...)>
 	::numunwrap<kr::meta::numlist<idx ...>>
 	::call(const FUNC& fn, const JsArguments & args) throws(JsException)
 {
-	size_t n = args.size();
-	return fn((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
+	return fn(args.at<ARGS>(idx)...);
 }
 
 template <typename CLASS, typename ... ARGS>
@@ -21,8 +20,7 @@ kr::JsValue kr::JsMetaLambda<void(CLASS::*)(ARGS ...)>
 	::numunwrap<kr::meta::numlist<idx ...>>
 	::call(FUNC fn, const JsArguments & args) throws(JsException)
 {
-	size_t n = args.size();
-	fn((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
+	fn(args.at<ARGS>(idx)...);
 	return undefined;
 }
 
@@ -32,8 +30,7 @@ kr::JsValue kr::JsMeta<RET(*)(ARGS ...)>
 	::numunwrap<kr::meta::numlist<idx ...>>
 	::call(RET(*fn)(ARGS ...), const JsArguments & args) throws(JsException)
 {
-	size_t n = args.size();
-	return fn((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
+	return fn(args.at<ARGS>(idx)...);
 }
 
 template <typename ... ARGS>
@@ -42,8 +39,7 @@ kr::JsValue kr::JsMeta<void(*)(ARGS ...)>
 	::numunwrap<kr::meta::numlist<idx ...>>
 	::call(void(*fn)(ARGS ...), const JsArguments & args) throws(JsException)
 {
-	size_t n = args.size();
-	fn((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
+	fn(args.at<ARGS>(idx)...);
 	return undefined;
 }
 
@@ -55,8 +51,7 @@ kr::JsValue kr::JsMeta<RET(CLASS::*)(ARGS ...)>
 {
 	CLASS * _this = args.getThis().getNativeObject<CLASS>();
 	if (_this == nullptr) throw JsException(TSZ16() << u"this is not " << CLASS::className);
-	size_t n = args.size();
-	return (_this->*fn)((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
+	return (_this->*fn)(args.at<ARGS>(idx)...);
 }
 
 template <typename CLASS, typename ... ARGS>
@@ -67,7 +62,6 @@ kr::JsValue kr::JsMeta<void(CLASS::*)(ARGS ...)>
 {
 	CLASS * _this = args.getThis().getNativeObject<CLASS>();
 	if (_this == nullptr) throw JsException(TSZ16() << u"this is not " << CLASS::className);
-	size_t n = args.size();
-	(_this->*fn)((idx < n ? args[idx].cast<ARGS>() : _pri_::JsCast::defaultValue<ARGS>())...);
+	(_this->*fn)(args.at<ARGS>(idx)...);
 	return undefined;
 }

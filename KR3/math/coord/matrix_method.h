@@ -85,9 +85,9 @@ namespace kr
 				matrix<T, 2, cols, aligned, matrix_data_type::right_bottom>* _out,
 				const matrix<T, 2, cols, aligned, matrix_data_type::right_bottom>& rc) const noexcept;
 			template <typename LAMBDA, typename LAMBDA2>
-			bool deltaCompare(const irect& dest, const LAMBDA& oldcallback, const LAMBDA2& newcallback) const noexcept;
+			bool deltaCompare(const irect& dest, LAMBDA&& oldcallback, LAMBDA2&& newcallback) const noexcept;
 			template <typename LAMBDA, typename LAMBDA2>
-			bool deltaMove(const irect& dest, const LAMBDA& oldcallback, const LAMBDA2& newcallback) noexcept;
+			bool deltaMove(const irect& dest, LAMBDA&& oldcallback, LAMBDA2&& newcallback) noexcept;
 
 		};;
 

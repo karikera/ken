@@ -11,10 +11,10 @@ bool isZero(Value * v)
 	return c->value == 0;
 }
 
-Expression::Expression(Class * type, AText name):Value(type, move(name))
+Expression::Expression(Class * type, AText name) noexcept :Value(type, move(name))
 {
 }
-Keep<Value> Expression::getSizeOf(Function * szof)
+Keep<Value> Expression::getSizeOf(Function * szof) noexcept
 {
 	return &g_root.vZero;
 }

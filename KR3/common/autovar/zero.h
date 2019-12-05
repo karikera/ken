@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef __KR3_INCLUDED
-#error Need To Include KR3/main.h
-#endif
-
 namespace kr
 {
 	namespace _pri_
@@ -25,9 +21,9 @@ namespace kr
 	class zerovar_t final
 	{
 	public:
-		zerovar_t() noexcept;
+		zerovar_t() = default;
 		template <typename T> 
-		ATTR_CHECK_RETURN typename _pri_::ZeroVarValueRef<T>::type value() const noexcept;
+		ATTR_NO_DISCARD typename _pri_::ZeroVarValueRef<T>::type value() const noexcept;
 		template <typename T> 
 		operator T&() const noexcept;
 	};
@@ -37,12 +33,12 @@ namespace kr
 	class zeroptr_t final
 	{
 	public:
-		zeroptr_t() noexcept;
+		zeroptr_t() = default;
 		template <typename T> operator T*() const noexcept;
 	};
 
-	static zerovar_t &zerovar = nullref;
-	static zeroptr_t &zeroptr = nullref;
+	static constexpr const zerovar_t zerovar;
+	static constexpr const zeroptr_t zeroptr;
 	template <typename T>
 	inline typename _pri_::ZeroVarValueRef<T>::type zerovar_t::value() const noexcept
 	{

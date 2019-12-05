@@ -89,10 +89,12 @@
     <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="common\text\buffer\commoncls.h" />
+    <ClInclude Include="common\hasmethod.h" />
+    <ClInclude Include="common\text\hasmethod.h" />
     <ClInclude Include="common\text\method\common.h" />
     <ClInclude Include="common\autovar.h" />
     <ClInclude Include="common\error.h" />
+    <ClInclude Include="common\io\pointable.h" />
     <ClInclude Include="common\text\writablemethod.h" />
     <ClInclude Include="fs\asyncfile.h" />
     <ClInclude Include="fs\file.h" />
@@ -110,7 +112,6 @@
     <ClInclude Include="js\class.h" />
     <ClInclude Include="js\context.h" />
     <ClInclude Include="js\exception.h" />
-    <ClInclude Include="js\external.h" />
     <ClInclude Include="js\function.h" />
     <ClInclude Include="js\js.h" />
     <ClInclude Include="js\lambda.h" />
@@ -171,7 +172,7 @@
     <ClInclude Include="common\reference.h" />
     <ClInclude Include="common\container.h" />
     <ClInclude Include="common\text\buffer\membuffer.h" />
-    <ClInclude Include="common\text\buffer\transbuffer.h" />
+    <ClInclude Include="common\text\buffer\method.h" />
     <ClInclude Include="data\crypt.h" />
     <ClInclude Include="data\crypt\sha256.h" />
     <ClInclude Include="data\set.h" />
@@ -224,6 +225,7 @@
     <ClInclude Include="util\singleinstance.h" />
     <ClInclude Include="util\envvar.h" />
     <ClInclude Include="util\process.h" />
+    <ClInclude Include="util\stackgc.h" />
     <ClInclude Include="util\stdext.h" />
     <ClInclude Include="util\unaligned.h" />
     <ClInclude Include="util\uts.h" />
@@ -233,7 +235,6 @@
     <ClInclude Include="data\binarray.h" />
     <ClInclude Include="data\bin_search.h" />
     <ClInclude Include="data\endian.h" />
-    <ClInclude Include="data\iterator.h" />
     <ClInclude Include="data\linkedlist.h" />
     <ClInclude Include="common\memlib.h" />
     <ClInclude Include="common\temp.h" />
@@ -321,9 +322,9 @@
     <ClCompile Include="common\stdio.cpp" />
     <ClCompile Include="common\system.cpp" />
     <ClCompile Include="common\temp.cpp" />
-    <ClCompile Include="common\text.cpp" />
     <ClCompile Include="data\crypt.cpp" />
     <ClCompile Include="data\crypt\sha256.cpp" />
+    <ClCompile Include="data\map.cpp" />
     <ClCompile Include="deprecated\Pack.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -349,7 +350,6 @@
     <ClCompile Include="js\chakra.cpp" />
     <ClCompile Include="js\class.cpp" />
     <ClCompile Include="js\context.cpp" />
-    <ClCompile Include="js\external.cpp" />
     <ClCompile Include="js\function.cpp" />
     <ClCompile Include="js\news.cpp" />
     <ClCompile Include="js\object.cpp" />
@@ -400,6 +400,7 @@
     <ClCompile Include="util\process.cpp" />
     <ClCompile Include="util\resloader.cpp" />
     <ClCompile Include="util\singleinstance.cpp" />
+    <ClCompile Include="util\stackgc.cpp" />
     <ClCompile Include="util\stdext.cpp" />
     <ClCompile Include="util\uts.cpp" />
     <ClCompile Include="util\wide.cpp" />
@@ -430,8 +431,10 @@
     <ClCompile Include="wl\resource.cpp" />
     <ClCompile Include="wl\threadhandle.cpp" />
     <ClCompile Include="wl\version.cpp" />
+    <ClCompile Include="wl\windows.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="data\idmap.inl" />
     <None Include="js\class.inl" />
     <None Include="js\meta.inl" />
@@ -462,6 +465,9 @@
   <ItemGroup>
     <ProjectReference Include="..\KRNew\KRNew.vcxproj">
       <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\KRTool\COPY_DLL\COPY_DLL.vcxproj">
+      <Project>{f476fe60-4037-4045-8495-d744e325192a}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

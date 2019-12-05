@@ -20,7 +20,7 @@ namespace kr
 	class Installer
 	{
 	public:
-		enum Result
+		enum class Result
 		{
 			Copied,
 			Skipped,
@@ -28,7 +28,8 @@ namespace kr
 		};
 		static Result copy(pcstr16 dest, pcstr16 src, Text16 msg = nullptr) noexcept;
 
-		Installer(Text16 dest, Text16 src, Wildcard wildcard = Wildcard()) noexcept;
+		Installer(Text16 dest, Text16 src, Text16 wildcard) noexcept;
+		Installer(Text16 dest, Text16 src) noexcept;
 
 		pcstr16 getSrcSz(Text16 name) noexcept;
 		pcstr16 getDestSz(Text16 name) noexcept;
@@ -45,6 +46,8 @@ namespace kr
 		size_t m_errorCount;
 
 	private:
+		void _init() noexcept;
+
 		AText16 m_src;
 		AText16 m_dest;
 		size_t m_srcend;

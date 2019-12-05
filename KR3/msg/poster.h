@@ -35,9 +35,13 @@ namespace kr
 		{
 			struct LambdaWrap :public Posted
 			{
-				LAMBDA m_lambda;
-				LambdaWrap(LAMBDA &&lambda) noexcept
-					: m_lambda(forward<LAMBDA>(lambda))
+				decay_t<LAMBDA> m_lambda;
+				LambdaWrap(const decay_t<LAMBDA>&lambda) noexcept
+					: m_lambda(lambda)
+				{
+				}
+				LambdaWrap(decay_t<LAMBDA>&&lambda) noexcept
+					: m_lambda(move(lambda))
 				{
 				}
 				void call() noexcept override
@@ -56,7 +60,7 @@ namespace kr
 		static PostTarget * getCurrent() noexcept;
 		bool attach(Posted * data) noexcept;
 		template <typename LAMBDA>
-		bool post(LAMBDA && lambda) noexcept
+		bool post(LAMBDA &&lambda) noexcept
 		{
 			return attach(Posted::create(forward<LAMBDA>(lambda)));
 		}

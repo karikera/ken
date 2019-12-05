@@ -285,6 +285,7 @@ namespace kr
 		template <typename T2> Must& operator =(const Must<T2> & copy) noexcept;
 		T* operator ->() const noexcept;
 		operator T*() const noexcept;
+		T& operator *() const noexcept;
 
 	protected:
 		T* m_ptr;
@@ -436,6 +437,10 @@ namespace kr
 		operator T*&() noexcept;
 		operator T* const&() const noexcept;
 		T* operator ->() const noexcept;
+		T& operator *() const noexcept
+		{
+			return *m_ptr;
+		}
 		const KeepPointer<T> operator &() noexcept;
 		const KeepConstPointer<T> operator &() const noexcept;
 		T* detach() noexcept;
@@ -651,6 +656,11 @@ namespace kr
 	inline Must<T>::operator T*() const noexcept
 	{
 		return m_ptr;
+	}
+	template <typename T>
+	inline T& Must<T>::operator *() const noexcept
+	{
+		return *m_ptr;
 	}
 
 	template<class T>

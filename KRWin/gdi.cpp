@@ -17,17 +17,17 @@ namespace
 
 }
 
-DefaultFont& DefaultFont::operator =(Font * font) noexcept
+const DefaultFont& DefaultFont::operator =(Font * font) const noexcept
 {
 	defaultFont = font;
 	return *this;
 }
-DefaultFont::operator Font*() noexcept
+DefaultFont::operator Font*() const noexcept
 {
 	if(defaultFont == nullptr) defaultFont = Font::createSystemFont();
 	return defaultFont;
 }
-Font* DefaultFont::operator ->() noexcept
+Font* DefaultFont::operator ->() const noexcept
 {
 	return defaultFont;
 }

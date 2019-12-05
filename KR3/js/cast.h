@@ -1,6 +1,7 @@
 #pragma once
 
 #include "type.h"
+#include "rawdata.h"
 #include "undefined.h"
 
 namespace kr
@@ -37,13 +38,24 @@ namespace kr
 					return To(move(_value));
 				}
 			};
-			template <typename To>
-			struct ToOuter<To*, JsRawData>
+			template <typename ToData, typename FromData>
+			struct ToOuter<ary::WrapImpl<ToData, char>, ary::WrapImpl<FromData, char16> >
 			{
-				static To* toOuter(const JsRawData& _value) noexcept
+				using XText = ary::WrapImpl<ToData, char>;
+				static XText toOuter(Text16 _value) noexcept
+				{
+					XText text;
+					text << toUtf8(_value);
+					return text;
+				}
+			};
+			template <typename To>
+			struct ToOuter<To*, JsObjectRawData>
+			{
+				static To* toOuter(const JsObjectRawData& _value) noexcept
 				{
 					if (!_value.instanceOf(JsObject::classObject)) return nullptr;
-					return dynamic_cast<To*>(_value.as<JsObject*>());
+					return dynamic_cast<To*>(_value.template as<JsObject*>());
 				}
 			};
 			template <typename T, typename TI>
@@ -92,13 +104,23 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static TText16 toInner(const TText& _value, Charset cs = Charset::Default) noexcept;
 			static Text16 toInner(const AText16& _value) noexcept;
 			static Text16 toInner(const TText16& _value) noexcept;
-			static JsRawData toInner(JsNewObject_t) noexcept;
-			static JsRawData toInner(JsNewArray arr) noexcept;
-			static JsRawData toInner(JsNewArrayBuffer arr) noexcept;
-			static JsRawData toInner(JsNewTypedArray arr) noexcept;
+			static JsObjectRawData toInner(JsNewObject_t) noexcept;
+			static JsObjectRawData toInner(JsNewArray arr) noexcept;
+			static JsArrayBufferRawData toInner(JsNewArrayBuffer arr) noexcept;
+			static JsTypedArrayRawData toInner(JsNewTypedArray arr) noexcept;
 			static JsRawData toInner(const JsPersistent& value) noexcept;
-			static JsRawData toInner(void* object) noexcept = delete;
-			static JsRawData toInner(JsObject* object) noexcept;
+			static void toInner(const void*) noexcept = delete;
+			template <size_t size>
+			static TText16 toInner(const char(&str)[size], Charset cs = Charset::Default) noexcept
+			{
+				return toInner((Text)str, cs);
+			}
+			template <size_t size>
+			static Text16 toInner(const char16(&str)[size]) noexcept
+			{
+				return (Text16)str;
+			}
+			static JsObjectRawData toInner(JsObject* object) noexcept;
 
 			template <typename T>
 			static T defaultValue() noexcept
@@ -221,10 +243,60 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 		template <> struct ComputeCast<AText16, bool> :ComputeCast<Text16, bool> {};
 		template <> struct ComputeCast<AText16, int> :ComputeCast<Text16, int> {};
 		template <> struct ComputeCast<AText16, double> :ComputeCast<Text16, double> {};
-		template <> struct ComputeCast<bool, Text16>
+
+		template <class Data> struct ComputeCast<nullptr_t, ary::WrapImpl<Data, char16_t> >
+		{
+			static Text16 cast(nullptr_t) noexcept {
+				return u"null";
+			}
+		};
+		template <class Data> struct ComputeCast<undefined_t, ary::WrapImpl<Data, char16_t> >
+		{
+			static Text16 cast(undefined_t) noexcept {
+				return u"undefined";
+			}
+		};
+		template <class Data> struct ComputeCast<JsFunctionRawData, ary::WrapImpl<Data, char16_t> >
+		{
+			static Text16 cast(const JsFunctionRawData&) noexcept {
+				return u"[object Function]";
+			}
+		};
+		template <class Data> struct ComputeCast<JsObjectRawData, ary::WrapImpl<Data, char16_t> >
+		{
+			static Text16 cast(const JsObjectRawData&) noexcept {
+				return u"[object Object]";
+			}
+		};
+		template <class Data> struct ComputeCast<JsArrayBufferRawData, ary::WrapImpl<Data, char16_t> >
+		{
+			static Text16 cast(const JsArrayBufferRawData&) noexcept {
+				return u"[object ArrayBuffer]";
+			}
+		};		
+		template <class Data> struct ComputeCast<JsTypedArrayRawData, ary::WrapImpl<Data, char16_t> >
+		{
+			static Text16 cast(const JsTypedArrayRawData&) noexcept {
+				return u"[object TypedArrayBuffer]";
+			}
+		};
+		template <class Data> struct ComputeCast<JsDataViewRawData, ary::WrapImpl<Data, char16_t> >
+		{
+			static Text16 cast(const JsDataViewRawData&) noexcept {
+				return u"[object DataView]";
+			}
+		};
+		template <class Data> struct ComputeCast<bool, ary::WrapImpl<Data, char16_t> >
 		{
 			static Text16 cast(bool v) noexcept {
 				return v ? (Text16)u"true" : (Text16)u"false";
+			}
+		};
+		template <class Data> struct ComputeCast<int, ary::WrapImpl<Data, char16_t> >
+		{
+			using XText16 = ary::WrapImpl<Data, char16_t>;
+			static XText16 cast(int v) noexcept {
+				return XText16::concat(v);
 			}
 		};
 		template <> struct ComputeCast<int, Text16>
@@ -233,74 +305,19 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 				return u"[number]";
 			}
 		};
+		template <class Data> struct ComputeCast<double, ary::WrapImpl<Data, char16_t> >
+		{
+			using XText16 = ary::WrapImpl<Data, char16_t>;
+			static XText16 cast(double v) noexcept {
+				return XText16::concat(v);
+			}
+		};
 		template <> struct ComputeCast<double, Text16>
 		{
 			static Text16 cast(double) noexcept {
 				return u"[number]";
 			}
 		};
-		template <> struct ComputeCast<nullptr_t, Text16>
-		{
-			static Text16 cast(nullptr_t) noexcept {
-				return u"null";
-			}
-		};
-		template <> struct ComputeCast<undefined_t, Text16>
-		{
-			static Text16 cast(undefined_t) noexcept {
-				return u"undefined";
-			}
-		};
-		template <> struct ComputeCast<JsFunctionRawData, Text16>
-		{
-			static Text16 cast(const JsFunctionRawData&) noexcept {
-				return u"[object Function]";
-			}
-		};
-		template <> struct ComputeCast<JsObjectRawData, Text16>
-		{
-			static Text16 cast(const JsObjectRawData&) noexcept {
-				return u"[object Object]";
-			}
-		};
-		template <> struct ComputeCast<JsArrayBufferRawData, Text16>
-		{
-			static Text16 cast(const JsArrayBufferRawData&) noexcept {
-				return u"[object ArrayBuffer]";
-			}
-		};
-		template <> struct ComputeCast<JsTypedArrayRawData, Text16>
-		{
-			static Text16 cast(const JsArrayBufferRawData&) noexcept {
-				return u"[object TypedArrayBuffer]";
-			}
-		};
-		template <> struct ComputeCast<JsDataViewRawData, Text16>
-		{
-			static Text16 cast(const JsDataViewRawData&) noexcept {
-				return u"[object DataView]";
-			}
-		};
-		template <> struct ComputeCast<int, AText16>
-		{
-			static AText16 cast(int v) noexcept {
-				return AText16::concat(v);
-			}
-		};
-		template <> struct ComputeCast<double, AText16>
-		{
-			static AText16 cast(double v) noexcept {
-				return AText16::concat(v);
-			}
-		};
-		template <> struct ComputeCast<bool, AText16> :public ComputeCast<bool, Text16> {};
-		template <> struct ComputeCast<undefined_t, AText16> :public ComputeCast<undefined_t, Text16> {};
-		template <> struct ComputeCast<nullptr_t, AText16> :public ComputeCast<nullptr_t, Text16> {};
-		template <> struct ComputeCast<JsFunctionRawData, AText16> :public ComputeCast<JsFunctionRawData, Text16> {};
-		template <> struct ComputeCast<JsObjectRawData, AText16> :public ComputeCast<JsObjectRawData, Text16> {};
-		template <> struct ComputeCast<JsArrayBufferRawData, AText16> :public ComputeCast<JsArrayBufferRawData, Text16> {};
-		template <> struct ComputeCast<JsTypedArrayRawData, AText16> :public ComputeCast<JsTypedArrayRawData, Text16> {};
-		template <> struct ComputeCast<JsDataViewRawData, AText16> :public ComputeCast<JsDataViewRawData, Text16> {};
 
 		template <typename T> struct GetBridgeType
 		{

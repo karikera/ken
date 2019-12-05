@@ -25,8 +25,9 @@ namespace kr
 
 			void $write(typename const OS::Component * data, size_t sz)
 			{
-				WriteLock<OS> lock(m_os, sz);
-				mem::xor_copy(lock.begin(), data, sz, m_key);
+				WriteLock<OS> lock;
+				mem::xor_copy(lock.lock(m_os, sz), data, sz, m_key);
+				lock.unlock(m_os);
 				debug(); // TODO: matching offset
 			}
 		};

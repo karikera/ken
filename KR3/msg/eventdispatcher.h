@@ -15,7 +15,7 @@ namespace kr
 	class DispatchedEvent:protected Referencable<DispatchedEvent>
 	{
 		friend EventDispatcher;
-
+		friend Referencable<DispatchedEvent>;
 	public:
 		DispatchedEvent(EventHandle * event) noexcept;
 		virtual ~DispatchedEvent() noexcept;
@@ -39,9 +39,13 @@ namespace kr
 		LAMBDA m_lambda;
 		
 	public:
-		DispatchedEventLambda(EventHandle * event, LAMBDA lambda) noexcept
-			:DispatchedEvent(event), m_lambda(move(lambda))
+		DispatchedEventLambda(EventHandle * event, const LAMBDA &lambda) noexcept
+			:DispatchedEvent(event), m_lambda(lambda)
 		{	
+		}
+		DispatchedEventLambda(EventHandle* event, LAMBDA &&lambda) noexcept
+			:DispatchedEvent(event), m_lambda(move(lambda))
+		{
 		}
 
 		void call() noexcept override
@@ -58,8 +62,12 @@ namespace kr
 		EventPump* m_pump;
 
 	public:
-		DispatchedEventLambdaCurrentThread(EventHandle* event, LAMBDA lambda) noexcept
-			:DispatchedEvent(event), m_lambda(move(lambda)), m_pump(EventPump::getInstance())
+		DispatchedEventLambdaCurrentThread(EventHandle* event, const LAMBDA &lambda) noexcept
+			:DispatchedEvent(event), m_lambda(lambda), m_pump(EventPump::getInstance())
+		{
+		}
+		DispatchedEventLambdaCurrentThread(EventHandle* event, LAMBDA &&lambda) noexcept
+			:DispatchedEvent(event), m_lambda(lambda), m_pump(EventPump::getInstance())
 		{
 		}
 
@@ -78,18 +86,19 @@ namespace kr
 
 	class EventDispatcher : private Threadable<EventDispatcher>, public Node<EventDispatcher, true>
 	{
+		friend Threadable<EventDispatcher>;
 		friend DispatchedEvent;
 
 	public:
 		template <typename LAMBDA>
-		static DispatchedEvent * regist(EventHandle * event, LAMBDA lambda) noexcept
+		static DispatchedEvent * regist(EventHandle * event, LAMBDA &&lambda) noexcept
 		{
-			return _new DispatchedEventLambdaCurrentThread<LAMBDA>(event, move(lambda));
+			return _new DispatchedEventLambdaCurrentThread<decay_t<LAMBDA> >(event, forward<LAMBDA>(lambda));
 		}
 		template <typename LAMBDA>
-		static DispatchedEvent* registThreaded(EventHandle* event, LAMBDA lambda) noexcept
+		static DispatchedEvent* registThreaded(EventHandle* event, LAMBDA &&lambda) noexcept
 		{
-			return _new DispatchedEventLambda<LAMBDA>(event, move(lambda));
+			return _new DispatchedEventLambda<decay_t<LAMBDA> >(event, forward<LAMBDA>(lambda));
 		}
 		static Promise<void> * promise(EventHandle * event) noexcept;
 		static Promise<void> * promiseAndRemove(EventHandle * event) noexcept;

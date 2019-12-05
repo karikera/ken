@@ -2,7 +2,6 @@
 
 #include "../main.h"
 
-#include "iterator.h"
 #include "bin_search.h"
 
 namespace kr
@@ -727,7 +726,7 @@ namespace kr
 				return len;
 			}
 			template <typename LAMBDA>
-			bool removeMatch(LAMBDA & lambda) throws(...)
+			bool removeMatch(LAMBDA && lambda) throws(...)
 			{
 				Iterator iter_end = end();
 				Iterator iter = begin();
@@ -744,7 +743,7 @@ namespace kr
 				return false;
 			}
 			template <typename LAMBDA>
-			size_t removeMatchAll(const LAMBDA & lambda) throws(...)
+			size_t removeMatchAll(LAMBDA && lambda) throws(...)
 			{
 				size_t count = 0;
 				Iterator iter_end = end();
@@ -762,7 +761,7 @@ namespace kr
 				return count;
 			}
 			template <typename LAMBDA> 
-			void forEachForRemove(const LAMBDA & lambda) throws(...)
+			void forEachForRemove(LAMBDA && lambda) throws(...)
 			{
 				Iterator iter_end = end();
 				Iterator iter = begin();
@@ -855,14 +854,19 @@ namespace kr
 				return Super::sortAttach(_node);
 			}
 			template <typename LAMBDA> 
-			bool removeMatch(const LAMBDA & lambda) throws(...)
+			bool removeMatch(LAMBDA && lambda) throws(...)
 			{
 				return Super::removeMatch(lambda);
 			}
 			template <typename LAMBDA> 
-			size_t removeMatchAll(const LAMBDA & lambda) throws(...)
+			size_t removeMatchAll(LAMBDA && lambda) throws(...)
 			{
 				return Super::removeMatchAll(lambda);
+			}
+			void detachAll() noexcept
+			{
+				m_size = 0;
+				Super::detachAll();
 			}
 			void clear() noexcept
 			{

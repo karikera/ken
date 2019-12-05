@@ -193,8 +193,9 @@ bool File::createFullDirectory(Text16 str) noexcept
 		}
 		temp << path16.sep;
 	}
+	if (nstr.empty()) return true;
 	temp << nstr;
-
+	
 	switch (*nstr)
 	{
 	case '.':
@@ -380,12 +381,15 @@ void File::skip(int64_t skip) noexcept
 	_assert(this != nullptr);
 	_movePointer(FILE_CURRENT,skip);
 }
-ptr File::allocAll(size_t *pSize) noexcept
+ptr File::allocAll(size_t *pSize) throws(TooBigException)
 {
 	_assert(this != nullptr);
 	filesize_t qwSize=size();
-	if(sizeof(size_t) != sizeof(filesize_t) && hidword(qwSize))
-		return nullptr;
+	if (sizeof(size_t) != sizeof(filesize_t))
+	{
+		if (hidword(qwSize) != 0)
+			throw TooBigException();
+	}
 	size_t upSize=*pSize=(size_t)qwSize;
 	if(upSize == 0) return nullptr;
 	ptr p=_new byte[upSize];
@@ -481,10 +485,13 @@ void File::_movePointer(dword Method, int64_t Move) noexcept
 }
 #endif
 
+#pragma warning(push)
+#pragma warning(disable:25495)
 FindFile::FindFile() noexcept
 {
 	m_handle = nullptr;
 }
+#pragma warning(pop)
 FindFile::~FindFile() noexcept
 {
 	if(m_handle != nullptr) FindClose(m_handle);
@@ -492,26 +499,32 @@ FindFile::~FindFile() noexcept
 FindFile::FindFile(pcstr16 file) noexcept
 {
 	m_handle = FindFirstFileW(wide(file), (WIN32_FIND_DATAW*)m_buffer);
-	if(m_handle == ihv) m_handle = nullptr;
-
-	if (exists())
+	if (m_handle == ihv)
 	{
-		while (_isDotDir())
+		m_handle = nullptr;
+		return;
+	}
+	if (m_handle == nullptr) return;
+	
+	while (_isDotDir())
+	{
+		if (!next())
 		{
-			if (!next())
-			{
-				FindClose(m_handle);
-				m_handle = nullptr;
-				break;
-			}
+			FindClose(m_handle);
+			m_handle = nullptr;
+			break;
 		}
 	}
 }
+
+#pragma warning(push)
+#pragma warning(disable:25495)
 FindFile::FindFile(FindFile && o) noexcept
 {
 	m_handle = o.m_handle;
 	o.m_handle = nullptr;
 }
+#pragma warning(pop)
 FindFile& FindFile::operator =(FindFile && o) noexcept
 {
 	m_handle = o.m_handle;
@@ -661,17 +674,6 @@ pcstr16 kr::DirectoryScanner::getRelativeSzName(Text16 path) noexcept
 	m_path.cut_self(m_dircut);
 	m_path << path << nullterm;
 	return m_path.begin();
-}
-
-ModuleName<char>::ModuleName(const char * name) noexcept
-{
-	size_t sz = GetModuleFileNameA(GetModuleHandleA(name), m_buffer.data(), MAX_PATH);
-	m_buffer._setSize(sz);
-}
-ModuleName<char16>::ModuleName(const char16 * name) noexcept
-{
-	size_t sz = GetModuleFileNameW(GetModuleHandleW(wide(name)), wide(m_buffer.data()), MAX_PATH);
-	m_buffer._setSize(sz);
 }
 
 template File* File::openT<char>(const char * str);

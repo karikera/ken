@@ -2,7 +2,6 @@
 
 #include "type.h"
 #include "meta.h"
-#include "external.h"
 #include "value.h"
 
 namespace kr
@@ -24,10 +23,14 @@ namespace kr
 		template <typename LAMBDA> class LambdaWrap : public Data
 		{
 		private:
-			const LAMBDA m_lambda;
+			LAMBDA m_lambda;
 
 		public:
-			LambdaWrap(LAMBDA lambda) noexcept
+			LambdaWrap(const LAMBDA &lambda) noexcept
+				:m_lambda(lambda)
+			{
+			}
+			LambdaWrap(LAMBDA&& lambda) noexcept
 				:m_lambda(move(lambda))
 			{
 			}
@@ -60,9 +63,9 @@ namespace kr
 		friend class JsFunctionT;
 
 		template <typename LAMBDA>
-		JsFunction(LAMBDA func) noexcept
+		JsFunction(LAMBDA &&func) noexcept
 		{
-			m_data = _new LambdaWrap<LAMBDA>(func);
+			m_data = _new LambdaWrap<decay_t<LAMBDA> >(forward<LAMBDA>(func));
 			m_data->AddRef();
 		}
 		template <typename FUNC>
@@ -94,10 +97,10 @@ namespace kr
 
 
 		template <typename LAMBDA>
-		static JsValue make(LAMBDA func) noexcept;
+		static JsValue make(LAMBDA &&func) noexcept;
 
 		template <typename LAMBDA>
-		static JsValue makeT(LAMBDA func) noexcept;
+		static JsValue makeT(LAMBDA &&func) noexcept;
 	};
 
 	template <typename RET, typename ... ARGS> 
@@ -108,11 +111,12 @@ namespace kr
 		// 일반 함수를 자바스크립트 함수로 만들어냅니다.
 		// 제한된 타입만 사용할 수 있습니다.
 		// 사용 가능한 타입: bool, int, float, double, std::wstring
-		template <typename LAMBDA> JsFunctionT(LAMBDA func) noexcept
+		template <typename LAMBDA> JsFunctionT(LAMBDA &&func) noexcept
 		{
-			auto lambda = [func = move(func)](const JsArguments & args)->JsValue
+			using purelambda_t = remove_constref_t<LAMBDA>;
+			auto lambda = [func = (purelambda_t)forward<LAMBDA>(func)](const JsArguments & args)->JsValue
 			{
-				return JsMeta<LAMBDA>::Call::call(func, args);
+				return JsMeta<decay_t<LAMBDA> >::Call::call(func, args);
 			};
 			m_data = _new LambdaWrap<decltype(lambda)>(move(lambda));
 			m_data->AddRef();
@@ -132,12 +136,12 @@ namespace kr
 }
 
 template <typename LAMBDA>
-kr::JsValue kr::JsFunction::make(LAMBDA func) noexcept
+kr::JsValue kr::JsFunction::make(LAMBDA &&func) noexcept
 {
-	return JsFunction(func).create();
+	return JsFunction(forward<LAMBDA>(func)).create();
 }
 template <typename LAMBDA>
-kr::JsValue kr::JsFunction::makeT(LAMBDA func) noexcept
+kr::JsValue kr::JsFunction::makeT(LAMBDA &&func) noexcept
 {
-	return typename JsMeta<LAMBDA>::ccfunc(move(func)).create();
+	return typename JsMeta<decay_t<LAMBDA> >::ccfunc(forward<LAMBDA>(func)).create();
 }

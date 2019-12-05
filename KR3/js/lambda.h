@@ -23,7 +23,11 @@ namespace kr
 			LAMBDA m_lambda;
 
 		public:
-			DataImpl(LAMBDA lambda)
+			DataImpl(const LAMBDA &lambda)
+				:m_lambda(lambda)
+			{
+			}
+			DataImpl(LAMBDA &&lambda)
 				:m_lambda(move(lambda))
 			{
 			}
@@ -44,9 +48,9 @@ namespace kr
 			m_data = nullptr;
 		}
 		template <typename LAMBDA>
-		JsLambda(LAMBDA lambda) noexcept
+		JsLambda(LAMBDA &&lambda) noexcept
 		{
-			m_data = _new DataImpl<LAMBDA>(move(lambda));
+			m_data = _new DataImpl<decay_t<LAMBDA> >(forward<LAMBDA>(lambda));
 		}
 		JsLambda(JsLambda&& c) noexcept
 		{

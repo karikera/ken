@@ -1,5 +1,6 @@
 #include "html5.h"
 
+#pragma warning(disable: 26812)
 
 EMSCRIPTEN_RESULT emscripten_set_keypress_callback(const char * target, void * userData, EM_BOOL useCapture, em_key_callback_func callback)
 {

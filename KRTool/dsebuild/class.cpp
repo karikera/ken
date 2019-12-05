@@ -370,7 +370,7 @@ void Class::writeSwitch(Switch *sw)
 {
 	g_os << "char v_"<< sw->name<<'['<<sw->getSizeOf(&g_root.fnSizeOf)->toString(this)<<"];" << endl;
 
-	g_os << "template <typename LAMBDA> void " << sw->name << "(LAMBDA lambda)" << endl;
+	g_os << "template <typename LAMBDA> void " << sw->name << "(LAMBDA &&lambda)" << endl;
 	g_os << '{' << endl;
 	g_os.indent(4);
 	g_os << sw->toString(this) << endl;

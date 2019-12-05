@@ -20,6 +20,8 @@ namespace kr
 		void print() noexcept;
 		template <typename C>
 		TempSzText<C> getMessage() const noexcept;
+		template <typename C>
+		void getMessageTo(TempSzText<C>* dest) const noexcept;
 		static ErrorCode getLast() noexcept;
 
 	private:
@@ -39,6 +41,8 @@ namespace kr
 	};
 	template <> TSZ ErrorCode::getMessage<char>() const noexcept;
 	template <> TSZ16 ErrorCode::getMessage<char16>() const noexcept;
+	template <> void ErrorCode::getMessageTo<char>(TSZ*) const noexcept;
+	template <> void ErrorCode::getMessageTo<char16>(TSZ16*) const noexcept;
 
 	class FunctionError:public ErrorCode
 	{

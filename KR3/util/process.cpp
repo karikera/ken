@@ -51,15 +51,14 @@ void Process::close() noexcept
 }
 void Process::shell(Text16 command, pcstr16 curdir) throws(Error)
 {
-	static bool init = false;
 	static AText16 s_comspec;
-	if (!init)
+	staticCode
 	{
-		init = true;
 		s_comspec = EnviromentVariable16(u"comspec");
 		s_comspec.c_str();
-	}
-	exec(s_comspec.begin(), TSZ16() << u"/c " << command, curdir);
+	};
+
+	exec(s_comspec.data(), TSZ16() << u"/c " << command, curdir);
 }
 void Process::exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir) throws(Error)
 {
@@ -306,29 +305,29 @@ dword ProcessId::value() noexcept
 	return m_id;
 }
 
-Writable<char, Process> kr::shell(Text16 command, pcstr16 curdir) throws(Error)
+StreamBuffer<char, Process> kr::shell(Text16 command, pcstr16 curdir) throws(Error)
 {
 	Process process;
 	process.shell(command, curdir);
 	process.wait();
-	return Writable<char, Process>(move(process));
+	return StreamBuffer<char, Process>(move(process));
 }
-Writable<char, Process> kr::exec(pcstr16 file, pstr16 parameter, pcstr16 curdir) noexcept
+StreamBuffer<char, Process> kr::exec(pcstr16 file, pstr16 parameter, pcstr16 curdir) noexcept
 {
 	Process process;
 	process.exec(file, parameter, curdir);
 	process.wait();
-	return Writable<char, Process>(move(process));
+	return StreamBuffer<char, Process>(move(process));
 }
-Writable<char, Process> kr::exec(Text16 command) noexcept
+StreamBuffer<char, Process> kr::exec(Text16 command) noexcept
 {
 	Process process;
 	process.exec(TSZ16() << command);
-	return Writable<char, Process>(move(process));
+	return StreamBuffer<char, Process>(move(process));
 }
-Writable<char, Process> kr::exec(pstr16 command) noexcept
+StreamBuffer<char, Process> kr::exec(pstr16 command) noexcept
 {
 	Process process;
 	process.exec(command);
-	return Writable<char, Process>(move(process));
+	return StreamBuffer<char, Process>(move(process));
 }

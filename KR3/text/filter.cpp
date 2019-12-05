@@ -76,7 +76,7 @@ struct Hangle
 	static constexpr int MIDDLE_COUNT = 21;
 	static constexpr int FIRST_COUNT = 19;
 
-	Hangle() noexcept = default;
+	Hangle() = default;
 	Hangle(char16 chr) noexcept;
 };
 

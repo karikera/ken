@@ -192,7 +192,7 @@ inline aiNodeAnim * cbs::Model::NodeExtra::getAnimation(size_t id)
 }
 
 template <typename LAMBDA>
-inline void cbs::Model::_callEachNode(aiNode * node, LAMBDA &lambda)
+inline void cbs::Model::_callEachNode(aiNode * node, LAMBDA &&lambda)
 {
 	lambda(node);
 	for (unsigned int i = 0; i < node->mNumChildren; i++)

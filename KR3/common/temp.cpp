@@ -23,7 +23,7 @@ kr::StackAllocator::AllocHead * kr::StackAllocator::AllocHead::get(void * p) noe
 	return (AllocHead*)alignPointerToPrevious((AllocHead*)p - 1, alignof(AllocHead));
 }
 
-kr::StackAllocator::Node* kr::StackAllocator::Node::create(Node * pnode, size_t sz) noexcept
+ATTR_NO_DISCARD kr::StackAllocator::Node* kr::StackAllocator::Node::create(Node * pnode, size_t sz) noexcept
 {
 	Node* newnode = reline_new((Node*)alloc<alignof(Node)>::allocate(sz));
 	newnode->prev = pnode;
@@ -32,19 +32,19 @@ kr::StackAllocator::Node* kr::StackAllocator::Node::create(Node * pnode, size_t 
 	newnode->axis.previous = &newnode->axis;
 	return newnode;
 }
-kr::byte * kr::StackAllocator::Node::end() noexcept
+ATTR_NO_DISCARD kr::byte * kr::StackAllocator::Node::end() noexcept
 {
 	return (byte*)this + kr_msize(this);
 }
-size_t kr::StackAllocator::Node::size() noexcept
+ATTR_NO_DISCARD size_t kr::StackAllocator::Node::size() noexcept
 {
 	return end() - axis.previous->useto;
 }
-bool kr::StackAllocator::Node::empty() noexcept
+ATTR_NO_DISCARD bool kr::StackAllocator::Node::empty() noexcept
 {
 	return axis.previous == &axis;
 }
-kr::autoptr kr::StackAllocator::Node::allocate(size_t sz) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::Node::allocate(size_t sz) noexcept
 {
 	AllocHead * last = axis.previous;
 	AllocHead * head = (AllocHead*)alignPointerToNext(last->useto, alignof(AllocHead));
@@ -53,7 +53,7 @@ kr::autoptr kr::StackAllocator::Node::allocate(size_t sz) noexcept
 	if (!_expandTo(useto)) return nullptr;
 	return _allocate((AllocHead*)head, usefrom, useto);
 }
-kr::autoptr kr::StackAllocator::Node::allocate(size_t sz, size_t align) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::Node::allocate(size_t sz, size_t align) noexcept
 {
 	if (align <= alignof(AllocHead)) return allocate(sz);
 	AllocHead * last = axis.previous;
@@ -63,7 +63,7 @@ kr::autoptr kr::StackAllocator::Node::allocate(size_t sz, size_t align) noexcept
 	if (!_expandTo(useto)) return nullptr;
 	return _allocate(head, usefrom, useto);
 }
-kr::autoptr kr::StackAllocator::Node::allocate(size_t sz, size_t align, size_t offset) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::Node::allocate(size_t sz, size_t align, size_t offset) noexcept
 {
 	offset &= ~(align - 1);
 	if (offset == 0) return allocate(sz, align);
@@ -85,7 +85,7 @@ void kr::StackAllocator::Node::free(void * data) noexcept
 	axis.previous = head->previous;
 	axis.previous->next = &axis;
 }
-bool kr::StackAllocator::Node::expand(void * data, size_t sz) noexcept
+ATTR_NO_DISCARD bool kr::StackAllocator::Node::expand(void * data, size_t sz) noexcept
 {
 	AllocHead* head = AllocHead::get(data);
 	if (head != axis.previous)
@@ -97,19 +97,19 @@ bool kr::StackAllocator::Node::expand(void * data, size_t sz) noexcept
 	head->useto = to;
 	return true;
 }
-size_t kr::StackAllocator::Node::msize(void * data) noexcept
+ATTR_NO_DISCARD size_t kr::StackAllocator::Node::msize(void * data) noexcept
 {
 	AllocHead* head = AllocHead::get(data);
 	return head->useto - (byte*)data;
 }
-bool kr::StackAllocator::Node::_expandTo(byte* to) noexcept
+ATTR_NO_DISCARD bool kr::StackAllocator::Node::_expandTo(byte* to) noexcept
 {
 	if (end() >= to)
 		return true;
 	
 	return kr_expand(this, to - (byte*)this);
 }
-kr::autoptr kr::StackAllocator::Node::_allocate(AllocHead * head, byte * usefrom, byte * useto) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::Node::_allocate(AllocHead * head, byte * usefrom, byte * useto) noexcept
 {
 	head->usefrom = usefrom;
 	head->useto = useto;
@@ -138,7 +138,7 @@ void kr::StackAllocator::terminate() noexcept
 	kr_free(m_last);
 	m_last = nullptr;
 }
-kr::autoptr kr::StackAllocator::allocate(size_t sz) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::allocate(size_t sz) noexcept
 {
 	if (sz == 0)
 		return nullptr;
@@ -154,14 +154,14 @@ kr::autoptr kr::StackAllocator::allocate(size_t sz) noexcept
 
 	return allocateWithNewNode(sz);
 }
-kr::autoptr kr::StackAllocator::allocateWithNewNode(size_t sz) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::allocateWithNewNode(size_t sz) noexcept
 {
 	size_t need = sizeof(Node) + sizeof(AllocHead) + alignof(AllocHead)-1 + sz;
 	autoptr ret = _allocateNewNode(need)->allocate(sz);
 	_assert(ret != nullptr);
 	return m_lastBlock = ret;
 }
-kr::autoptr kr::StackAllocator::allocate(size_t sz, size_t align) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::allocate(size_t sz, size_t align) noexcept
 {
 	if (sz == 0)
 		return nullptr;
@@ -176,7 +176,7 @@ kr::autoptr kr::StackAllocator::allocate(size_t sz, size_t align) noexcept
 	}
 	return allocateWithNewNode(sz, align);
 }
-kr::autoptr kr::StackAllocator::allocateWithNewNode(size_t sz, size_t align) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::allocateWithNewNode(size_t sz, size_t align) noexcept
 {
 	if (align <= alignof(Node)) return allocateWithNewNode(sz);
 	size_t need = sizeof(Node) + sizeof(AllocHead) + alignof(AllocHead)-1 + sz + align - 1;
@@ -184,7 +184,7 @@ kr::autoptr kr::StackAllocator::allocateWithNewNode(size_t sz, size_t align) noe
 	_assert(ret != nullptr);
 	return m_lastBlock = ret;
 }
-kr::autoptr kr::StackAllocator::allocate(size_t sz, size_t align, size_t offset) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::allocate(size_t sz, size_t align, size_t offset) noexcept
 {
 	if (sz == 0) return nullptr;
 
@@ -198,7 +198,7 @@ kr::autoptr kr::StackAllocator::allocate(size_t sz, size_t align, size_t offset)
 	}
 	return allocateWithNewNode(sz, align, offset);
 }
-kr::autoptr kr::StackAllocator::allocateWithNewNode(size_t sz, size_t align, size_t offset) noexcept
+ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::allocateWithNewNode(size_t sz, size_t align, size_t offset) noexcept
 {
 	offset &= ~(align - 1);
 	if (offset == 0) return allocateWithNewNode(sz, align);
@@ -217,11 +217,11 @@ bool kr::StackAllocator::expand(void * data, size_t sz) noexcept
 	}
 	return m_last->expand(data, sz);
 }
-size_t kr::StackAllocator::msize(void * data) noexcept
+ATTR_NO_DISCARD size_t kr::StackAllocator::msize(void * data) noexcept
 {
 	return m_last->msize(data);
 }
-kr::StackAllocator::Node * kr::StackAllocator::getLastNode() noexcept
+ATTR_NO_DISCARD kr::StackAllocator::Node * kr::StackAllocator::getLastNode() noexcept
 {
 	return m_last;
 }
@@ -249,23 +249,23 @@ void kr::StackAllocator::free(void * data) noexcept
 	else
 		m_lastBlock = nullptr;
 }
-bool kr::StackAllocator::empty() noexcept
+ATTR_NO_DISCARD bool kr::StackAllocator::empty() noexcept
 {
 	if(m_last == nullptr) return true;
 	return m_last->empty() && m_last->prev == nullptr;
 }
-bool kr::StackAllocator::isLastBlock(void * block) noexcept
+ATTR_NO_DISCARD bool kr::StackAllocator::isLastBlock(void * block) noexcept
 {
 	return m_lastBlock == block;
 }
 
-kr::StackAllocator * kr::StackAllocator::getInstance() noexcept
+ATTR_NO_DISCARD kr::StackAllocator * kr::StackAllocator::getInstance() noexcept
 {
 	static thread_local kr::StackAllocator allocator;
 	return &allocator;
 }
 
-kr::StackAllocator::Node * kr::StackAllocator::_allocateNewNode(size_t need) noexcept
+ATTR_NO_DISCARD kr::StackAllocator::Node * kr::StackAllocator::_allocateNewNode(size_t need) noexcept
 {
 	if (need <= m_reserve)
 	{

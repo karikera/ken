@@ -27,13 +27,13 @@ namespace kr
 		ThreadCascader() noexcept;
 
 		template <typename LAMBDA>
-		Promise<void> * operator ()(LAMBDA lambda) noexcept
+		Promise<void> * operator ()(LAMBDA &&lambda) noexcept
 		{
 			PromiseImpl * prom = _new PromiseImpl(this);
 			if (!m_promise)
 			{
 				m_promise = prom;
-				threadingVoid([prom, lambda = move(lambda)]() mutable{
+				threadingVoid([prom, lambda = forward<LAMBDA>(lambda)]() mutable{
 					try
 					{
 						lambda();
@@ -48,7 +48,7 @@ namespace kr
 			}
 			else
 			{
-				return m_promise = m_promise->then([prom, lambda = move(lambda)]() {
+				return m_promise = m_promise->then([prom, lambda = forward<LAMBDA>(lambda)]() mutable {
 					threadingVoid([prom, lambda = move(lambda)]() mutable{
 						try
 						{

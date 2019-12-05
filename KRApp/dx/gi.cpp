@@ -12,8 +12,6 @@
 using namespace kr;
 using namespace dxgi;
 
-const Adapters & dxgi::adapters = nullref;
-
 IDXGIDevice * dxgi::getDevice() noexcept
 {
 	return d3d11::s_dxgiDevice;

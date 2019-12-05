@@ -24,7 +24,7 @@ kcopy "%thirddir%\ken-res-loader\lib\%platform%\libpng16%d%.dll" "%outdir%libpng
 kcopy "%thirddir%\ken-res-loader\lib\%platform%\libvorbis%d%.dll" "%outdir%libvorbis%d%.dll"
 kcopy "%thirddir%\ken-res-loader\lib\%platform%\libvorbisfile%d%.dll" "%outdir%libvorbisfile%d%.dll"
 kcopy "%thirddir%\ken-res-loader\lib\%platform%\jpeg%d%.dll" "%outdir%jpeg%d%.dll"
-kcopy "%MYSQL_C_DIR%\lib\libmysql.dll" "%outdir%libmysql.dll"
+kcopy "%MYSQL_C_DIR%\lib\libmariadb.dll" "%outdir%libmariadb.dll"
 kcopy "%thirddir%\fftw-3.3.5-dll-%platform%\libfftw3f-3.dll" "%OutDir%libfftw3f-3.dll"
 if "%platform%" neq "js" ( 
 kcopy "%thirddir%\angle\lib\%platform%\%config%\libEGL.dll" "%OutDir%libEGL.dll"

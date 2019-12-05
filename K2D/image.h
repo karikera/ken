@@ -9,7 +9,7 @@
 class kr::image::ImageData
 {
 public:
-	ImageData() noexcept = default;
+	ImageData() = default;
 	ImageData(nullptr_t) noexcept;
 
 	ImageData & operator = (nullptr_t) noexcept;

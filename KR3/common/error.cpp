@@ -54,33 +54,66 @@ namespace
 template <>
 TSZ ErrorCode::getMessage<char>() const noexcept
 {
-	TSZ dest((size_t)0, 256);
-	for (;;)
-	{
-		DWORD res = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, m_error, 0, dest.data(), intact<DWORD>(dest.capacity()), nullptr);
-		if (res == 0)
-		{
-			dest.reserve(dest.capacity()*2);
-			continue;
-		}
-		dest.resize(res-2);
-		return dest;
-	}
+	TSZ dest;
+	getMessageTo(&dest);
+	return dest;
 }
 template <>
 TSZ16 ErrorCode::getMessage<char16>() const noexcept
 {
-	TSZ16 dest((size_t)0, 256);
+	TSZ16 dest;
+	getMessageTo(&dest);
+	return dest;
+}
+
+template <>
+void ErrorCode::getMessageTo<char>(TSZ* dest) const noexcept
+{
+	size_t cap = 256;
+	dest->padding(cap);
 	for (;;)
 	{
-		DWORD res = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, m_error, 0, wide(dest.data()), intact<DWORD>(dest.capacity()), nullptr);
+		DWORD res = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, m_error, 0, dest->end(), intact<DWORD>(dest->remaining()), nullptr);
 		if (res == 0)
 		{
-			dest.reserve(dest.capacity() * 2);
+			DWORD err = GetLastError();
+			if (err != ERROR_INSUFFICIENT_BUFFER)
+			{
+				_assert(err == ERROR_MR_MID_NOT_FOUND);
+				*dest << "Unknown Error";
+				break;
+			}
+			cap *= 2;
+			dest->padding(cap);
 			continue;
 		}
-		dest.resize(res-2);
-		return dest;
+		dest->prepare(res - 2);
+		break;
+	}
+}
+template <>
+void ErrorCode::getMessageTo<char16>(TSZ16* dest) const noexcept
+{
+	size_t cap = 256;
+	dest->padding(cap);
+	for (;;)
+	{
+		DWORD res = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, m_error, 0, wide(dest->end()), intact<DWORD>(dest->remaining()), nullptr);
+		if (res == 0)
+		{
+			DWORD err = GetLastError();
+			if (err != ERROR_INSUFFICIENT_BUFFER)
+			{
+				_assert(err == ERROR_MR_MID_NOT_FOUND);
+				*dest << u"Unknown Error";
+				break;
+			}
+			cap *= 2;
+			dest->padding(cap);
+			continue;
+		}
+		dest->prepare(res - 2);
+		break;
 	}
 }
 

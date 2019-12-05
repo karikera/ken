@@ -16,7 +16,7 @@ namespace kr
 	};
 	using SinCos = SinCosT<float>;
 
-#define _RETURN_	ATTR_CHECK_RETURN ATTR_NOALIAS
+#define _RETURN_	ATTR_NO_DISCARD ATTR_NOALIAS
 
 	template <typename T, typename ... ARGS>
 	_RETURN_ T maxt(T arg, ARGS ... args) noexcept;

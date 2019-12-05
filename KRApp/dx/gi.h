@@ -54,7 +54,7 @@ namespace kr
 
 	namespace dxgi
 	{
-		struct Adapters
+		struct Adapters final
 		{
 			struct Iterator
 			{
@@ -72,7 +72,7 @@ namespace kr
 			Adapter operator [](UINT idx) const throws(ErrorCode);
 		};
 
-		extern const Adapters & adapters;
+		constexpr const Adapters adapters = Adapters();
 	}
 
 	COM_CLASS_METHODS(IDXGISwapChain)

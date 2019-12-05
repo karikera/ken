@@ -14,7 +14,7 @@ namespace kr
 		};
 		
 
-		Ipv4Address() noexcept = default;
+		Ipv4Address() = default;
 		Ipv4Address(nullptr_t) noexcept;
 		Ipv4Address(byte a, byte b, byte c, byte d) noexcept;
 		explicit Ipv4Address(kr::Text str) noexcept;
@@ -26,7 +26,7 @@ namespace kr
 		template <typename CHR>
 		size_t $sizeAs() const noexcept
 		{
-			return size();
+			return $size();
 		}
 		template <typename CHR>
 		size_t $copyTo(CHR * dest) const noexcept;

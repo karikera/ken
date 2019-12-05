@@ -23,86 +23,87 @@ namespace kr
 
 		template <typename T>
 		JsClass createChild(Text16 _name = nullptr) noexcept;
-		
-		// 클래스의 멤버 변수를 설정한다
-		// 예외: JsException (이름이 중복될 시 발생)
-		KRJS_EXPORT void setField(Text16 _name, const JsValue& v) throws(JsException);
 
-		KRJS_EXPORT void makeField(Text16 _name, JsFilter* _filter) noexcept;
-		KRJS_EXPORT void makeReadOnlyField(Text16 _name, int index) noexcept;
-		KRJS_EXPORT void setAccessor(Text16 _name, JsAccessor* _accessor) noexcept;
-		KRJS_EXPORT void setReadOnlyAccessor(Text16 _name, JsAccessor* _accessor) noexcept;
-		KRJS_EXPORT void setIndexAccessor(JsIndexAccessor* _accessor) noexcept;
-		KRJS_EXPORT void setReadOnlyIndexAccessor(JsIndexAccessor* _accessor) noexcept;
+		KRJS_EXPORT void setField(const JsPropertyId &name, const JsValue& v) throws(JsException);
+		KRJS_EXPORT void setField(const JsValue &name, const JsValue& v) throws(JsException);
+		template <size_t size>
+		void setField(const char16(&name)[size], const JsValue& v) throws(JsException)
+		{
+			setField((JsPropertyId)name, v);
+		}
+
+		KRJS_EXPORT void setAccessorRaw(const JsPropertyId& name, JsAccessor* _accessor) noexcept;
+		KRJS_EXPORT void setGetterRaw(const JsPropertyId& name, JsGetter* _accessor) noexcept;
+		KRJS_EXPORT void setIndexAccessorRaw(JsIndexAccessor* _accessor) noexcept;
+		KRJS_EXPORT void setReadOnlyIndexAccessorRaw(JsIndexAccessor* _accessor) noexcept;
 		
-		KRJS_EXPORT void setStaticAccessor(Text16 _name, JsAccessor* _accessor) noexcept;
-		KRJS_EXPORT void setStaticReadOnlyAccessor(Text16 _name, JsAccessor* _accessor) noexcept;
+		KRJS_EXPORT void setStaticAccessorRaw(const JsPropertyId& name, JsAccessor* _accessor) noexcept;
+		KRJS_EXPORT void setStaticGetterRaw(const JsPropertyId& name, JsGetter* _accessor) noexcept;
 
 		// 객체를 생성합니다
 		KRJS_EXPORT JsValue newInstanceRaw(JsArgumentsIn args) const throws(JsException);
 
-		// 객체를 생성합니다
-		// 기본적으로 Weak 상태로 생성되어, GC에 의하여 지워질 수 있습니다
-		KRJS_EXPORT JsObject* newInstanceRawPtr(JsArgumentsIn args) const throws(JsException);
-
 		template <typename P>
-		void setStaticAccessor(Text16 _name, P* value) noexcept
+		void setStaticAccessor(const JsPropertyId& name, P* value) noexcept
 		{
-			setStaticAccessor(_name,
+			setMethodStaticAccessor(name,
 				[value](JsValue)->JsValue { return *value; },
 				[value](JsValue, JsValue nv) { *value = nv.get<P>(); }
 			);
 		}
 
 		template <typename P>
-		void setStaticReadOnlyAccessor(Text16 _name, P* value) noexcept
+		void setStaticGetter(const JsPropertyId& name, P* value) noexcept
 		{
-			setStaticReadOnlyAccessor(_name,
+			setStaticGetterL(name,
 				[value](JsValue)->JsValue { return *value; }
 			);
 		}
 
-		template <typename LAMBDA>
-		void setMethod(Text16 _name, LAMBDA _lambda) noexcept
-		{
-			set(_name, JsFunction(_lambda));
-		}
-
 		template <typename GET, typename SET>
-		void setAccessor(Text16 _name, GET get, SET set) noexcept
+		void setAccessorL(const JsPropertyId& name, GET&& get, SET&& set) noexcept
 		{
-			setAccessor(_name, JsAccessor(get, set));
+			setAccessorRaw(name, JsAccessor::wrap(forward<GET>(get), forward<SET>(set)));
 		}
 
 		template <typename GET>
-		void setReadOnlyAccessor(Text16 _name, GET get) noexcept
+		void setGetterL(const JsPropertyId& name, GET &&get) noexcept
 		{
-			setReadOnlyAccessor(_name, JsAccessor(get));
+			setGetterRaw(name, JsGetter::wrap(forward<GET>(get)));
 		}
 
 		template <typename GET, typename SET>
-		void setStaticAccessor(Text16 _name, GET get, SET set) noexcept
+		void setStaticAccessorL(const JsPropertyId& name, GET &&get, SET &&set) noexcept
 		{
-			setStaticAccessor(_name, JsAccessor(get, set));
+			setStaticAccessorRaw(name, JsAccessor::wrap(forward<GET>(get), forward<SET>(set)));
 		}
 
 		template <typename GET>
-		void setStaticReadOnlyAccessor(Text16 _name, GET get) noexcept
+		void setStaticGetterL(const JsPropertyId &name, GET &&get) noexcept
 		{
-			setStaticReadOnlyAccessor(_name, JsAccessor(get));
+			setStaticGetterRaw(name, JsGetter::wrap(forward<GET>(get)));
 		}
 
+		template <typename T, typename P>
+		void setMethodGetter(const JsPropertyId& name, P(T::* get)()) noexcept;
+
+		template <typename T, typename P>
+		void setMethodAccessor(const JsPropertyId& name, P(T::* get)(), void(T::* set)(P)) noexcept;
 
 		template <typename LAMBDA>
-		void setStaticMethodRaw(Text16 _name, LAMBDA _lambda) noexcept;
+		void setMethodRaw(const JsPropertyId &name, LAMBDA&& _lambda) noexcept
+		{
+			setField(name, JsFunction::make(forward<LAMBDA>(_lambda)));
+		}
 
-		template <typename T, typename P>
-		void setMethodAccessor(Text16 _name, P(T::* get)()) noexcept;
-		template <typename T, typename P>
-		void setMethodAccessor(Text16 _name, P(T::* get)(), void(T::* set)(P)) noexcept;
+		template <typename LAMBDA>
+		void setStaticMethodRaw(const JsPropertyId& name, LAMBDA&& _lambda) noexcept;
 
 		template <typename T, typename RET, typename ... ARGS>
-		void setMethod(Text16 _name, RET(T::* func)(ARGS ...)) noexcept;
+		void setMethod(const JsPropertyId& name, RET(T::* func)(ARGS ...)) noexcept;
+
+		template <typename LAMBDA>
+		void setStaticMethod(const JsPropertyId& name, LAMBDA&& lambda) noexcept;
 
 	};
 
@@ -116,27 +117,27 @@ namespace kr
 		JsClass createChild() noexcept;
 		
 		template <typename P>
-		void setAccessor(Text16 _name, P(T::* v)) noexcept;
+		void setAccessor(const JsPropertyId& name, P(T::* v)) noexcept;
 
 		template <typename P>
-		void setReadOnlyAccessor(Text16 _name, P(T::* v)) noexcept;
+		void setGetter(const JsPropertyId& name, P(T::* v)) noexcept;
 
 		template <typename P>
-		void setMethodAccessor(Text16 _name, P(T::* get)()) noexcept;
+		void setMethodGetter(const JsPropertyId& name, P(T::* get)()) noexcept;
 
 		template <typename P>
-		void setMethodAccessor(Text16 _name, P(T::* get)(), void(T::* set)(P)) noexcept;
+		void setMethodAccessor(const JsPropertyId& name, P(T::* get)(), void(T::* set)(P)) noexcept;
 
 		template <typename P>
-		void setNullableMethodAccessor(Text16 _name, P(T::* get)()) noexcept;
+		void setNullableMethodGetter(const JsPropertyId& name, P(T::* get)()) noexcept;
 
 		template <typename P>
-		void setNullableMethodAccessor(Text16 _name, P(T::* get)(), void(T::* set)(P)) noexcept;
+		void setNullableMethodAccessor(const JsPropertyId& name, P(T::* get)(), void(T::* set)(P)) noexcept;
 
-		void setMethodRaw(Text16 _name, JsValue(T::* func)(const JsArguments&)) noexcept;
+		void setMethodRaw(const JsPropertyId &name, JsValue(T::* func)(const JsArguments&)) noexcept;
 
 		template <typename RET, typename ... ARGS>
-		void setMethod(Text16 _name, RET(T::* func)(ARGS ...)) noexcept;
+		void setMethod(const JsPropertyId& name, RET(T::* func)(ARGS ...)) noexcept;
 
 		template <typename P>
 		void setIndexAccessor(P(T::* get)(uint32_t)) noexcept;
@@ -146,7 +147,7 @@ namespace kr
 
 		// 객체를 생성합니다
 		// 기본적으로 Weak 상태로 생성되어, GC에 의하여 지워질 수 있습니다.
-		template <typename ... ARGS> T* newInstance(const ARGS& ... args) const noexcept;
+		template <typename ... ARGS> T* newInstance(const ARGS& ... args) const throws(JsException);
 	};
 
 }

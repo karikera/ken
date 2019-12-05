@@ -134,7 +134,7 @@ void sha256_final(SHA256_CTX *ctx, BYTE hash[])
 	}
 
 	// Append to the padding the total message's length in bits and transform.
-	ctx->bitlen += ctx->datalen * 8;
+	ctx->bitlen += (unsigned long long)ctx->datalen * 8;
 	ctx->data[63] = (BYTE)(ctx->bitlen);
 	ctx->data[62] = (BYTE)(ctx->bitlen >> 8);
 	ctx->data[61] = (BYTE)(ctx->bitlen >> 16);

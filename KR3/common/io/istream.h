@@ -1,134 +1,150 @@
 #pragma once
 
 #include "../container.h"
+#include "../hasmethod.h"
+#include "pointable.h"
 
 namespace kr
 {
-	namespace _pri_
+	template <typename Component, typename DerivedOut, typename InfoOut, typename DerivedIn, typename ParentIn>
+	size_t passThrough(OutStream<DerivedOut, Component, InfoOut>* os,
+		InStream<DerivedIn, Component, StreamInfo<false, ParentIn> >* is) throws(...)
 	{
-		template <typename T>
-		class PointableContainer
+		constexpr size_t STREAM_SIZE = 8192;
+		using OS = remove_pointer_t<decltype(os)>;
+		using IS = remove_pointer_t<decltype(is)>;
+		WriteLock<OS> lock(STREAM_SIZE);
+		size_t streamed = 0;
+		try
 		{
-		private:
-			T m_data;
-
-		public:
-			using Component = typename T::Component;
-
-			PointableContainer(T&& data) noexcept
-				:m_data(move(data))
+			for (;;)
 			{
+				Component* dest = lock.lock(os);
+				size_t readed = is->read(dest, STREAM_SIZE);
+				streamed += readed;
+				lock.unlock(os, readed);
 			}
-			PointableContainer(const T& data) noexcept
-				:m_data(data)
-			{
-			}
-			const T* operator ->() const noexcept
-			{
-				return &m_data;
-			}
-			T* operator ->() noexcept
-			{
-				return &m_data;
-			}
-		};
-		template <typename T>
-		class PointableContainer<Keep<T> >
+		}
+		catch (EofException&)
 		{
-		private:
-			Keep<T> m_data;
-
-		public:
-			using Component = typename T::Component;
-
-			PointableContainer(Keep<T>&& data) noexcept
-				:m_data(move(data))
-			{
-			}
-			PointableContainer(const Keep<T>& data) noexcept
-				:m_data(data)
-			{
-			}
-			const T* operator ->() const noexcept
-			{
-				return m_data;
-			}
-			T* operator ->() noexcept
-			{
-				return m_data;
-			}
-		};
-		template <typename T>
-		class PointableContainer<T*>
-		{
-		private:
-			T* m_data;
-
-		public:
-			using Component = typename T::Component;
-
-			PointableContainer(T* data) noexcept
-				:m_data(data)
-			{
-			}
-			T* operator ->() const noexcept
-			{
-				return m_data;
-			}
-		};
+		}
+		return streamed;
 	}
-	template <typename C, typename Wrapped, bool sized = false>
-	class Writable
+	template <typename Component, typename DerivedOut, typename InfoOut, typename DerivedIn, typename ParentIn>
+	size_t passThrough(OutStream<DerivedOut, Component, InfoOut>* os,
+		InStream<DerivedIn, Component, StreamInfo<true, ParentIn> >* is) throws(...)
 	{
-		using Container = _pri_::PointableContainer<Wrapped>;
-		static_assert(is_same<C, typename Container::Component>::value, "component type unmatch");
-	protected:
-		mutable Container m_wrapped;
-
-	public:
-
-		Writable(Wrapped && wrapped) noexcept
-			:m_wrapped(move(wrapped))
+		try
 		{
+			auto buffer = is->readAll();
+			size_t size = buffer.size();
+			os->write(buffer);
+			return size;
 		}
-		Writable(const Wrapped& wrapped) noexcept
-			:m_wrapped(wrapped)
+		catch (EofException&)
 		{
+			return 0;
 		}
+	}
+	template <typename Component, typename DerivedOut, typename InfoOut, typename DerivedIn, typename ParentIn>
+	size_t passThrough(OutStream<DerivedOut, Component, InfoOut>* os,
+		InStream<DerivedIn, Component, StreamInfo<false, ParentIn> >* is,
+		size_t size) throws(...)
+	{
+		constexpr size_t STREAM_SIZE = 8192;
+		using OS = remove_pointer_t<decltype(os)>;
+		using IS = remove_pointer_t<decltype(is)>;
+		size_t streamed = 0;
 
-		template <class _Derived, class _Parent>
-		void writeTo(OutStream<_Derived, C, StreamInfo<true, _Parent> >* os) const throws(...)
+		if (size < STREAM_SIZE)
 		{
+			WriteLock<OS> lock(size);
+			try
+			{
+				Component* dest = lock.lock(os);
+				size_t readed = is->read(dest, size);
+				streamed += readed;
+				lock.unlock(os, readed);
+			}
+			catch (EofException&)
+			{
+			}
+		}
+		else
+		{
+			WriteLock<OS> lock(STREAM_SIZE);
 			try
 			{
 				for (;;)
 				{
-					size_t sz = m_wrapped->$read(os->padding(4096), 4096);
-					os->commit(sz);
+					Component* dest = lock.lock(os);
+					size_t readed = is->read(dest, STREAM_SIZE);
+					streamed += readed;
+					lock.unlock(os, readed);
 				}
 			}
 			catch (EofException&)
 			{
 			}
 		}
-	};
-
-	template <typename C, typename Wrapped>
-	class Writable<C, Wrapped, true>:public Writable<C, Wrapped, false>
+		return streamed;
+	}
+	template <typename Component, typename DerivedOut, typename InfoOut, typename DerivedIn, typename ParentIn>
+	size_t passThrough(OutStream<DerivedOut, Component, InfoOut>* os,
+		InStream<DerivedIn, Component, StreamInfo<true, ParentIn> >* is,
+		size_t size) throws(...)
 	{
-		using Super = Writable<C, Wrapped, false>;
+		try
+		{
+			auto buffer = is->read(size);
+			size_t streamed = buffer.size();
+			os->write(buffer);
+			return streamed;
+		}
+		catch (EofException&)
+		{
+			return 0;
+		}
+	}
+
+	template <typename C, typename Internal>
+	class StreamBuffer :public HasStreamTo<StreamBuffer<C, Internal>, C, AddContainer<C, true, PointableContainer<Internal> > >
+	{
+		using Super = HasStreamTo<StreamBuffer<C, Internal>, C, AddContainer<C, true, PointableContainer<Internal> > >;
+	public:
+		static_assert(is_same<C, typename PointableContainer<Internal>::Component>::value, "component type unmatch");
+	
 	protected:
-		using Super::m_wrapped;
-		mutable size_t m_size;
+		using Super::_ptr;
 
 	public:
+		INHERIT_COMPONENT();
 
-		Writable(const Wrapped &wrapped, size_t size) noexcept
-			:Writable<C, Wrapped, false>(wrapped), m_size(size)
+		using Super::Super;
+
+		KR_STREAM_TO(os) throws(...)
+		{
+			passThrough(os, _ptr());
+		}
+	};
+
+	template <typename C, typename Internal>
+	class SizedStreamBuffer :public HasStreamTo<SizedStreamBuffer<C, Internal>, C, AddContainer<C, true, PointableContainer<Internal> > >
+	{
+		using Super = HasStreamTo<SizedStreamBuffer<C, Internal>, C, AddContainer<C, true, PointableContainer<Internal> > >;
+	protected:
+		size_t m_size;
+		using Super::_ptr;
+
+	public:
+		INHERIT_COMPONENT();
+
+		SizedStreamBuffer(const Internal& wrapped, size_t size) noexcept
+			:Super(wrapped), m_size(size)
 		{
 		}
-		Writable(Wrapped&& wrapped, size_t size) noexcept
-			:Writable<C, Wrapped, false>(move(wrapped)), m_size(size)
+		SizedStreamBuffer(Internal&& wrapped, size_t size) noexcept
+			:Super(move(wrapped)), m_size(size)
 		{
 		}
 
@@ -136,22 +152,19 @@ namespace kr
 		{
 			return m_size;
 		}
-		template <class _Derived, class _Parent>
-		void writeTo(OutStream<_Derived, C, StreamInfo<true, _Parent>>* os) const noexcept
+		KR_STREAM_TO(os) throws(...)
 		{
-			size_t sz = m_wrapped->read(os->padding(m_size), m_size);
-			m_size -= sz;
-			os->commit(sz);
+			m_size -= passThrough(os, _ptr(), m_size);
 		}
 	};
 
 	namespace _pri_
 	{
 		template <class Derived, typename C, class Info>
-		class IStream_cmpAccessable<Derived, C, StreamInfo<false, Info>>
-			: public AddContainer<C, true, StreamInfo<false, Info>>
+		class IStream_cmpAccessable<Derived, C, StreamInfo<false, Info> >
+			: public AddContainer<C, true, StreamInfo<false, Info> >
 		{
-			CLASS_HEADER(IStream_cmpAccessable, AddContainer<C, true, StreamInfo<false, Info>>);
+			CLASS_HEADER(IStream_cmpAccessable, AddContainer<C, true, StreamInfo<false, Info> >);
 		public:
 			INHERIT_COMPONENT();
 
@@ -192,7 +205,15 @@ namespace kr
 				}
 				return skipped;
 			}
-			
+			inline StreamBuffer<Component, Derived*> readAll() throws(...)
+			{
+				return static_cast<Derived*>(this);
+			}
+			inline SizedStreamBuffer<Component, Derived*> read(size_t size) throws(...)
+			{
+				return { static_cast<Derived*>(this), size };
+			}
+
 			template <typename T> T readas() throws(...)
 			{
 				T value;
@@ -235,7 +256,7 @@ namespace kr
 			}
 
 		public:
-			using Buffer = AddBufferable<Super, BufferInfo<C, false, false, false, true, Super> >;
+			using Buffer = AddBufferable<Super, BufferInfo<C, method::Memory, false, true, Super> >;
 			inline Buffer* buffer() noexcept
 			{
 				return static_cast<Buffer*>(static_cast<Super*>(this));
@@ -269,6 +290,11 @@ namespace kr
 				const InternalComponent * p = begin();
 				derived()->addBegin(1);
 				return *p;
+			}
+			inline InternalComponent peek() throws(EofException)
+			{
+				if (size() == 0) throw EofException();
+				return *begin();
 			}
 			inline InternalComponent read() throws(EofException)
 			{
@@ -386,12 +412,12 @@ namespace kr
 				return readto_pe(buffer()->find_ny(_cut), _skip);
 			}
 			template <typename LAMBDA>
-			inline Ref readto_L(const LAMBDA &lambda)
+			inline Ref readto_L(LAMBDA &&lambda)
 			{
 				return readto_pe(buffer()->find_L(lambda));
 			}
 			template <typename LAMBDA>
-			inline Ref readto_eL(const LAMBDA &lambda)
+			inline Ref readto_eL(LAMBDA &&lambda)
 			{
 				return readto_pe(buffer()->find_L(lambda));
 			}
@@ -432,12 +458,12 @@ namespace kr
 				return readto_ny(_cut, 1);
 			}
 			template <typename LAMBDA>
-			inline Ref readwith_L(const LAMBDA & lambda)
+			inline Ref readwith_L(LAMBDA && lambda)
 			{
 				return readto_p(buffer()->find_L(lambda), 1);
 			}
 			template <typename LAMBDA>
-			inline Ref readwith_eL(const LAMBDA & lambda)
+			inline Ref readwith_eL(LAMBDA && lambda)
 			{
 				return readto_pe(buffer()->find_L(lambda), 1);
 			}
@@ -485,6 +511,17 @@ namespace kr
 				if (i != -1)
 					derived()->addBegin(1);
 				return i;
+			}
+
+			inline bool readIf(const InternalComponent& chr) throws(EofException)
+			{
+				if (peek() != chr) return false;
+				readForce();
+				return true;
+			}
+			inline void must(const InternalComponent &chr) throws(InvalidSourceException, EofException)
+			{
+				if (!readIf(chr)) throw InvalidSourceException();
 			}
 		};
 
@@ -559,15 +596,7 @@ namespace kr
 		INHERIT_COMPONENT();
 		using Super::Super;
 		using Super::read;
-
-		inline Writable<Component, Derived*> readAll() throws(...)
-		{
-			return static_cast<Derived*>(this);
-		}
-		inline Writable<Component, Derived*, true> read(size_t size) throws(...)
-		{
-			return { static_cast<Derived*>(this), size };
-		}
+		using Super::readAll;
 
 		inline dword readLeb128() throws(...)
 		{

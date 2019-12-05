@@ -25,7 +25,7 @@ namespace kr
 		ABuffer unsended;
 	};
 
-	class Socket:public io::Streamable<Socket>
+	class Socket:public io::StreamCastable<Socket>
 	{
 	public:
 		struct Init

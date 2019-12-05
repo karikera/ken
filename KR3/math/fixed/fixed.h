@@ -44,7 +44,7 @@ namespace kr
 		}
 		explicit TFixed(double n)
 		{
-			value = (T)floorf(n);
+			value = (T)floor(n);
 			fract = decltype(fract)((n - value) * ((1 << (sizeof(fract)* 8)) -1));
 		}
 		template <typename T3, intptr_t size2>

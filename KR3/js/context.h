@@ -18,7 +18,9 @@ namespace kr
 		static JsValue run(Text16 source) throws(JsException);
 
 		KRJS_EXPORT static void setRuntime(const JsRawRuntime& runtime) noexcept;
+		KRJS_EXPORT static void dispose() noexcept;
 		KRJS_EXPORT static void gc() noexcept;
+		KRJS_EXPORT static void idle() noexcept;
 	};
 
 	class JsScope
@@ -33,7 +35,7 @@ namespace kr
 	private:
 #ifdef KRJS_USE_V8
 #else
-		kr::Array<JsValueRef> m_refs;
+		kr::Array<JsRawData> m_refs;
 		JsScope* m_prev;
 #endif
 	};
@@ -42,7 +44,20 @@ namespace kr
 	// execute 를 호출하여 실행한다.
 	class JsContext
 	{
+		friend _pri_::InternalTools;
+		friend JsRawData;
+		friend JsClass;
+		friend JsRuntime;
 	public:
+		class Scope
+		{
+		public:
+			Scope(JsContext& ctx) noexcept;
+			~Scope() noexcept;
+
+		private:
+			JsContext* const m_context;
+		};
 		KRJS_EXPORT JsContext() noexcept;
 		KRJS_EXPORT JsContext(const JsContext& _ctx) noexcept;
 		KRJS_EXPORT JsContext(const JsRawContext &ctx) noexcept;
@@ -50,6 +65,9 @@ namespace kr
 
 		KRJS_EXPORT void enter() noexcept;
 		KRJS_EXPORT void exit() noexcept;
+		KRJS_EXPORT static void exitCurrent() noexcept;
+		KRJS_EXPORT static void _exit() noexcept;
+		KRJS_EXPORT static void _cleanForce() noexcept;
 
 	private:
 		JsRawContext m_context;
@@ -60,6 +78,9 @@ namespace kr
 		JsRawDataValue m_nullValue;
 		JsRawPropertyId m_prototypeId;
 		JsRawPropertyId m_constructorId;
+		JsRawPropertyId m_lengthId;
+		JsRawPropertyId m_getId;
+		JsRawPropertyId m_setId;
 		Array<JsRawData> m_classes;
 	};
 }

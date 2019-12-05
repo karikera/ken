@@ -8,6 +8,7 @@ namespace kr
 	namespace _pri_
 	{
 		struct InternalTools;
+		struct JsCast;
 	}
 
 	enum class JsType
@@ -30,6 +31,7 @@ namespace kr
 	class JsScope;
 	class JsRawData;
 	class JsPersistent;
+	class JsWeak;
 	class JsValue;
 	class JsString;
 	class JsFunction;
@@ -41,6 +43,7 @@ namespace kr
 	class JsRuntime;
 	class JsArguments;
 	class JsAccessor;
+	class JsGetter;
 	class JsIndexAccessor;
 	class JsFilter;
 	class JsFieldMaker;
@@ -75,12 +78,15 @@ namespace kr
 	using JsTypedArrayRawData = JsTypedRawData<JsType::TypedArray>;
 	using JsDataViewRawData = JsTypedRawData<JsType::DataView>;
 
-	enum undefined_t;
+	class undefined_t;
 
+	template <class Class, class Parent = JsObject>
+	class JsObjectT;
 	template <typename FUNC>
 	class JsFunctionT;
 
-	enum JsNewObject_t { JsNewObject };
+	class JsNewObject_t final{};
+	constexpr const JsNewObject_t JsNewObject = JsNewObject_t();
 }
 
 #ifdef KRJS_USE_V8
@@ -146,3 +152,5 @@ namespace kr
 #else
 #define KRJS_EXPORT 
 #endif
+
+#define JsAssert(var, condition) if (!(condition)) throw kr::JsException(kr::TSZ16() << u"assert(" u#condition u") but " u#var u" = " << var);

@@ -18,10 +18,13 @@ namespace kr
 			using Text = View<Component>;
 			template <size_t size> using BText = BArray<Component, size>;
 
+#pragma warning(push)
+#pragma warning(disable:26495)
 			SelfBufferedIStream(nullptr_t)
 			{
 				m_stream = nullptr;
 			}
+#pragma warning(pop)
 			SelfBufferedIStream(Base* stream)
 			{
 				m_stream = static_cast<Base*>(stream);

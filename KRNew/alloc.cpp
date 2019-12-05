@@ -124,6 +124,7 @@ typedef struct _CrtMemBlockHeader
 
 namespace
 {
+	kr::_pri_::AllocationMove* s_moving;
 	int s_allocCounter = 0;
 	int s_allocCounterBreak = 0;
 	bool s_allocCounterBreakEnabled = false;
@@ -155,6 +156,9 @@ namespace
 		void checkAligned(bool aligned) noexcept;
 		void setAddress(void * data) noexcept;
 		void * getAddress() noexcept;
+		int getNumber() noexcept;
+		const char* getFileName() noexcept;
+		int getLine() noexcept;
 		static BlockInfo * from(void * data) noexcept;
 		static void create(void * data, bool aligned) noexcept;
 
@@ -363,6 +367,17 @@ namespace
 			block->m_filename = file;
 			block->m_line = line;
 		}
+		void moveline(void* data, void* from) noexcept
+		{
+			if (data == nullptr) return;
+			if (from == nullptr) return;
+			BlockInfo* block = BlockInfo::from(data);
+			if (block == nullptr) return;
+			BlockInfo* fromblock = BlockInfo::from(from);
+			if (fromblock == nullptr) return;
+			block->m_filename = fromblock->m_filename;
+			block->m_line = fromblock->m_line;
+		}
 		void depend(void * parent, void * child) noexcept
 		{
 		}
@@ -390,6 +405,18 @@ namespace
 	void * BlockInfo::getAddress() noexcept
 	{
 		return m_address;
+	}
+	int BlockInfo::getNumber() noexcept
+	{
+		return m_allocationNumber;
+	}
+	const char* BlockInfo::getFileName() noexcept
+	{
+		return m_filename;
+	}
+	int BlockInfo::getLine() noexcept
+	{
+		return m_line;
 	}
 	BlockInfo * BlockInfo::from(void * data) noexcept
 	{
@@ -423,6 +450,11 @@ namespace
 			return;
 		}
 #endif
+		if (s_moving)
+		{
+			info->m_filename = s_moving->getFileName();
+			info->m_line = s_moving->getLine();
+		}
 		s_mo.attachBlock(info, aligned);
 		info->setAddress(data);
 	}
@@ -480,7 +512,6 @@ void kr::memcheck() noexcept
 void kr::_pri_::reline_new_impl(void * ptr, const char * file, int line) noexcept
 {
 	if (s_memoryObserverDisabled) return;
-	if(ptr == nullptr) return;
 	s_mo.reline(ptr, file, line);
 }
 void kr::_pri_::depend_new_impl(void * parent, void * child) noexcept
@@ -488,8 +519,48 @@ void kr::_pri_::depend_new_impl(void * parent, void * child) noexcept
 	if (s_memoryObserverDisabled) return;
 	if (parent == nullptr) return;
 	if (child == nullptr) return;
-
 	s_mo.depend(parent, child);
+}
+void kr::moveline_new(void* ptr, void* from) noexcept
+{
+	if (s_memoryObserverDisabled) return;
+	if (ptr == nullptr) return;
+	s_mo.moveline(ptr, from);
+}
+kr::_pri_::AllocationMove::AllocationMove(void* ptr) noexcept
+{
+	m_parent = s_moving;
+	s_moving = this;
+
+	if (ptr != nullptr)
+	{
+		BlockInfo* info = BlockInfo::from(ptr);
+		if (info != nullptr)
+		{
+			m_number = s_allocCounter;
+			m_filename = info->getFileName();
+			m_line = info->getNumber();
+			s_allocCounter = info->getNumber();
+			return;
+		}
+	}
+	m_number = -1;
+	m_filename = nullptr;
+	m_line = 0;
+}
+kr::_pri_::AllocationMove::~AllocationMove() noexcept
+{
+	s_moving = m_parent;
+	if (m_number == -1) return;
+	s_allocCounter = m_number;
+}
+int kr::_pri_::AllocationMove::getLine() noexcept
+{
+	return m_line;
+}
+const char* kr::_pri_::AllocationMove::getFileName() noexcept
+{
+	return m_filename;
 }
 
 #else
@@ -503,10 +574,13 @@ void kr::memtest() noexcept
 void kr::memcheck() noexcept
 {
 }
+void kr::moveline_new(void* ptr, void* from) noexcept
+{
+}
 
 #endif
 
-void* kr::_pri_::alloc_base<0, 0>::allocate(size_t sz) noexcept
+ATTR_NO_DISCARD void* kr::_pri_::alloc_base<0, 0>::allocate(size_t sz) noexcept
 {
 	return krmalloc(sz);
 }
@@ -514,7 +588,7 @@ void kr::_pri_::alloc_base<0, 0>::free(void * data) noexcept
 {
 	krfree(data);
 }
-bool kr::_pri_::alloc_base<0, 0>::expand(void * data, size_t nsize) noexcept
+ATTR_NO_DISCARD bool kr::_pri_::alloc_base<0, 0>::expand(void * data, size_t nsize) noexcept
 {
 #ifdef _MSC_VER
 	if (nsize <= msize_impl(data)) return true;
@@ -525,7 +599,7 @@ bool kr::_pri_::alloc_base<0, 0>::expand(void * data, size_t nsize) noexcept
 	return nsize <= msize_impl(data);
 #endif
 }
-size_t kr::_pri_::alloc_base<0, 0>::msize(const void * data) noexcept
+ATTR_NO_DISCARD size_t kr::_pri_::alloc_base<0, 0>::msize(const void * data) noexcept
 {
 #ifndef NDEBUG
 	s_mo.checkAligned((void*)data, false);
@@ -533,7 +607,7 @@ size_t kr::_pri_::alloc_base<0, 0>::msize(const void * data) noexcept
 	return msize_impl(data);
 }
 
-void* kr::_pri_::aligned_alloc_impl(size_t sz, size_t aligned) noexcept
+ATTR_NO_DISCARD void* kr::_pri_::aligned_alloc_impl(size_t sz, size_t aligned) noexcept
 {
 	_assert(sz < 0xffffffff);
 #if defined(_MSC_VER) || defined(NDEBUG)
@@ -549,7 +623,7 @@ void* kr::_pri_::aligned_alloc_impl(size_t sz, size_t aligned) noexcept
 #endif
 	return ptr;
 }
-void* kr::_pri_::aligned_alloc_impl(size_t sz, size_t aligned, size_t offset) noexcept
+ATTR_NO_DISCARD void* kr::_pri_::aligned_alloc_impl(size_t sz, size_t aligned, size_t offset) noexcept
 {
 	_assert(sz < 0xffffffff);
 #if defined(_MSC_VER) || defined(NDEBUG)
@@ -563,9 +637,10 @@ void* kr::_pri_::aligned_alloc_impl(size_t sz, size_t aligned, size_t offset) no
 #ifndef NDEBUG
 	BlockInfo::create(ptr, true);
 #endif
+	_assert(sz <= aligned_msize_impl(ptr, aligned, offset));
 	return ptr;
 }
-bool kr::_pri_::aligned_expand_impl(void * data, size_t nsize, size_t aligned, size_t offset) noexcept
+ATTR_NO_DISCARD bool kr::_pri_::aligned_expand_impl(void * data, size_t nsize, size_t aligned, size_t offset) noexcept
 {
 #if defined(_MSC_VER) || defined(NDEBUG)
 	return nsize <= _aligned_msize(data, aligned, offset);
@@ -573,7 +648,7 @@ bool kr::_pri_::aligned_expand_impl(void * data, size_t nsize, size_t aligned, s
 	return nsize <= _aligned_msize((byte*)data - sizeof(BlockInfo), aligned, offset);
 #endif
 }
-size_t kr::_pri_::aligned_msize_impl(const void * ptr, size_t aligned, size_t offset) noexcept
+ATTR_NO_DISCARD size_t kr::_pri_::aligned_msize_impl(const void * ptr, size_t aligned, size_t offset) noexcept
 {
 #ifndef NDEBUG
 	s_mo.checkAligned((void*)ptr, true);
@@ -595,7 +670,7 @@ void kr::_pri_::aligned_free_impl(void * ptr) noexcept
 #endif
 }
 
-void * kr::_pri_::krmalloc(size_t size) noexcept
+ATTR_NO_DISCARD ATTR_NONULL void * kr::_pri_::krmalloc(size_t size) noexcept
 {
 	_assert(size < 0xffffffff);
 #if defined(_MSC_VER) || defined(NDEBUG)
@@ -616,6 +691,7 @@ void * kr::_pri_::krmalloc(size_t size) noexcept
 	(byte&)ptr += sizeof(BlockInfo);
 	BlockInfo::create(ptr, false);
 #endif
+	_assert(size <= msize_impl(ptr));
 	return ptr;
 }
 void kr::_pri_::krfree(void * ptr) noexcept
@@ -628,7 +704,7 @@ void kr::_pri_::krfree(void * ptr) noexcept
 	free(block);
 #endif
 }
-size_t kr::_pri_::msize_impl(const void * data) noexcept
+ATTR_NO_DISCARD size_t kr::_pri_::msize_impl(const void * data) noexcept
 {
 #if defined(_MSC_VER) || defined(NDEBUG)
 	return _msize((void*)data);

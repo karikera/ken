@@ -115,7 +115,7 @@ namespace kr
 			else return nullptr;
 		}
 		template <typename FOUND, typename NOTFOUND>
-		static auto search(T* L, size_t size, K key, FOUND found, NOTFOUND notfound)->decltype(found((T*)0))
+		static auto search(T* L, size_t size, K key, const FOUND &found, const NOTFOUND &notfound)->decltype(found((T*)0))
 		{
 			T* R = L + size;
 			T* E = R;

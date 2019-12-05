@@ -20,7 +20,7 @@
 // tan: 25.9c
 // asm tan: 176.7c 
 
-#define _RETURN_	ATTR_CHECK_RETURN ATTR_NOALIAS
+#define _RETURN_	ATTR_NO_DISCARD ATTR_NOALIAS
 
 template <typename T>
 kr::byte adc_impl(kr::byte carry, T v1, T v2, void * res)

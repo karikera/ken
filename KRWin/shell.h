@@ -2,7 +2,6 @@
 
 #include <KR3/main.h>
 #include <KR3/wl/windows.h>
-#include <KR3/data/iterator.h>
 #include <ShellAPI.h>
 
 namespace kr

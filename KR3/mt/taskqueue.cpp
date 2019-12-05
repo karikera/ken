@@ -7,7 +7,7 @@ TaskQueue::TaskQueue() noexcept
 	:m_leftWorks(0)
 {
 }
-void TaskQueue::process() noexcept
+void TaskQueue::process() throws(...)
 {
 	for (;;)
 	{
@@ -34,6 +34,7 @@ void TaskQueue::wake() noexcept
 
 void TaskQueue::clearTask() noexcept
 {
+	CsLock lock(m_cs);
 	for (Task& work : m_works)
 	{
 		work.cancel();

@@ -14,11 +14,14 @@ static bool connectionIs(Text list, Text type) noexcept
 	return false;
 }
 
+#pragma warning(push)
+#pragma warning(disable:26495)
 WebSocketSession::WebSocketSession(Socket * socket) noexcept
 	:MTClient(socket)
 {
 	m_frameReady = false;
 }
+#pragma warning(pop)
 void WebSocketSession::onRead() throws(...)
 {
 	for (;;)

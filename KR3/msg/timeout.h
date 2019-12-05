@@ -31,13 +31,13 @@ namespace kr
 
 	public:
 		template <typename LAMBDA>
-		static Timeout * create(LAMBDA lambda) noexcept
+		static Timeout * create(LAMBDA &&lambda) noexcept
 		{
 			struct LambdaWrap :public Timeout
 			{
-				LAMBDA m_lambda;
-				LambdaWrap(LAMBDA lambda) noexcept
-					: m_lambda(move(lambda))
+				decay_t<LAMBDA> m_lambda;
+				LambdaWrap(LAMBDA &&lambda) noexcept
+					: m_lambda(forward<LAMBDA>(lambda))
 				{
 				}
 				void call() noexcept override
@@ -45,7 +45,7 @@ namespace kr
 					m_lambda(this);
 				}
 			};
-			return _new LambdaWrap(move(lambda));
+			return _new LambdaWrap(forward<LAMBDA>(lambda));
 		}
 	};
 
@@ -81,13 +81,13 @@ namespace kr
 
 	public:
 		template <typename LAMBDA>
-		static Interval * create(LAMBDA lambda) noexcept
+		static Interval * create(LAMBDA &&lambda) noexcept
 		{
 			struct LambdaWrap :public Interval
 			{
-				LAMBDA m_lambda;
-				LambdaWrap(LAMBDA lambda) noexcept
-					: m_lambda(move(lambda))
+				decay_t<LAMBDA> m_lambda;
+				LambdaWrap(LAMBDA &&lambda) noexcept
+					: m_lambda(forward<LAMBDA>(lambda))
 				{
 				}
 				void call() noexcept override
@@ -100,34 +100,34 @@ namespace kr
 #endif
 				}
 			};
-			return _new LambdaWrap(move(lambda));
+			return _new LambdaWrap(forward<LAMBDA>(lambda));
 		}
 	};
 
 	template <typename LAMBDA>
-	Interval* setInterval(LAMBDA lambda, int interval) noexcept
+	Interval* setInterval(LAMBDA &&lambda, int interval) noexcept
 	{
-		return setInterval(move(lambda), (duration)interval);
+		return setInterval(forward<LAMBDA>(lambda), (duration)interval);
 	}
 
 	template <typename LAMBDA>
-	Interval * setInterval(LAMBDA lambda, duration interval) noexcept
+	Interval * setInterval(LAMBDA &&lambda, duration interval) noexcept
 	{
-		Interval * obj = Interval::create(move(lambda));
+		Interval * obj = Interval::create(forward<LAMBDA>(lambda));
 		obj->start(interval);
 		return obj;
 	}
 
 	template <typename LAMBDA>
-	Timeout* setTimeout(LAMBDA lambda, int dura) noexcept
+	Timeout* setTimeout(LAMBDA &&lambda, int dura) noexcept
 	{
-		return setTimeout(move(lambda), (duration)dura);
+		return setTimeout(forward<LAMBDA>(lambda), (duration)dura);
 	}
 
 	template <typename LAMBDA>
-	Timeout* setTimeout(LAMBDA lambda, duration dura) noexcept
+	Timeout* setTimeout(LAMBDA &&lambda, duration dura) noexcept
 	{
-		Timeout * obj = Timeout::create(move(lambda));
+		Timeout * obj = Timeout::create(forward<LAMBDA>(lambda));
 		obj->post(dura);
 		return obj;
 	}

@@ -43,7 +43,7 @@ namespace kr
 		struct with
 		{
 			template <typename LAMBDA>
-			static void call(Out* dest, LAMBDA& lambda, In* value)
+			static void call(Out* dest, LAMBDA&& lambda, In* value)
 			{
 				new(dest) Out(lambda(*value));
 			}
@@ -56,7 +56,7 @@ namespace kr
 		struct with<void, Out>
 		{
 			template <typename LAMBDA>
-			static void call(Out* dest, LAMBDA& lambda, void*)
+			static void call(Out* dest, LAMBDA&& lambda, void*)
 			{
 				new(dest) Out(lambda());
 			}
@@ -69,7 +69,7 @@ namespace kr
 		struct with<In, void>
 		{
 			template <typename LAMBDA>
-			static void call(void*, LAMBDA& lambda, In* value)
+			static void call(void*, LAMBDA&& lambda, In* value)
 			{
 				lambda(*value);
 			}
@@ -81,7 +81,7 @@ namespace kr
 		struct with<void, void>
 		{
 			template <typename LAMBDA>
-			static void call(void*, LAMBDA& lambda, void*)
+			static void call(void*, LAMBDA&& lambda, void*)
 			{
 				lambda();
 			}
@@ -181,7 +181,8 @@ namespace kr
 		template <typename LAMBDA>
 		auto katch(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda(nullref))> >*;
 		void connect(DeferredPromise<T>* prom) noexcept;
-		static Promise<T> * resolve(T data) noexcept;
+		static Promise<T>* resolve(T &&data) noexcept;
+		static Promise<T>* resolve(const T &data) noexcept;
 		static Promise<T> * rejectException(std::exception_ptr data) noexcept;
 		static Promise<T> * reject() noexcept;
 		template <typename REJTYPE>
@@ -248,6 +249,10 @@ namespace kr
 			:m_lambda(move(lambda))
 		{
 		}
+		PromiseWithLambda(const LAMBDA& lambda) noexcept
+			:m_lambda(lambda)
+		{
+		}
 
 	protected:
 		void _callLambda(OutType * dest, InType * value)
@@ -275,6 +280,10 @@ namespace kr
 	public:
 		PromiseThen(LAMBDA&& lambda) noexcept
 			:Super(move(lambda))
+		{
+		}
+		PromiseThen(const LAMBDA& lambda) noexcept
+			:Super(lambda)
 		{
 		}
 
@@ -310,6 +319,10 @@ namespace kr
 	public:
 		PromiseKatch(LAMBDA&& lambda) noexcept
 			:Super(move(lambda))
+		{
+		}
+		PromiseKatch(const LAMBDA& lambda) noexcept
+			:Super(lambda)
 		{
 		}
 
@@ -377,6 +390,11 @@ namespace kr
 		{
 			m_reposted = false;
 		}
+		PromiseThen(const LAMBDA& lambda) noexcept
+			:Super(lambda)
+		{
+			m_reposted = false;
+		}
 
 		virtual void onThen(PromiseRaw * from) noexcept override
 		{
@@ -424,6 +442,11 @@ namespace kr
 	public:
 		PromiseKatch(LAMBDA&& lambda) noexcept
 			:Super(move(lambda))
+		{
+			m_reposted = false;
+		}
+		PromiseKatch(const LAMBDA& lambda) noexcept
+			:Super(lambda)
 		{
 			m_reposted = false;
 		}
@@ -508,10 +531,17 @@ namespace kr
 		}
 	}
 	template <typename T>
-	Promise<T> * Promise<T>::resolve(T data) noexcept
+	Promise<T> * Promise<T>::resolve(T &&data) noexcept
 	{
 		Promise<T> * prom = _new Promise<T>();
 		prom->_resolve(move(data));
+		return prom;
+	}
+	template <typename T>
+	Promise<T>* Promise<T>::resolve(const T &data) noexcept
+	{
+		Promise<T>* prom = _new Promise<T>();
+		prom->_resolve(data);
 		return prom;
 	}
 	template <typename T>
@@ -559,8 +589,9 @@ namespace kr
 	auto Promise<T>::then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda((T&)*(T*)0))> >*
 	{
 		using OutType = decltype(lambda((T&)*(T*)0));
-		using OutTypeRes = typename PromiseThen<T, OutType, LAMBDA>::ResultType;
-		Promise<OutTypeRes> * next = _new PromiseThen<T, OutType, LAMBDA>(move(lambda));
+		using Prom = PromiseThen<T, OutType, decay_t<LAMBDA> >;
+		using OutTypeRes = typename Prom::ResultType;
+		Promise<OutTypeRes> * next = _new Prom(forward<LAMBDA>(lambda));
 		_addNext(next);
 		return next;
 	}
@@ -570,8 +601,9 @@ namespace kr
 		->Promise<unwrap_promise_t<decltype(lambda(nullref))>>*
 	{
 		using OutType = decltype(lambda(zerovar));
-		using OutTypeRes = typename PromiseThen<T, OutType, LAMBDA>::ResultType;
-		Promise<OutTypeRes> * next = _new PromiseKatch<T, OutType, LAMBDA>(move(lambda));
+		using Prom = PromiseKatch<T, OutType, decay_t<LAMBDA> >;
+		using OutTypeRes = typename Prom::ResultType;
+		Promise<OutTypeRes> * next = _new Prom(forward<LAMBDA>(lambda));
 		_addNext(next);
 		return next;
 	}
@@ -607,8 +639,9 @@ namespace kr
 	auto Promise<void>::then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda())> >*
 	{
 		using OutType = decltype(lambda());
-		using OutTypeRes = typename PromiseThen<void, OutType, LAMBDA>::ResultType;
-		Promise<OutTypeRes> * next = _new PromiseThen<void, OutType, LAMBDA>(move(lambda));
+		using Prom = PromiseThen<void, OutType, decay_t<LAMBDA> >;
+		using OutTypeRes = typename Prom::ResultType;
+		Promise<OutTypeRes> * next = _new Prom(forward<LAMBDA>(lambda));
 		_addNext(next);
 		return next;
 	}
@@ -617,8 +650,9 @@ namespace kr
 		->Promise<unwrap_promise_t<decltype(lambda(nullref))>>*
 	{
 		using OutType = decltype(lambda(zerovar));
-		using OutTypeRes = typename PromiseKatch<void, OutType, LAMBDA>::ResultType;
-		Promise<OutTypeRes> * next = _new PromiseKatch<void, OutType, LAMBDA>(move(lambda));
+		using Prom = PromiseKatch<void, OutType, decay_t<LAMBDA> >;
+		using OutTypeRes = typename Prom::ResultType;
+		Promise<OutTypeRes> * next = _new Prom(forward<LAMBDA>(lambda));
 		_addNext(next);
 		return next;
 	}

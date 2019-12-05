@@ -18,7 +18,7 @@ namespace kr
 			qword abcd;
 		};
 
-		ProgramVersion() noexcept = default;
+		ProgramVersion() = default;
 		ProgramVersion(qword abcd) noexcept;
 		ProgramVersion(dword ab, dword cd) noexcept;
 		ProgramVersion(word a, word b, word c, word d) noexcept;

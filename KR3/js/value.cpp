@@ -31,23 +31,23 @@ JsValue::~JsValue() noexcept
 {
 }
 
-void JsValue::set(Text16 name, const JsValue& value) const noexcept
+void JsValue::set(const JsValue& name, const JsValue& value) const noexcept
 {
-	return setProperty(name, value);
+	return setByIndex(name, value);
 }
-JsValue JsValue::get(Text16 name) const noexcept
+JsValue JsValue::get(const JsValue& name) const noexcept
 {
-	return getProperty(name);
+	return getByIndex(name);
 }
 void JsValue::set(const JsPropertyId& name, const JsValue& value) const noexcept
 {
-	return setProperty(name, value);
+	return setByProperty(name, value);
 }
 JsValue JsValue::get(const JsPropertyId& name) const noexcept
 {
-	return getProperty(name);
+	return getByProperty(name);
 }
-JsValue JsValue::call(JsValue _this, JsArgumentsIn arguments) const throws(JsException)
+JsValue JsValue::callRaw(JsValue _this, JsArgumentsIn arguments) const throws(JsException)
 {
 	return JsRawData::call(_this, arguments);
 }

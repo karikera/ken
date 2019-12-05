@@ -22,42 +22,42 @@ namespace kr
 			Node * prev;
 			AllocHead axis;
 
-			ATTR_CHECK_RETURN static Node * create(Node * pnode, size_t sz) noexcept;
-			ATTR_CHECK_RETURN byte * end() noexcept;
-			ATTR_CHECK_RETURN size_t size() noexcept;
-			bool empty() noexcept;
-			ATTR_CHECK_RETURN autoptr allocate(size_t sz) noexcept;
-			ATTR_CHECK_RETURN autoptr allocate(size_t sz, size_t align) noexcept;
-			ATTR_CHECK_RETURN autoptr allocate(size_t sz, size_t align, size_t offset) noexcept;
+			ATTR_NO_DISCARD static Node * create(Node * pnode, size_t sz) noexcept;
+			ATTR_NO_DISCARD byte * end() noexcept;
+			ATTR_NO_DISCARD size_t size() noexcept;
+			ATTR_NO_DISCARD bool empty() noexcept;
+			ATTR_NO_DISCARD autoptr allocate(size_t sz) noexcept;
+			ATTR_NO_DISCARD autoptr allocate(size_t sz, size_t align) noexcept;
+			ATTR_NO_DISCARD autoptr allocate(size_t sz, size_t align, size_t offset) noexcept;
 			void free(void * data) noexcept;
-			ATTR_CHECK_RETURN bool expand(void * data, size_t sz) noexcept;
-			ATTR_CHECK_RETURN size_t msize(void * data) noexcept;
+			ATTR_NO_DISCARD bool expand(void * data, size_t sz) noexcept;
+			ATTR_NO_DISCARD size_t msize(void * data) noexcept;
 
 		private:
-			ATTR_CHECK_RETURN autoptr _allocate(AllocHead * head, byte * usefrom, byte * useto) noexcept;
-			ATTR_CHECK_RETURN bool _expandTo(byte* to) noexcept;
+			ATTR_NO_DISCARD autoptr _allocate(AllocHead * head, byte * usefrom, byte * useto) noexcept;
+			ATTR_NO_DISCARD bool _expandTo(byte* to) noexcept;
 		};
 
 		StackAllocator(size_t reserve = 1024) noexcept;
 		~StackAllocator() noexcept;
 		void terminate() noexcept;
-		ATTR_CHECK_RETURN autoptr allocate(size_t sz) noexcept;
-		ATTR_CHECK_RETURN autoptr allocate(size_t sz, size_t align) noexcept;
-		ATTR_CHECK_RETURN autoptr allocate(size_t sz, size_t align, size_t offset) noexcept;
-		ATTR_CHECK_RETURN autoptr allocateWithNewNode(size_t sz) noexcept;
-		ATTR_CHECK_RETURN autoptr allocateWithNewNode(size_t sz, size_t align) noexcept;
-		ATTR_CHECK_RETURN autoptr allocateWithNewNode(size_t sz, size_t align, size_t offset) noexcept;
+		ATTR_NO_DISCARD autoptr allocate(size_t sz) noexcept;
+		ATTR_NO_DISCARD autoptr allocate(size_t sz, size_t align) noexcept;
+		ATTR_NO_DISCARD autoptr allocate(size_t sz, size_t align, size_t offset) noexcept;
+		ATTR_NO_DISCARD autoptr allocateWithNewNode(size_t sz) noexcept;
+		ATTR_NO_DISCARD autoptr allocateWithNewNode(size_t sz, size_t align) noexcept;
+		ATTR_NO_DISCARD autoptr allocateWithNewNode(size_t sz, size_t align, size_t offset) noexcept;
 		bool expand(void * data, size_t sz) noexcept;
-		ATTR_CHECK_RETURN size_t msize(void * data) noexcept;
-		ATTR_CHECK_RETURN Node * getLastNode() noexcept;
+		ATTR_NO_DISCARD size_t msize(void * data) noexcept;
+		ATTR_NO_DISCARD Node * getLastNode() noexcept;
 		void free(void * data) noexcept;
-		ATTR_CHECK_RETURN bool empty() noexcept;
-		ATTR_CHECK_RETURN bool isLastBlock(void * block) noexcept;
+		ATTR_NO_DISCARD bool empty() noexcept;
+		ATTR_NO_DISCARD bool isLastBlock(void * block) noexcept;
 
-		ATTR_CHECK_RETURN static StackAllocator * getInstance() noexcept;
+		ATTR_NO_DISCARD static StackAllocator * getInstance() noexcept;
 
 	private:
-		ATTR_CHECK_RETURN Node * _allocateNewNode(size_t need) noexcept;
+		ATTR_NO_DISCARD Node * _allocateNewNode(size_t need) noexcept;
 
 		Node * m_last;
 		size_t m_fullsize; // node size + reserve

@@ -34,6 +34,7 @@ namespace kr
 		{
 		public:
 			TextureFile() = default;
+			TextureFile(CachedTexture* texture) noexcept;
 			TextureFile(Keep<CachedTexture> texture) noexcept;
 
 		private:

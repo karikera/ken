@@ -15,6 +15,20 @@ namespace kr
 			MySQLServer() noexcept;
 			~MySQLServer() noexcept;
 		};
+		class Result
+		{
+		public:
+			Result() noexcept;
+			Result(nullptr_t) noexcept;
+			Result(MYSQL_RES* res) noexcept;
+			bool isEmpty() const noexcept;
+			void close() const noexcept;
+			MYSQL_ROW fetch() const noexcept;
+			Text getName(uint idx) const noexcept;
+
+		private:
+			MYSQL_RES* m_res;
+		};
 		class MySQL
 		{
 		public:
@@ -23,8 +37,9 @@ namespace kr
 			password - keep reference
 			db - keep reference
 			*/
-			MySQL(const char * host, const char * id, const char * password, const char * db, const char * charset = nullptr) noexcept;
+			MySQL(_In_opt_ const char * host, _In_opt_ const char * id, _In_opt_ const char * password, _In_opt_ const char * db = nullptr, _In_opt_ const char * charset = nullptr, int port = 0) noexcept;
 			~MySQL() noexcept;
+			MySQL(const MySQL&) = delete;
 			MYSQL* get() noexcept;
 			void ready() noexcept;
 			void commit() noexcept;
@@ -33,10 +48,17 @@ namespace kr
 			bool setCharset(Text charset) noexcept;
 			void query(Text query) throws(ThrowRetry, SqlException);
 			void query(MySQL & db, Text qr) throws(SqlException);
-			void storeResult() throws(ThrowRetry, SqlException);
-			void storeResult(MySQL & db) throws(SqlException);
+			bool nextResult() throws(ThrowRetry, Exception);
+			void clearResult() throws(ThrowRetry, SqlException);
+			Result useResult() throws(ThrowRetry, SqlException);
+			Result useResult(MySQL& db) throws(SqlException);
+			Result storeResult() throws(ThrowRetry, SqlException);
+			Result storeResult(MySQL & db) throws(SqlException);
+			uint fieldCount() noexcept;
 			qword affectedRows() noexcept;
 			qword getInsertId() noexcept;
+			int getErrorNumber() noexcept;
+			const char * getErrorMessage() noexcept;
 			
 			template <typename LAMBDA>
 			inline bool connection(LAMBDA &lambda) throws(SqlException);
@@ -50,11 +72,9 @@ namespace kr
 			const char * const m_password;
 			const char * const m_db;
 			const char * const m_charset;
+			const int m_port;
 
-			template <typename LAMBDA>
-			inline bool _transectionSEH(LAMBDA &lambda) throws(SqlException);
 			void _connect() throws(SqlException);
-			void _clearResult() throws(ThrowRetry, SqlException);
 		};
 
 	}
@@ -87,7 +107,7 @@ inline bool kr::sql::MySQL::transection(LAMBDA &lambda) throws(SqlException)
 		try
 		{
 			ready();
-			bool res = _transectionSEH(lambda);
+			bool res = meta::returnBool(lambda)();
 			commit();
 			return res;
 		}
@@ -100,19 +120,11 @@ inline bool kr::sql::MySQL::transection(LAMBDA &lambda) throws(SqlException)
 			rollback();
 			throw e;
 		}
-	}
-}
-template <typename LAMBDA>
-inline bool kr::sql::MySQL::_transectionSEH(LAMBDA &lambda) throws(SqlException)
-{
-	__try
-	{
-		return meta::returnBool(lambda)();
-	}
-	__except(1)
-	{
-		rollback();
-		_assert(!"Transection Error");
-		throw;
+		catch (...)
+		{
+			rollback();
+			debug();
+			throw;
+		}
 	}
 }

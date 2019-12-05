@@ -67,7 +67,7 @@ namespace kr
 		void clear() noexcept;
 		Text operator [](Text name) const noexcept;
 		template <typename LAMBDA>
-		bool ifGet(Text name, const LAMBDA& call) const noexcept
+		bool ifGet(Text name, LAMBDA&& call) const noexcept
 		{
 			return m_map.ifGet(name, call);
 		}

@@ -68,8 +68,8 @@ namespace kr
 		dword m_id;
 	};
 
-	Writable<char, Process> shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
-	Writable<char, Process> exec(pcstr16 file, pstr16 parameter, pcstr16 curdir = nullptr) noexcept;
-	Writable<char, Process> exec(Text16 command) noexcept;
-	Writable<char, Process> exec(pstr16 command) noexcept;
+	StreamBuffer<char, Process> shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
+	StreamBuffer<char, Process> exec(pcstr16 file, pstr16 parameter, pcstr16 curdir = nullptr) noexcept;
+	StreamBuffer<char, Process> exec(Text16 command) noexcept;
+	StreamBuffer<char, Process> exec(pstr16 command) noexcept;
 }

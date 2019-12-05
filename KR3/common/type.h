@@ -1,6 +1,7 @@
 #pragma once
 
 #include "compiler.h"
+#include "macro.h"
 
 #include <type_traits>
 #include <locale>
@@ -49,11 +50,6 @@ namespace kr
 	class nullref_t final
 	{
 	public:
-		nullref_t() = delete;
-		~nullref_t() = delete;
-		nullref_t(const nullref_t&) = delete;
-		nullref_t& operator =(const nullref_t&) = delete;
-
 		template <typename T> bool operator ==(const T &t) const noexcept
 		{
 			return &t == nullptr;
@@ -78,16 +74,10 @@ namespace kr
 			return &t != nullptr;
 		}
 	};
-	class zerolen_t
-	{
-	public:
-		zerolen_t() = delete;
-		zerolen_t(const zerolen_t&) = delete;
-		~zerolen_t() = delete;
-	};
-	
-	static const nullref_t &nullref = *(nullref_t*)(1-1);
-	static const zerolen_t& zerolen = *(zerolen_t*)(1 - 1);
+	class zerolen_t final {};
+
+	static constexpr const nullref_t nullref = nullref_t();
+	static constexpr const zerolen_t zerolen = zerolen_t();
 
 	using std::endl;
 

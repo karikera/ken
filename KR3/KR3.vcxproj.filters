@@ -195,9 +195,6 @@
     <ClInclude Include="data\endian.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="data\iterator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="data\linkedlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -334,9 +331,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\text\buffer\textbuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="common\text\buffer\transbuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\text\buffer\membuffer.h">
@@ -534,9 +528,6 @@
     <ClInclude Include="js\exception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="js\external.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="js\function.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -592,9 +583,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="data\crypt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="common\text\buffer\commoncls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fs\asyncfile.h">
@@ -673,6 +661,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="http\httpstatus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\hasmethod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\hasmethod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\io\pointable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text\buffer\method.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\stackgc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -786,9 +789,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="initializer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="common\text.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\envvar.cpp">
@@ -905,9 +905,6 @@
     <ClCompile Include="js\context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="js\external.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="js\function.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1022,6 +1019,15 @@
     <ClCompile Include="js\propertyid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wl\windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\stackgc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="data\map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="math\coord\vector_data.inl">
@@ -1057,6 +1063,7 @@
     <None Include="js\meta.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="util\coroutine_x64.asm">

@@ -2,6 +2,9 @@
 
 #include <KR3/main.h>
 
+struct alignas(16) _CONTEXT;
+typedef _CONTEXT CONTEXT;
+
 namespace kr
 {
 	struct ModuleInfo
@@ -25,6 +28,7 @@ namespace kr
 
 		bool loadModules() noexcept;
 		bool showCallstack() noexcept;
+		bool showCallstack(CONTEXT * ctx) noexcept;
 
 	protected:
 		virtual void onLoadModule(ModuleInfo * info) noexcept;
@@ -41,6 +45,28 @@ namespace kr
 
 #endif
 	};
+
+	class StackWriter:public HasStreamTo<StackWriter, char16>, private StackWalker
+	{
+	private:
+		io::VOStream<char16> m_out;
+		CONTEXT* const m_ctx;
+		
+	public:
+		StackWriter(CONTEXT * ctx = nullptr) noexcept;
+
+		template <typename Derived, typename Info>
+		void $streamTo(OutStream<Derived, char16, Info>* target) noexcept
+		{
+			m_out = target;
+			if (m_ctx) showCallstack(m_ctx);
+			else showCallstack();
+		}
+
+	private:
+		void onOutput(Text16 szText) noexcept override;
+	};
+	
 
 
 }

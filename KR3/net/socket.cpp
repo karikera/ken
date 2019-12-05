@@ -25,7 +25,7 @@ using namespace kr;
 namespace
 {
 	template <typename LAMBDA>
-	Ipv4Address urlLoop(pcstr url, const LAMBDA &lambda) throws(SocketException)
+	Ipv4Address urlLoop(pcstr url, LAMBDA &&lambda) throws(SocketException)
 	{
 		ADDRINFOA *info;
 		int res = getaddrinfo(url, nullptr, nullptr, &info);
@@ -48,7 +48,7 @@ namespace
 		throw SocketException();
 	}
 	template <typename LAMBDA>
-	Ipv4Address urlLoop(pcstr16 url, const LAMBDA &lambda) throws(SocketException)
+	Ipv4Address urlLoop(pcstr16 url, LAMBDA &&lambda) throws(SocketException)
 	{
 		ADDRINFOW *info;
 		int res = GetAddrInfoW(wide(url), nullptr, nullptr, &info);

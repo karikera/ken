@@ -4,9 +4,11 @@
 
 namespace kr
 {
-	class CurrentDirectory : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, true, false, true, true>>
+	class CurrentDirectory final : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, method::CopyTo, true, true>>
 	{
 	public:
+		static constexpr size_t PREPARE = 260;
+
 		template <typename CHR>
 		bool set(const CHR * text) const noexcept;
 		template <typename CHR>
@@ -15,12 +17,12 @@ namespace kr
 		size_t $sizeAs() const noexcept;
 	};
 
-	static CurrentDirectory &currentDirectory = nullref;
+	static constexpr const CurrentDirectory currentDirectory = CurrentDirectory();
 
 	class Path
 	{
 	public:
-		constexpr static size_t MAX_LEN = 512;
+		constexpr static size_t MAX_LEN = 260;
 
 		Path() noexcept;
 		Text16 get(Text16 filename) throws(NotEnoughSpaceException);
@@ -35,7 +37,7 @@ namespace kr
 	};
 
 	template <typename C>
-	class path_t
+	class path_t final
 	{
 	private:
 #ifdef WIN32
@@ -296,15 +298,19 @@ namespace kr
 										skip_sep = false;
 										continue;
 									}
-									switch (dest->size())
+									if (dest->endsWith(sep))
 									{
-									case 1:
-										if (dest->get(0) == seper)
+										if (dest->size() == 1)
 										{
 											*dest << name;
 											skip_sep = false;
 											continue;
 										}
+										dest->pop();
+									}
+									switch (dest->size())
+									{
+									case 1:
 										if (dest->get(0) == '.')
 										{
 											*dest << (C)'.';
@@ -335,27 +341,17 @@ namespace kr
 										break;
 									}
 									const C* findend;
-									if (skip_sep)
-									{
-										findend = dest->cut(dest->end()-1).find_r(seper);
-									}
-									else
-									{
-										findend = dest->find_r(seper);
-									}
+									findend = dest->find_r(seper);
 									if (findend == nullptr)
 									{
 										dest->clear();
 										*dest << (C)'.';
+										skip_sep = false;
 									}
 									else
 									{
-										dest->cut_self(findend);
-										if (dest->empty())
-										{
-											*dest << seper;
-											skip_sep = true;
-										}
+										dest->cut_self(findend+1);
+										skip_sep = true;
 									}
 									continue;
 								}
@@ -439,7 +435,7 @@ namespace kr
 
 	extern template class path_t<char>;
 	extern template class path_t<char16>;
-	static path_t<char> & path = nullref;
-	static path_t<char16> & path16 = nullref;
+	static constexpr const path_t<char> path = path_t<char>();
+	static constexpr const path_t<char16> path16 = path_t<char16>();
 }
 

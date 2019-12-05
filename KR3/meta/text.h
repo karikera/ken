@@ -30,6 +30,15 @@ namespace kr
 		// text
 		template <> struct text<>
 		{
+			template <typename T>
+			using buffertype = const T[1];
+
+			template <typename T>
+			static buffertype<T>& getValueAs() noexcept
+			{
+				static const T value[] = {(T)'\0'};
+				return value;
+			}
 			static const char * getValue()
 			{
 				return "";
@@ -41,12 +50,15 @@ namespace kr
 			using next = text<chars ... >;
 
 			template <typename T>
-			static const T * getValueAs() noexcept
+			using buffertype = const T[sizeof ... (chars) + 2];
+
+			template <typename T>
+			static buffertype<T>& getValueAs() noexcept
 			{
 				static const T value[] = { (T)first, ((T)chars) ... , (T)'\0' };
 				return value;
 			}
-			static const char * getValue() noexcept
+			static buffertype<char>& getValue() noexcept
 			{
 				return getValueAs<char>();
 			}
@@ -105,7 +117,7 @@ namespace kr
 			{
 
 				template <size_t ... counter>
-				struct data:Bufferable < data<counter ...>, BufferInfo<T, false, false, true, true> >
+				struct data:Bufferable < data<counter ...>, BufferInfo<T, method::Memory, true, true> >
 				{
 					T value[sizeof ... (counter) + 1];
 
@@ -174,3 +186,8 @@ namespace kr
 	struct varname##_expand { using type = ::kr::meta::text<varname##_constexpr[counter] ...>; }; \
 	using varname = ::kr::meta::make_numlist_counter<varname##_constexpr.size>::expand<varname##_expand>::type;
 
+#define DEFINE_META_TEXT_(varname) \
+	constexpr ::kr::meta::constexpr_text varname##_constexpr(#varname); \
+	template <size_t ... counter> \
+	struct varname##_expand { using type = ::kr::meta::text<varname##_constexpr[counter] ...>; }; \
+	using varname##_tx = ::kr::meta::make_numlist_counter<varname##_constexpr.size>::expand<varname##_expand>::type;

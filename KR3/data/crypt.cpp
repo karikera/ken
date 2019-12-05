@@ -303,7 +303,7 @@ size_t Uri::length(Text text) noexcept
 	size_t length = 0;
 	for (char chr : text)
 	{
-		length += (chr < 0x20 || chr == '=' || chr == '&') * 2 + 1;
+		length += (size_t)(chr < 0x20 || chr == '=' || chr == '&') * 2 + 1;
 	}
 	return length;
 }
@@ -498,4 +498,29 @@ void Md5Context::finish(void* out) const noexcept
 {
 	md5_context* ctx = (md5_context*)this;
 	md5_finish(ctx, (uint8_t*)out);
+}
+
+size_t Uri::delength(Text text) noexcept
+{
+	notImplementedYet();
+}
+size_t Uri::decode(char* out, Text text) noexcept
+{
+	notImplementedYet();
+}
+void Uri::decode(Writer* out, Text* text) noexcept
+{
+	notImplementedYet();
+}
+size_t Hex::delength(Text text) noexcept
+{
+	notImplementedYet();
+}
+size_t Hex::decode(void* out, Text text) noexcept
+{
+	notImplementedYet();
+}
+void Hex::decode(BufferWriter* out, Text* text) noexcept
+{
+	notImplementedYet();
 }

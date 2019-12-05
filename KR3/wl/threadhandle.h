@@ -30,7 +30,7 @@ namespace kr
 		friend MessageThreadId;
 		friend ThreadHandle;
 	public:
-		ThreadId() noexcept = default;
+		ThreadId() = default;
 		ThreadId(nullptr_t) noexcept;
 		ThreadId(dword id) noexcept;
 		bool quit(int exitCode) noexcept;
@@ -87,10 +87,10 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		static kr::ThreadHandle * createLambda(LAMBDA lambda, ThreadId * id = nullptr)
+		static kr::ThreadHandle * createLambda(LAMBDA &&lambda, ThreadId * id = nullptr)
 		{
-			using NLAMBDA = meta::ChReturn<int, LAMBDA>;
-			NLAMBDA * plambda = _new NLAMBDA(move(lambda));
+			using NLAMBDA = meta::ChReturn<int, decay_t<LAMBDA> >;
+			NLAMBDA * plambda = _new NLAMBDA(forward<LAMBDA>(lambda));
 			return createRaw<NLAMBDA>([](NLAMBDA * p)->int { int ret = (*p)(); delete p; return ret; }, plambda, id);
 		}
 
@@ -104,9 +104,6 @@ namespace kr
 		void attach(Task * task) noexcept;
 
 		static ThreadHandle * getCurrent() noexcept;
-	private:
-		using EventHandle::set;
-		using EventHandle::reset;
 	};
 
 }

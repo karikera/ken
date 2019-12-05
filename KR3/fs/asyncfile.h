@@ -6,7 +6,7 @@
 
 namespace kr
 {
-	class AsyncFile:public Referencable<AsyncFile>, public io::Streamable<AsyncFile>
+	class AsyncFile:public Referencable<AsyncFile>, public io::StreamCastable<AsyncFile>
 	{
 	public:
 		AsyncFile() noexcept;

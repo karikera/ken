@@ -42,9 +42,9 @@ namespace kr
 			using Parent::removeMatchAllL;
 			using Parent::removeMatchAll;
 
-			template <typename LAMBDA> Component insertAlways(Component data, LAMBDA old = [](Component) {}) noexcept;
-			template <typename LAMBDA> auto findAct(K key, LAMBDA lambda)->decltype(lambda(nullptr));
-			template <typename LAMBDA, typename LAMBDA2> auto findAct(K key, LAMBDA found, LAMBDA2 notfound)->decltype(found(nullptr));
+			template <typename LAMBDA> Component insertAlways(Component data, LAMBDA &&old = [](Component) {}) noexcept;
+			template <typename LAMBDA> auto findAct(K key, LAMBDA &&lambda)->decltype(lambda(nullptr));
+			template <typename LAMBDA, typename LAMBDA2> auto findAct(K key, LAMBDA &&found, LAMBDA2 &&notfound)->decltype(found(nullptr));
 
 		protected:
 			using Parent::resize;
@@ -88,11 +88,11 @@ namespace kr
 			using Parent::removeMatchAllL;
 			using Parent::removeMatchAll;
 
-			template <typename LAMBDA> void rankingLoop(LAMBDA lambda) noexcept;
-			template <typename LAMBDA> void rankingLoop_u(LAMBDA lambda) noexcept;
-			template <typename LAMBDA> Component insertAlways(Component data, LAMBDA old = [](Component) {}) noexcept;
-			template <typename LAMBDA> auto findAct(K key, LAMBDA lambda)->decltype(lambda(nullptr));
-			template <typename LAMBDA, typename LAMBDA2> auto findAct(K key, LAMBDA found, LAMBDA2 notfound)->decltype(found(nullptr));
+			template <typename LAMBDA> void rankingLoop(LAMBDA &&lambda) noexcept;
+			template <typename LAMBDA> void rankingLoop_u(LAMBDA &&lambda) noexcept;
+			template <typename LAMBDA> Component insertAlways(Component data, LAMBDA &&old = [](Component) {}) noexcept;
+			template <typename LAMBDA> auto findAct(K key, LAMBDA &&lambda)->decltype(lambda(nullptr));
+			template <typename LAMBDA, typename LAMBDA2> auto findAct(K key, LAMBDA &&found, LAMBDA2 &&notfound)->decltype(found(nullptr));
 
 		protected:
 			using Parent::push;

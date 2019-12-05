@@ -7,8 +7,8 @@
 class Field:public Value, public LValue
 {
 public:
-	Field(Class * parent, Class * type, AText name);
-	~Field() override;
+	Field(Class * parent, Class * type, AText name) noexcept;
+	~Field() noexcept override;
 	Keep<Identity> find(Text str) override;
 	TText toString(Class * scope) override;
 	Field * getField() noexcept override;
@@ -25,16 +25,16 @@ private:
 class ConstField:public Field
 {
 public:
-	ConstField(Class * parent, Class * type, AText name);
-	~ConstField() override;
-	Value * getMaxValue() override;
+	ConstField(Class * parent, Class * type, AText name) noexcept;
+	~ConstField() noexcept override;
+	Value * getMaxValue() noexcept override;
 };
 
 class ValueConstField:public ConstField
 {
 public:
-	ValueConstField(Class * parent, AText name, Constant * value);
-	~ValueConstField() override;
+	ValueConstField(Class * parent, AText name, Constant * value) noexcept;
+	~ValueConstField() noexcept override;
 
 	const Keep<Constant> value;
 };

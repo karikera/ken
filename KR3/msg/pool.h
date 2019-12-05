@@ -11,6 +11,21 @@ namespace kr
 {
 	class ThreadPoolKrImpl;
 
+	class TaskThread :public TaskLambdaPost<TaskThread, Protected<TaskQueue> >
+	{
+	public:
+		TaskThread() noexcept;
+		~TaskThread() noexcept;
+		ThreadObject getThreadObject() noexcept;
+		void postQuit() noexcept;
+		using TaskLambdaPost::post;
+		void attach(Task* task) noexcept;
+
+	private:
+		ThreadObject m_thread;
+		bool m_quited;
+	};
+
 	class ThreadPoolKrImpl:private TaskQueue
 	{
 	public:
@@ -23,10 +38,7 @@ namespace kr
 		ThreadPoolKrImpl() noexcept;
 		~ThreadPoolKrImpl() noexcept;
 
-		int _thread() noexcept;
-
 		Array<ThreadObject> m_threads;
-		std::atomic<bool> m_dead;
 	};
 
 	class ThreadPoolWinImpl:public TaskLambdaPost<ThreadPoolWinImpl>
@@ -44,17 +56,17 @@ namespace kr
 	using ThreadPool = ThreadPoolWinImpl;
 
 	template <typename LAMBDA>
-	void threadingVoid(LAMBDA lambda) noexcept
+	void threadingVoid(LAMBDA &&lambda) noexcept
 	{
-		ThreadPool::getInstance()->post(move(lambda));
+		ThreadPool::getInstance()->post(forward<LAMBDA>(lambda));
 	}
 	template <typename LAMBDA, typename CANCEL>
-	void threadingVoid(LAMBDA lambda, CANCEL oncancel) noexcept
+	void threadingVoid(LAMBDA &&lambda, CANCEL &&oncancel) noexcept
 	{
-		ThreadPool::getInstance()->post(move(lambda), move(oncancel));
+		ThreadPool::getInstance()->post(forward<LAMBDA>(lambda), forward<CANCEL>(oncancel));
 	}
 	template <typename LAMBDA>
-	auto threading(LAMBDA lambda) noexcept ->Promise<decltype(lambda())> *
+	auto threading(LAMBDA &&lambda) noexcept ->Promise<decltype(lambda())> *
 	{
 		using T = decltype(lambda());
 
@@ -95,8 +107,10 @@ namespace kr
 				});
 			}
 		};
+
+		using purelambda_t = remove_constref_t<LAMBDA>;
 		PromiseImpl * prom = _new PromiseImpl;
-		threadingVoid([prom, lambda = move(lambda)]() mutable {
+		threadingVoid([prom, lambda = (purelambda_t)forward<LAMBDA>(lambda)]() mutable {
 			try
 			{
 				promise_meta::with<void, T>::call(prom->_resolveValue(), lambda, nullptr);

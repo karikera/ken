@@ -159,9 +159,6 @@ void DebugOutput16::$write(const char16 * chr, size_t sz) noexcept
 }
 void DebugOutput16::putSourceLine(pcstr16 src, int line) noexcept
 {
-	pcstr16 text = u"asd";
-	Text16 aaa = (Text16)text;
-
 	*this << src << u'(' << line << u")\r\n";
 }
 void DebugOutput16::flush() noexcept

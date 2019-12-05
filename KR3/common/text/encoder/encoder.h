@@ -112,7 +112,7 @@ namespace kr
 			}
 			static void encode(Writer * out, Text * text) noexcept
 			{
-				out->passThrough(text);
+				*out << text->readAll();
 			}
 			static size_t delength(Text text) noexcept
 			{
@@ -125,7 +125,7 @@ namespace kr
 			}
 			static void decode(Writer * out, Text * text) noexcept
 			{
-				out->passThrough(text);
+				*out << text->readAll();
 			}
 		};;
 
@@ -153,11 +153,13 @@ namespace kr
 				return reinterpret_cast<Base*>(this);
 			}
 
-			void $write(const Component* _data, size_t _size)
+			void $write(const Component* _data, size_t _size) throws(...)
 			{
 				size_t _nsize = Encoder::length(View<Component>(_data, _size));
-				WriteLock<Base> lockData(base(), _nsize);
-				Encoder::encode(&ArrayWriter<Component>(lockData.begin(), _nsize), &View<Component>(_data, _size));
+				WriteLock<Base> lockData(_nsize);
+				Component * dest = lockData.lock(base());
+				Encoder::encode(&ArrayWriter<Component>(dest, _nsize), &View<Component>(_data, _size));
+				lockData.unlock(base());
 			}
 		};
 	}

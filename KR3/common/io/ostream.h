@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../container.h"
+#include "../hasmethod.h"
 #include "../../meta/types.h"
 
 namespace kr
@@ -104,13 +105,13 @@ namespace kr
 			{
 				Component * e = end();
 				_addEnd(size);
-				mema::ctor(e, size);
+				mema::ctor(e, end());
 				return e;
 			}
 			inline Component* prepare(size_t size) throws(NotEnoughSpaceException)
 			{
 				Component * e = _extend(size);
-				mema::ctor(e, size);
+				mema::ctor(e, end());
 				return e;
 			}
 			inline void writeForce(const InternalComponent & data) noexcept
@@ -156,14 +157,19 @@ namespace kr
 			void prints(const ARGS & ... args) throws(NotEnoughSpaceException)
 			{
 				constexpr bool hasNullTerm = HasNullTerm<ARGS...>::value;
-				meta::types<bufferize_t<ARGS, Component> ...> datas = { ((bufferize_t<ARGS, Component>)args) ... };
+				meta::types<bufferize_t<ARGS, Component>...> datas = { args ... };
+
 				size_t size = 0;
-				datas.value_loop([&size](auto & data) {
-					size += data.template sizeAs<Component>();
+				datas.value_loop([&](const auto & data) {
+					size += data.sizeAs<Component>();
 				});
 				if (hasNullTerm) size++;
-				padding(size);
-				datas.value_loop([this](auto & data) { data.writeTo(static_cast<Derived*>(this)); });
+				InternalComponent * dest = (InternalComponent*)padding(size);
+				datas.value_loop([&](const auto & data) {
+					size_t sz = data.copyTo(dest);
+					dest += sz;
+					commit(sz);
+				});
 			}
 		};
 		
@@ -180,103 +186,58 @@ namespace kr
 		template <class Derived, class Info>
 		class OStream_cmpComponent<Derived, AutoComponent, Info>;
 
-		template <typename OS, typename IS, bool os_buffered, bool is_buffered, size_t BSIZE>
-		class Pipe
+		struct PrintToMixed
 		{
-		public:
-			static constexpr size_t BUFFER_SIZE = BSIZE != -1 ? BSIZE : 8192;
-			static_assert(is_same<typename IS::Component, typename OS::Component>::value, "Is not same type");
-			using Component = typename OS::Component;
-			using InternalComponent = typename OS::InternalComponent;
-
-		private:
-			IS* m_is;
-			OS* m_os;
-			TmpArray<byte> m_buffer;
-			InternalComponent* m_writep;
-			InternalComponent* m_readp;
-
-		public:
-
-			Pipe(OS * os, IS * is) noexcept
-				:m_buffer(BUFFER_SIZE)
+			template <class Derived, typename Component, typename Info, typename Derived2, typename Parent2>
+			static void printTo(OutStream<Derived, Component, Info>* out, const HasStreamTo<Derived2, Component, Parent2>& value) throws(...)
 			{
-				m_is = is;
-				m_os = os;
-				m_readp = m_writep = (InternalComponent*)m_buffer.data();
+				const_cast<HasStreamTo<Derived2, Component, Parent2>&>(value).streamTo(out);
 			}
-
-			void streaming()
+			template <class Derived, typename Component, typename Info, typename Derived2, typename Parent2>
+			static void printTo(OutStream<Derived, Component, Info>* out, const HasOnlyCopyTo<Derived2, Component, Parent2>& value) throws(...)
 			{
-				if (m_writep == m_readp)
-				{
-					m_readp = m_writep = (InternalComponent*)m_buffer.data();
-					size_t readed = m_is->read(m_writep, BUFFER_SIZE / sizeof(InternalComponent));
-					m_writep += readed;
-				}
-				m_os->write(m_readp, m_writep - m_readp);
-				m_readp = m_writep;
+				using OS = OutStream<Derived, Component, Info>;
+				WriteLock<OS, value.maximum> lock;
+				Component* dest = lock.lock(out);
+				size_t sz = value.copyTo(dest);
+				lock.unlock(out, sz);
+			}
+			template <class Derived, typename Component, typename Info, typename Derived2, typename Parent2>
+			static void printTo(OutStream<Derived, AutoComponent, Info>* out, const HasStreamTo<Derived2, Component, Parent2>& value) throws(...)
+			{
+				const_cast<HasStreamTo<Derived2, Component, Parent2>&>(value).streamTo(out);
+			}
+			template <class Derived, typename Component, typename Info, typename Derived2, typename Parent2>
+			static void printTo(OutStream<Derived, AutoComponent, Info>* out, const HasOnlyCopyTo<Derived2, Component, Parent2>& value) throws(...)
+			{
+				using OS = OutStream<Derived, Component, Info>;
+				WriteLock<OS, value.maximum> lock;
+				Component* dest = lock.lock(out);
+				size_t sz = value.copyTo(dest);
+				lock.unlock(out, sz);
 			}
 		};
 
-		template <typename OS, typename IS, bool os_buffered>
-		class Pipe<OS, IS, os_buffered, true, (size_t)-1>
+		struct PrintToAsBuffer
 		{
-		public:
-			static_assert(is_same<typename IS::Component, typename OS::Component>::value, "Is not same type");
-			using Component = typename OS::Component;
-
-			Pipe(OS * os, IS * is) noexcept
+			template <class Derived, typename Component, typename Info, typename Any>
+			static void printTo(OutStream<Derived, Component, Info>* out, const Any& value) throws(...)
 			{
-				m_is = is;
-				m_os = os;
+				using buffer_t = decay_t<bufferize_t<Any, Component> >;
+				using buffer_component_t = typename buffer_t::Component;
+				static_assert(is_same<buffer_component_t, AutoComponent>::value || is_same<buffer_component_t, Component>::value, "Unmatch component type"); // Unmatch component type
+				bufferize_t<Any, Component>(value).writeTo(out);
 			}
-			bool streaming()
-			{
-				size_t size = 8192;
-				const Component* src = m_is->read(&size);
-				m_os->write(src, size);
-			}
-		private:
-			IS* m_is;
-			OS* m_os;
 		};
 
-		template <typename OS, typename IS>
-		class Pipe<OS, IS, true, false, (size_t)-1>
+		template <typename T>
+		struct PrintTo:public meta::if_t<
+			has_method<T, HasOnlyCopyTo>::value ||
+			has_method<T, HasStreamTo>::value, 
+			PrintToMixed, PrintToAsBuffer>
 		{
-		public:
-			static_assert(is_same<typename IS::Component, typename OS::Component>::value, "Is not same type");
-			using Component = typename OS::Component;
-			static constexpr size_t MINIMUM_BUFFER = 2048;
-
-			Pipe(OS * os, IS * is) noexcept
-			{
-				m_is = is;
-				m_os = os;
-			}
-			bool streaming()
-			{
-				if (m_os->remaining() < MINIMUM_BUFFER) m_os->padding(MINIMUM_BUFFER);
-				size_t sz = m_is->read(m_os->end(), m_os->remaining());
-				m_os->commit(sz);
-				return true;
-			}
-		private:
-			IS* m_is;
-			OS* m_os;
 		};
 	}
-
-	template <typename OS, typename IS, size_t BSIZE = (size_t)-1> class Pipe
-		: public _pri_::Pipe<OS, IS, OS::accessable, IS::accessable, BSIZE>
-	{
-		static_assert(IsIStream<IS>::value, "IS is not InStream");
-		static_assert(IsOStream<OS>::value, "OS is not OutStream");
-		CLASS_HEADER(Pipe, _pri_::Pipe<OS, IS, OS::accessable, IS::accessable, BSIZE>);
-	public:
-		using Super::Super;
-	};
 
 	template <class Derived, typename Component, typename Info>
 	class OutStream :public _pri_::OStream_cmpComponent<Derived, Component, Info>
@@ -326,32 +287,10 @@ namespace kr
 			write((Component*)&result, 1);
 		}
 
-		template <typename _Derived, typename _Info>
-		void passThrough(InStream<_Derived, Component, _Info> * is)
-		{
-			try
-			{
-				Pipe<OutStream, InStream<_Derived, Component, _Info>> pipe(this, is);
-				for (;;) pipe.streaming();
-			}
-			catch (EofException&)
-			{
-			}
-		}
-
 		template <typename T>
-		void print(const T & v) throws(...)
+		void print(const T& v) throws(...)
 		{
-			using buffer_ref_t = bufferize_t<T, Component>;
-			using buffer_t = remove_constref_t<buffer_ref_t>;
-			using buffer_component_t = typename buffer_t::Component;
-			static_assert(is_same<buffer_component_t, AutoComponent>::value || is_same<buffer_component_t, Component>::value, "Unmatch component type"); // Unmatch component type
-			buffer_ref_t(v).writeTo(this);
-		}
-		template <typename _Wrapped, bool _sized>
-		void print(const Writable<Component, _Wrapped, _sized>& v) throws(...)
-		{
-			v.writeTo(this);
+			_pri_::PrintTo<remove_const_t<T> >::printTo(this, v);
 		}
 		template <typename T>
 		void writeas(const T & data) throws(NotEnoughSpaceException)
@@ -415,21 +354,6 @@ namespace kr
 			write(data.begin(), data.size());
 		}
 
-		template <typename _Derived, typename _Component, typename _Info>
-		void passThrough(InStream<_Derived, _Component, _Info>* is)
-		{
-			try
-			{
-				constexpr bool vIsAuto = is_same<_Component, AutoComponent>::value;
-				CastedAutoOutStream<void, This>* stream = cast<meta::if_t<vIsAuto, void, _Component>>();
-				Pipe<CastedAutoOutStream<void, This>, InStream<_Derived, _Component, _Info>> pipe(stream, is);
-				for (;;) pipe.streaming();
-			}
-			catch (EofException&)
-			{
-			}
-		}
-
 		template <typename C>
 		CastedAutoOutStream<C, This>* cast() noexcept
 		{
@@ -437,13 +361,9 @@ namespace kr
 		}
 
 		template <typename T>
-		void print(const T& v) throws(NotEnoughSpaceException)
+		void print(const T& v) throws(...)
 		{
-			using buffer_ref_t = bufferize_t<T, Component>;
-			using buffer_t = remove_constref_t<buffer_ref_t>;
-			using buffer_component_t = typename buffer_t::Component;
-			constexpr bool vIsAuto = is_same<buffer_component_t, AutoComponent>::value;
-			buffer_t(v).writeTo(cast<meta::if_t<vIsAuto, void, buffer_component_t>>());
+			_pri_::PrintTo<remove_const_t<T> >::printTo(this, v);
 		}
 		template <typename T>
 		void writeas(const T& data) throws(NotEnoughSpaceException)
@@ -495,3 +415,7 @@ namespace kr
 	}
 
 }
+
+extern template class kr::io::SizeOStream<void>;
+extern template class kr::io::SizeOStream<char>;
+extern template class kr::io::SizeOStream<kr::char16>;

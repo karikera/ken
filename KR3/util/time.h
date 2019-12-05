@@ -17,9 +17,7 @@ namespace kr
 			dura_t m_time; // ms
 
 		public:
-			inline duration()
-			{
-			}
+			duration() = default;
 			template <typename point_t2, typename dura_t2>
 			explicit duration(const typename TimeType<point_t2, dura_t2>::duration &other) noexcept;
 			constexpr duration(const duration & time) noexcept
@@ -121,9 +119,8 @@ namespace kr
 
 		public:
 			static timepoint now() noexcept;
-			inline timepoint() noexcept
-			{
-			}
+			timepoint() = default;
+
 			inline point_t value() const noexcept
 			{
 				return m_time;

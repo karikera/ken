@@ -13,7 +13,7 @@ namespace kr
 	class MessageThreadId :public ThreadId
 	{
 	public:
-		MessageThreadId() noexcept = default;
+		MessageThreadId() = default;
 		MessageThreadId(const ThreadId &threadid) noexcept;
 		bool postMessage(uint msg, WPARAM wParam, LPARAM lParam) noexcept;
 		bool postMessageA(uint msg, WPARAM wParam, LPARAM lParam) noexcept;

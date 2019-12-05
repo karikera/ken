@@ -19,7 +19,7 @@ void ErrMessage::print() noexcept
 	ucerr << g_filename << u'(' << g_is.getLine() << u"): error " << acpToUtf16((Text)m_message) << endl;
 }
 
-void must(char chr, char must)
+void must(char chr, char must) throws(ErrMessage)
 {
 	if(chr == must) return;
 	throw ErrMessage("Need \'%c\' not \'%c\'", must, chr);

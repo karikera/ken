@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef __KR3_INCLUDED
-#error Need To Include KR3/main.h
-#endif
-
 namespace kr
 {
 	// int by size

@@ -5,7 +5,7 @@
 namespace kr
 {
 	template <typename T>
-	class EnviromentVariableT: public Bufferable<EnviromentVariableT<T>, BufferInfo<T, true, false, true, true>>
+	class EnviromentVariableT: public Bufferable<EnviromentVariableT<T>, BufferInfo<T, method::CopyTo, true, true>>
 	{
 	public:
 		EnviromentVariableT(const T* szname) noexcept;

@@ -2,19 +2,19 @@
 
 
 #include "type.h"
-#include "external.h"
 #include "object.h"
 #include "class.h"
+#include "persistent.h"
+
+#include <KR3/data/linkedlist.h>
 
 namespace kr
 {
 	namespace _pri_
 	{
-		class JsClassList;
-		class JsClassInfo
+		class JsClassInfo:public Node<JsClassInfo, true>
 		{
 			friend _pri_::InternalTools;
-			friend JsClassList;
 			friend JsContext;
 			friend JsRuntime;
 		private:
@@ -22,18 +22,18 @@ namespace kr
 			size_t m_index;
 			byte m_classObjectBuffer[sizeof(JsClass)] alignas(JsClass);
 			void (*m_initMethods)();
+			void (*m_clearMethods)();
 			Text16 m_name;
 			CTOR m_ctor;
 			size_t m_parentIndex;
-			JsClassInfo* m_next;
 			bool m_isGlobal;
 
 		public:
-			KRJS_EXPORT JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, void (*initMethods)(), bool global) noexcept;
+			KRJS_EXPORT JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, void (*initMethods)(), void (*clearMethods)(), bool global) noexcept;
+			static void operator delete(void* p) noexcept;
 
 			size_t getIndex() noexcept;
 			JsClass* get() noexcept;
-			JsClassInfo* next() noexcept;
 
 			template <typename T>
 			JsClassT<T>* get() noexcept
@@ -43,7 +43,7 @@ namespace kr
 		};
 	}
 
-	template <class Class, class Parent = JsObject>
+	template <class Class, class Parent>
 	class JsObjectT :public Parent
 	{
 		template <class Class, class Parent>
@@ -53,6 +53,7 @@ namespace kr
 		static _pri_::JsClassInfo s_classInfo;
 		static JsObject* _ctor(const JsArguments &args) throws(JsException);
 		static void _initMethods() noexcept;
+		static void _clearMethods() noexcept;
 
 	public:
 		static JsClassT<Class> &classObject;
@@ -66,11 +67,15 @@ namespace kr
 		static void initMethods(JsClassT<Class> * cls) noexcept
 		{
 		}
+		static void clearMethods() noexcept
+		{
+		}
+
 
 		// 객체를 생성합니다
-		static JsValue newInstance(JsArgumentsIn args)
+		static JsValue newInstanceRaw(JsArgumentsIn args) throws(JsException)
 		{
-			return classObject.newInstance(args);
+			return classObject.newInstanceRaw(args);
 		}
 		virtual JsClass & getClass() noexcept override
 		{
@@ -78,19 +83,19 @@ namespace kr
 		}
 		virtual void finallize() noexcept override
 		{
-			delete this;
+			delete static_cast<Class*>(this);
 		}
 
 		// 객체를 생성합니다
 		// 기본적으로 Weak 상태로 생성되어, GC에 의하여 지워질 수 있습니다.
 		template <typename ... ARGS> 
-		static Class* newInstance(const ARGS & ... args)
+		static Class* newInstance(const ARGS & ... args) throws(JsException)
 		{
 			return classObject.newInstance(args ...);
 		}
 	};
 
-	template <> class JsObjectT<JsObject> :public JsValue
+	template <> class JsObjectT<JsObject> :public JsWeak
 	{
 		template <class Class, class Parent>
 		friend class JsObjectT;
@@ -101,15 +106,16 @@ namespace kr
 		static JsClassT<JsObject>& classObject;
 
 		KRJS_EXPORT JsObjectT(const JsArguments & args) throws(JsObjectT);
-		~JsObjectT() noexcept;
+		KRJS_EXPORT ~JsObjectT() noexcept;
 		// 객체를 생성합니다
-		static JsObject newInstanceRaw(JsArgumentsIn args);
+		static JsValue newInstanceRaw(JsArgumentsIn args) throws(JsObjectT);
 		virtual JsClass& getClass() noexcept;
 		virtual void finallize() noexcept;
 
 		// 객체를 생성합니다
 		// 기본적으로 Weak 상태로 생성되어, GC에 의하여 지워질 수 있습니다.
-		template <typename ... ARGS> static JsObject* newInstance(const ARGS & ... args)
+		template <typename ... ARGS> 
+		static JsObject* newInstance(const ARGS & ... args) throws(JsException)
 		{
 			return classObject.newInstance(args ...);
 		}
@@ -119,7 +125,7 @@ namespace kr
 	{
 		friend JsFunction;
 	public:
-		static constexpr char16_t className[] = u"NativeObject";
+		static constexpr const char16_t className[] = u"NativeObject";
 
 		JsObject(const JsObject &) = delete;
 
@@ -132,14 +138,14 @@ namespace kr
 
 	ATTR_ANY _pri_::JsClassInfo JsObjectT<JsObject>::s_classInfo(JsObject::className, -1,
 		[](const JsArguments& args) { return _new JsObject(args); }, 
-		[]{}, false);
+		[] {}, [] {}, false);
 
 	ATTR_ANY JsClassT<JsObject>& JsObjectT<JsObject>::classObject = *s_classInfo.get<JsObject>();
 
 	// Need to define className to child of JsObjectT
 	template <class Class, class Parent>
 	_pri_::JsClassInfo JsObjectT<Class, Parent>::s_classInfo(
-		Class::className, Parent::s_classInfo.getIndex(), _ctor, _initMethods, Class::global);
+		Class::className, Parent::s_classInfo.getIndex(), _ctor, _initMethods, _clearMethods, Class::global);
 
 	template <class Class, class Parent>
 	JsClassT<Class>& JsObjectT<Class, Parent>::classObject = *s_classInfo.get<Class>();
@@ -147,124 +153,100 @@ namespace kr
 	template <class Class, class Parent>
 	JsObject* JsObjectT<Class, Parent>::_ctor(const JsArguments& args) throws(JsException)
 	{
-		return static_cast<JsObject*>(_new Class(args));
+		return static_cast<JsObject*>(_newAligned(Class, args));
 	}
 	template <class Class, class Parent>
 	void JsObjectT<Class, Parent>::_initMethods() noexcept
 	{
 		Class::initMethods(s_classInfo.get<Class>());
 	}
-
-	class JsFilter :public JsExternal
+	template <class Class, class Parent>
+	void JsObjectT<Class, Parent>::_clearMethods() noexcept
 	{
-	private:
-		int m_index;
+		Class::clearMethods();
+	}
 
+	class JsGetter :public Referencable<JsGetter>
+	{
 	public:
-		JsFilter(int index) noexcept
-			: m_index(index)
-		{
-		}
-		virtual JsValue filter(const JsValue & _v) noexcept = 0;
+		virtual ~JsGetter() noexcept;
+		virtual JsValue get(const JsValue& _this) noexcept = 0;
 
-		template <typename FILTER>
-		static JsFilter* wrap(int index, FILTER filter) noexcept;
+		template <typename GET>
+		static JsGetter* wrap(GET&& get) noexcept;
 	};
-
-	class JsAccessor : public JsExternal
+	class JsAccessor :public JsGetter
 	{
 	public:
-		virtual void set(const JsObject& _this, const JsValue& v) noexcept = 0;
-		virtual JsValue get(const JsObject& _this) noexcept = 0;
-
+		virtual ~JsAccessor() noexcept;
+		virtual void set(const JsValue& _this, const JsValue& v) noexcept = 0;
 
 		template <typename GET, typename SET>
-		JsAccessor* wrap(GET get, SET set) noexcept;
-		template <typename GET>
-		JsAccessor* wrap(GET get) noexcept;
+		static JsAccessor* wrap(GET &&get, SET &&set) noexcept;
 	};
 
-	class JsIndexAccessor : public JsExternal
+	class JsIndexAccessor :public Referencable<JsIndexAccessor>
 	{
 	public:
-		virtual void set(const JsObject& _this, uint32_t idx, const JsValue& v) noexcept = 0;
-		virtual JsValue get(const JsObject& _this, uint32_t idx) noexcept = 0;
+		virtual void set(const JsValue& _this, uint32_t idx, const JsValue& v) noexcept = 0;
+		virtual JsValue get(const JsValue& _this, uint32_t idx) noexcept = 0;
 
 		template <typename GET, typename SET> 
-		JsIndexAccessor* wrap(GET get, SET set) noexcept;
+		static JsIndexAccessor* wrap(GET &&get, SET &&set) noexcept;
 		template <typename GET> 
-		JsIndexAccessor* wrap(GET get) noexcept;
+		static JsIndexAccessor* wrap(GET &&get) noexcept;
 	};
 
 	namespace _pri_
 	{
-		template <typename FILTER>
-		class JsFilterImpl :public JsFilter
-		{
-		private:
-			const FILTER m_filter;
-
-		public:
-			JsFilterImpl(int index, FILTER filter) noexcept
-				: JsFilter(index), m_filter(std::move(filter))
-			{
-			}
-			virtual void remove() noexcept override
-			{
-				delete this;
-			}
-			virtual JsValue filter(const JsValue& _v) noexcept override
-			{
-				return m_filter(_v);
-			}
-
-		};
-
-		template <typename GET, typename SET> class JsAccessorGetSet :public JsAccessor
+		template <typename GET, typename SET> class JsAccessorImpl :public JsAccessor
 		{
 		private:
 			const GET m_get;
 			const SET m_set;
 
 		public:
-			JsAccessorGetSet(GET get, SET set) noexcept
-				: m_get(std::move(get)), m_set(std::move(set))
+			JsAccessorImpl(GET &&get, SET &&set) noexcept
+				: m_get(move(get)), m_set(move(set))
 			{
 			}
-			virtual void remove() noexcept override
+			JsAccessorImpl(const GET& get, const SET& set) noexcept
+				: m_get(get), m_set(set)
 			{
-				delete this;
 			}
-			virtual JsValue get(const JsObject& _this) noexcept override
+			~JsAccessorImpl() noexcept override
+			{
+			}
+			virtual JsValue get(const JsValue& _this) noexcept override
 			{
 				return m_get(_this);
 			}
-			virtual void set(const JsObject& _this, const JsValue& v) noexcept override
+			virtual void set(const JsValue& _this, const JsValue& v) noexcept override
 			{
 				return m_set(_this, v);
 			}
 
 		};
-		template <typename GET> class JsAccessorGet :public JsAccessor
+		template <typename GET> class JsGetterImpl :public JsGetter
 		{
 		private:
 			const GET m_get;
 
 		public:
-			JsAccessorGet(GET get) noexcept
-				: m_get(std::move(get))
+			JsGetterImpl(const GET &get) noexcept
+				: m_get(get)
 			{
 			}
-			virtual void remove() noexcept override
+			JsGetterImpl(GET &&get) noexcept
+				: m_get(move(get))
 			{
-				delete this;
 			}
-			virtual JsValue get(const JsObject& _this) noexcept override
+			~JsGetterImpl() noexcept override
+			{
+			}
+			virtual JsValue get(const JsValue& _this) noexcept override
 			{
 				return m_get(_this);
-			}
-			virtual void set(const JsObject& _this, const JsValue& v) noexcept override
-			{
 			}
 		};
 
@@ -275,13 +257,16 @@ namespace kr
 			const SET m_set;
 
 		public:
-			JsIndexAccessorGetSet(GET get, SET set) noexcept
-				:m_get(std::move(get)), m_set(std::move(set))
+			JsIndexAccessorGetSet(const GET &get, const SET &set) noexcept
+				:m_get(get), m_set(set)
 			{
 			}
-			virtual void remove() noexcept override
+			JsIndexAccessorGetSet(GET &&get, SET &&set) noexcept
+				:m_get(move(get)), m_set(move(set))
 			{
-				delete this;
+			}
+			~JsIndexAccessorGetSet() noexcept override
+			{
 			}
 			virtual JsValue get(const JsObject& _this, uint32_t idx) noexcept override
 			{
@@ -300,50 +285,45 @@ namespace kr
 			const GET m_get;
 
 		public:
-			JsIndexAccessorGet(GET get) noexcept
-				:m_get(std::move(get))
+			JsIndexAccessorGet(GET &&get) noexcept
+				:m_get(move(get))
 			{
 			}
-			virtual void remove() noexcept override
+			JsIndexAccessorGet(const GET &get) noexcept
+				:m_get(get)
 			{
-				delete this;
 			}
-			virtual JsValue get(const JsObject& _this, uint32_t idx) noexcept override
+			~JsIndexAccessorGet() noexcept override
+			{
+			}
+			virtual JsValue get(const JsValue& _this, uint32_t idx) noexcept override
 			{
 				return m_get(_this, idx);
-			}
-			virtual void set(const JsObject& _this, uint32_t idx, const JsValue& v) noexcept override
-			{
 			}
 		};
 	}
 
-	template <typename FILTER>
-	static JsFilter* JsFilter::wrap(int index, FILTER filter) noexcept
-	{
-		return new _pri_::JsFilterImpl<FILTER>(index, std::move(filter));
-	}
-
-
 	template <typename GET, typename SET>
-	JsAccessor* JsAccessor::wrap(GET get, SET set) noexcept
+	JsAccessor* JsAccessor::wrap(GET &&get, SET &&set) noexcept
 	{
-		return new _pri_::JsAccessorGetSet<GET, SET>(std::move(get), std::move(set));
+		return new _pri_::JsAccessorImpl<decay_t<GET>, decay_t<SET> >(
+			forward<GET>(get), forward<SET>(set));
 	}
 	template <typename GET>
-	JsAccessor* JsAccessor::wrap(GET get) noexcept
+	JsGetter* JsGetter::wrap(GET &&get) noexcept
 	{
-		return new _pri_::JsAccessorGet<GET>(std::move(get));
+		return new _pri_::JsGetterImpl<decay_t<GET> >(forward<GET>(get));
 	}
 
 	template <typename GET, typename SET>
-	JsIndexAccessor* JsIndexAccessor::wrap(GET get, SET set) noexcept
+	JsIndexAccessor* JsIndexAccessor::wrap(GET &&get, SET &&set) noexcept
 	{
-		return new _pri_::JsIndexAccessorGetSet<GET, SET>(std::move(get), std::move(set));
+		return new _pri_::JsIndexAccessorGetSet<decay_t<GET>, decay_t<SET> >(
+			forward<GET>(get), forward<SET>(set));
 	}
 	template <typename GET>
-	JsIndexAccessor* JsIndexAccessor::wrap(GET get) noexcept
+	JsIndexAccessor* JsIndexAccessor::wrap(GET &&get) noexcept
 	{
-		return new _pri_::JsIndexAccessorGet<GET>(std::move(get));
+		return new _pri_::JsIndexAccessorGet<decay_t<GET> >(forward<GET>(get));
 	}
 }

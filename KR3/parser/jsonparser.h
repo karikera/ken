@@ -21,14 +21,14 @@ namespace kr
 	struct JsonFieldCaller<JsonField>
 	{
 		template <typename LAMBDA>
-		static void call(JsonParser * parser, const LAMBDA & lambda) throws(InvalidSourceException);
+		static void call(JsonParser * parser, LAMBDA && lambda) throws(InvalidSourceException);
 	};
 
 	template <>
 	struct JsonFieldCaller<JsonArray>
 	{
 		template <typename LAMBDA>
-		static void call(JsonParser * parser, const LAMBDA & lambda) throws(InvalidSourceException);
+		static void call(JsonParser * parser, LAMBDA && lambda) throws(InvalidSourceException);
 	};
 
 	class JsonParser: private Parser
@@ -62,7 +62,7 @@ namespace kr
 		void skipValue() throws(InvalidSourceException);
 
 		template <typename LAMBDA>
-		void array(const LAMBDA & lambda) throws(InvalidSourceException)
+		void array(LAMBDA && lambda) throws(InvalidSourceException)
 		{
 			if (_skipIfNot('[')) return;
 			char oldchr = _open(']');			
@@ -89,7 +89,7 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		void object(const LAMBDA & lambda) throws(InvalidSourceException)
+		void object(LAMBDA && lambda) throws(InvalidSourceException)
 		{
 			if (_skipIfNot('{')) return;
 			char oldchr = _open('}');
@@ -102,7 +102,7 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		void fields(const LAMBDA & lambda) throws(InvalidSourceException)
+		void fields(LAMBDA && lambda) throws(InvalidSourceException)
 		{
 			using param_t = remove_reference_t<meta::typeAt<typename meta::function<LAMBDA>::args_t, 0>>;
 			JsonFieldCaller<param_t>::call(this, lambda);
@@ -151,7 +151,7 @@ namespace kr
 			throw JsonFieldDone();
 		}
 		template <typename LAMBDA>
-		void operator ()(Text name, const LAMBDA & lambda)
+		void operator ()(Text name, LAMBDA && lambda)
 		{
 			if (name != m_name) return;
 			m_parser->fields(lambda);
@@ -188,14 +188,14 @@ namespace kr
 			throw JsonFieldDone();
 		}
 		template <typename LAMBDA>
-		void operator ()(size_t index, const LAMBDA & lambda)
+		void operator ()(size_t index, LAMBDA && lambda)
 		{
 			if (index != m_index) return;
 			m_parser->fields(lambda);
 			throw JsonFieldDone();
 		}
 		template <typename LAMBDA>
-		void operator ()(const LAMBDA & lambda)
+		void operator ()(LAMBDA && lambda)
 		{
 			m_parser->fields(lambda);
 			throw JsonFieldDone();
@@ -340,7 +340,7 @@ namespace kr
 	};
 
 	template <typename LAMBDA>
-	void JsonFieldCaller<JsonField>::call(JsonParser * parser, const LAMBDA & lambda) throws(InvalidSourceException)
+	void JsonFieldCaller<JsonField>::call(JsonParser * parser, LAMBDA && lambda) throws(InvalidSourceException)
 	{
 		if (parser->_skipIfNot('{')) return;
 		char oldchr = parser->_open('}');
@@ -364,7 +364,7 @@ namespace kr
 	}
 
 	template <typename LAMBDA>
-	void JsonFieldCaller<JsonArray>::call(JsonParser * parser, const LAMBDA & lambda) throws(InvalidSourceException)
+	void JsonFieldCaller<JsonArray>::call(JsonParser * parser, LAMBDA && lambda) throws(InvalidSourceException)
 	{
 		if (parser->_skipIfNot('[')) return;
 		char oldchr = parser->_open(']');

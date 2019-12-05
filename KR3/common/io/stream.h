@@ -10,11 +10,11 @@ namespace kr
 	namespace io
 	{
 		template <class Derived, typename _Info = StreamInfo<>>
-		class Streamable:public _Info
+		class StreamCastable:public _Info
 		{
 		public:
 			template <typename C>
-			using Stream = StreamableStream<Derived, C>;
+			using SStream = StreamableStream<Derived, C>;
 
 			void write(const void* data, size_t size)
 			{
@@ -26,9 +26,9 @@ namespace kr
 			}
 
 			template <typename C>
-			Stream<C> * stream() noexcept
+			SStream<C>* stream() noexcept
 			{
-				return static_cast<Stream<C>*>(this);
+				return static_cast<SStream<C>*>(this);
 			}
 		};
 

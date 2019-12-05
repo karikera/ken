@@ -34,7 +34,7 @@ template <typename T, typename T2> T* cast(T2* o)
 	return n;
 }
 
-template <typename T, typename T2> T* cast(Keep<T2>& o)
+template <typename T, typename T2> T* cast(const Keep<T2>& o)
 {
 	T* n = dynamic_cast<T*>((T2*)o);
 	if(n == nullptr)

@@ -19,8 +19,11 @@ namespace kr
 
 	public:
 
-		enum NoReset_t{ NoReset };
+		class NoReset_t final {};
+		static constexpr const NoReset_t NoReset = NoReset_t();
 
+#pragma warning(push)
+#pragma warning(disable:26495)
 		HashTester(View<C> needle, NoReset_t) noexcept
 			:m_needle(needle), m_src(needle.size())
 		{
@@ -38,6 +41,7 @@ namespace kr
 			}
 			m_hash = tarhash;
 		}
+#pragma warning(pop)
 
 		HashTester(View<C> needle) noexcept
 			:HashTester(needle, NoReset)

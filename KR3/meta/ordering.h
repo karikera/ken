@@ -1,7 +1,5 @@
 #pragma once
 
-#include <KR3/main.h>
-
 namespace kr
 {
 	namespace meta

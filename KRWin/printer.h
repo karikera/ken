@@ -60,7 +60,7 @@ namespace kr
 		Keep<win::DrawContext> m_pDC;
 
 	private:
-		template <typename LAMBDA> void _textLoop(Text16 text, LAMBDA &lambda) noexcept;
+		template <typename LAMBDA> void _textLoop(Text16 text, LAMBDA &&lambda) noexcept;
 		void _setTool(bool fill) noexcept;
 
 		win::Font * m_fontOld;

@@ -31,23 +31,23 @@ namespace kr
 		};
 
 		template <GLenum target>
-		class ArrayBufferTarget
+		class ArrayBufferTarget final
 		{
 		public:
-			ArrayBufferTarget & operator =(Buffer buffer) noexcept
+			const ArrayBufferTarget & operator =(Buffer buffer) const noexcept
 			{
 				glBindBuffer(target, buffer.getId());
 				return *this;
 			}
-			void data(kr::Buffer buffer, GLenum usage = GL_STATIC_DRAW) noexcept
+			void data(kr::Buffer buffer, GLenum usage = GL_STATIC_DRAW) const noexcept
 			{
 				glBufferData(target, buffer.size(), buffer.data(), usage);
 			}
-			void dataDynamic(kr::Buffer buffer) noexcept
+			void dataDynamic(kr::Buffer buffer) const noexcept
 			{
 				data(buffer, GL_DYNAMIC_DRAW);
 			}
-			void subdata(GLsizeiptr offset, kr::Buffer buffer, GLenum usage = GL_STATIC_DRAW) noexcept
+			void subdata(GLsizeiptr offset, kr::Buffer buffer, GLenum usage = GL_STATIC_DRAW) const noexcept
 			{
 #ifdef __EMSCRIPTEN__
 				glBufferSubData(target, offset, buffer.size(), buffer.data());
@@ -55,12 +55,12 @@ namespace kr
 				glBufferSubData(target, offset, buffer.size(), buffer.data(), usage);
 #endif
 			}
-			void subdataDynamic(kr::Buffer buffer) noexcept
+			void subdataDynamic(kr::Buffer buffer) const noexcept
 			{
 				subdata(buffer, GL_DYNAMIC_DRAW);
 			}
 		};
-		static ArrayBufferTarget<GL_ARRAY_BUFFER> &arrayBuffer = nullref;
-		static ArrayBufferTarget<GL_ELEMENT_ARRAY_BUFFER> &elementArrayBuffer = nullref;
+		static constexpr const ArrayBufferTarget<GL_ARRAY_BUFFER> arrayBuffer = ArrayBufferTarget<GL_ARRAY_BUFFER>();
+		static constexpr const ArrayBufferTarget<GL_ELEMENT_ARRAY_BUFFER> elementArrayBuffer = ArrayBufferTarget<GL_ELEMENT_ARRAY_BUFFER>();
 	}
 }

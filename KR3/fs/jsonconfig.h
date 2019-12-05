@@ -25,7 +25,7 @@ namespace kr
 		JsonConfig() noexcept;
 		~JsonConfig() noexcept;
 		template <typename GET, typename SET>
-		void link(Text name, GET get, SET set) noexcept;
+		void link(Text name, GET &&get, SET &&set) noexcept;
 		template <typename T>
 		void link(Text name, T * valueptr) noexcept;
 		template <typename T>
@@ -59,8 +59,12 @@ namespace kr
 
 	public:
 
-		ValLinkLambda(Text name, GET get, SET set) noexcept
+		ValLinkLambda(Text name, GET &&get, SET &&set) noexcept
 			: ValLink(name), m_get(move(get)), m_set(move(set))
+		{
+		}
+		ValLinkLambda(Text name, const GET& get, const SET& set) noexcept
+			: ValLink(name), m_get(get), m_set(set)
 		{
 		}
 		~ValLinkLambda() noexcept override
@@ -269,7 +273,7 @@ namespace kr
 		void save(io::FOStream<char> * fout) override
 		{
 			*fout << "\"" << name << "\": \"";
-			m_get().replace<WideToUtf8>(fout, u"\"", "\\\"");
+			m_get().replace<Utf16ToUtf8>(fout, u"\"", "\\\"");
 			*fout << "\"";
 		}
 		void load(JsonParser * parser) override
@@ -306,9 +310,11 @@ namespace kr
 	};
 
 	template <typename GET, typename SET>
-	void JsonConfig::link(Text name, GET get, SET set) noexcept
+	void JsonConfig::link(Text name, GET &&get, SET &&set) noexcept
 	{
-		ValLink * link = _new ValLinkLambda<decltype(get()), GET, SET>(name, move(get), move(set));
+		ValLink * link = _new ValLinkLambda<decltype(get()), decay_t<GET>, decay_t<SET>>(name, 
+			forward<GET>(get), 
+			forward<SET>(set));
 		auto res = m_nameMap.insert(link->name, link);
 		if (!res.second)
 		{
@@ -328,7 +334,7 @@ namespace kr
 	{
 		link(name,
 			[valueptr]()->T { return *valueptr; },
-			[valueptr](T value) { *valueptr = value; }
+			[valueptr](T value) { *valueptr = move(value); }
 		);
 	}
 	template <typename T>

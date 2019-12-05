@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../main.h"
 #include "if.h"
+#include "math.h"
 
 namespace kr
 {

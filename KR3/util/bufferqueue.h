@@ -61,7 +61,7 @@ namespace kr
 	};
 
 
-	class BufferQueue:public MakeIterable<BufferQueue, AddBufferable<BufferQueue, BufferInfo<void, true, false, false, true,
+	class BufferQueue:public MakeIterable<BufferQueue, AddBufferable<BufferQueue, BufferInfo<void, method::CopyTo, false, true,
 		OutStream<BufferQueue, void>
 	> >>
 	{

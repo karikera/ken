@@ -186,7 +186,7 @@ namespace kr
 					Vertex() = default;
 					Vertex(const typename _pri_::GetVertexType<attributes>::type& ... values) noexcept
 					{	
-						unpack(*(remove_constref_t<decltype(values)>*)Super::template _getPointer<attributes>() = values);
+						unpack(*(decay_t<decltype(values)>*)Super::template _getPointer<attributes>() = values);
 					}
 				};
 			};

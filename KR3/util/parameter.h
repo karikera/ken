@@ -119,7 +119,7 @@ namespace kr
 		using Text = View<C>;
 		ParameterTokenizerT(const C * params) noexcept;
 
-		template <typename LAMBDA> void remaining(LAMBDA lambda) throws(NotFoundException);
+		template <typename LAMBDA> void remaining(LAMBDA&& lambda) throws(NotFoundException);
 		Array<C> nextString() throws(NotFoundException);
 		int nextInt() throws(NotFoundException);
 		bool hasNext() noexcept;
@@ -136,7 +136,7 @@ namespace kr
 	};
 	template <typename C> 
 	template <typename LAMBDA>
-	void ParameterTokenizerT<C>::remaining(LAMBDA lambda) throws(NotFoundException)
+	void ParameterTokenizerT<C>::remaining(LAMBDA&& lambda) throws(NotFoundException)
 	{
 		if(m_params == nullptr) throw NotFoundException();
 		const wchar_t * i = m_params;
@@ -181,7 +181,7 @@ namespace kr
 		Value next() throws(EofException, InvalidSourceException);
 
 		template <typename LAMBDA>
-		bool foreach(const LAMBDA & lambda) noexcept
+		bool foreach(LAMBDA && lambda) noexcept
 		{
 			try
 			{

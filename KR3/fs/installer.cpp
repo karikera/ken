@@ -64,11 +64,20 @@ bool Wildcard::test(Text16 text) noexcept
 	return text.endsWith(m_lastMatch);
 }
 
-Installer::Installer(Text16 dest, Text16 src, Wildcard wildcard) noexcept
+Installer::Installer(Text16 dest, Text16 src, Text16 wildcard) noexcept
 	:m_dest(dest), m_src(src), m_wildcard(wildcard)
 {
+	_init();
+}
+Installer::Installer(Text16 dest, Text16 src) noexcept
+	:m_dest(dest), m_src(src)
+{
+	_init();
+}
+void Installer::_init() noexcept
+{
 	File::createFullDirectory(m_dest);
-	
+
 	if (!path16.endsWithSeperator(m_dest)) m_dest << path16.sep;
 	if (!path16.endsWithSeperator(m_src)) m_src << path16.sep;
 	m_srcend = m_src.size();
@@ -85,7 +94,7 @@ Installer::Result Installer::copy(pcstr16 dest, pcstr16 src, Text16 msg) noexcep
 		time_t dtime = File::getLastModifiedTime(dest);
 		if (stime <= dtime)
 		{
-			return Skipped;
+			return Result::Skipped;
 		}
 	}
 	catch (Error&)
@@ -97,11 +106,11 @@ Installer::Result Installer::copy(pcstr16 dest, pcstr16 src, Text16 msg) noexcep
 	}
 	if (!File::copy(dest, src))
 	{
-		return Failed;
+		return Result::Failed;
 	}
 	else
 	{
-		return Copied;
+		return Result::Copied;
 	}
 }
 

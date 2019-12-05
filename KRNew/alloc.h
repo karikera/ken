@@ -8,7 +8,7 @@ namespace kr
 {
 	namespace _pri_
 	{
-		ATTR_NONULL void * krmalloc(size_t size) noexcept;
+		ATTR_NO_DISCARD ATTR_NONULL void * krmalloc(size_t size) noexcept;
 		void krfree(void * ptr) noexcept;
 	}
 }
@@ -27,6 +27,7 @@ namespace kr
 	{
 		void reline_new_impl(void * ptr, const char * file, int line) noexcept;
 		void depend_new_impl(void * parent, void * child) noexcept;
+		void add_block_info(void* ptr) noexcept;
 		template <typename T>
 		T& reline_new_pass_impl(T& ptr, const char * file, int line) noexcept
 		{
@@ -85,20 +86,20 @@ namespace kr
 {
 	namespace _pri_
 	{
-		ATTR_CHECK_RETURN bool expand_impl(void * data, size_t nsize) noexcept;
+		ATTR_NO_DISCARD bool expand_impl(void * data, size_t nsize) noexcept;
 		void free_impl(void * data) noexcept;
-		ATTR_CHECK_RETURN size_t msize_impl(const void * ptr) noexcept;
+		ATTR_NO_DISCARD size_t msize_impl(const void * ptr) noexcept;
 
-		ATTR_CHECK_RETURN void* aligned_alloc_impl(size_t sz, size_t aligned) noexcept;
-		ATTR_CHECK_RETURN void* aligned_alloc_impl(size_t sz, size_t aligned, size_t offset) noexcept;
-		ATTR_CHECK_RETURN bool aligned_expand_impl(void * data, size_t nsize, size_t aligned, size_t offset = 0) noexcept;
-		ATTR_CHECK_RETURN size_t aligned_msize_impl(const void * ptr, size_t aligned, size_t offset = 0) noexcept;
+		ATTR_NO_DISCARD void* aligned_alloc_impl(size_t sz, size_t aligned) noexcept;
+		ATTR_NO_DISCARD void* aligned_alloc_impl(size_t sz, size_t aligned, size_t offset) noexcept;
+		ATTR_NO_DISCARD bool aligned_expand_impl(void * data, size_t nsize, size_t aligned, size_t offset = 0) noexcept;
+		ATTR_NO_DISCARD size_t aligned_msize_impl(const void * ptr, size_t aligned, size_t offset = 0) noexcept;
 		void aligned_free_impl(void * ptr) noexcept;
 		
 		template <size_t alignment, size_t offset>
 		struct alloc_base
 		{
-			ATTR_CHECK_RETURN static void* allocate(size_t sz) noexcept
+			ATTR_NO_DISCARD static void* allocate(size_t sz) noexcept
 			{
 				if (offset == 0) return aligned_alloc_impl(sz, alignment);
 				else return aligned_alloc_impl(sz, alignment, offset);
@@ -107,11 +108,11 @@ namespace kr
 			{
 				return aligned_free_impl(p);
 			}
-			ATTR_CHECK_RETURN static bool expand(void * p, size_t sz) noexcept
+			ATTR_NO_DISCARD static bool expand(void * p, size_t sz) noexcept
 			{
 				return aligned_expand_impl(p, sz, alignment, offset);
 			}
-			ATTR_CHECK_RETURN static size_t msize(const void * data) noexcept
+			ATTR_NO_DISCARD static size_t msize(const void * data) noexcept
 			{
 				return aligned_msize_impl(data, alignment, offset);
 			}
@@ -119,11 +120,28 @@ namespace kr
 		template <>
 		struct alloc_base<0, 0>
 		{
-			ATTR_CHECK_RETURN static void* allocate(size_t sz) noexcept;
+			ATTR_NO_DISCARD static void* allocate(size_t sz) noexcept;
 			static void free(void * data) noexcept;
-			ATTR_CHECK_RETURN static bool expand(void * data, size_t nsize) noexcept;
-			ATTR_CHECK_RETURN static size_t msize(const void * data) noexcept;
+			ATTR_NO_DISCARD static bool expand(void * data, size_t nsize) noexcept;
+			ATTR_NO_DISCARD static size_t msize(const void * data) noexcept;
 		};
+
+#ifndef NDEBUG
+		class AllocationMove
+		{
+		private:
+			int m_number;
+			const char* m_filename;
+			int m_line;
+			AllocationMove* m_parent;
+
+		public:
+			AllocationMove(void* ptr) noexcept;
+			~AllocationMove() noexcept;
+			int getLine() noexcept;
+			const char* getFileName() noexcept;
+		};
+#endif
 	}
 
 	template <size_t alignment = 0, size_t offset = 0>
@@ -148,38 +166,60 @@ namespace kr
 	// 전체 메모리를 오염되었는지 확인한다.
 	void memcheck() noexcept;
 
+	void moveline_new(void* ptr, void* from) noexcept;
+	
 	struct MemoryTest
 	{
 		inline MemoryTest() noexcept{ memtest_set_axis(); }
 		inline ~MemoryTest() noexcept{ memtest(); }
 	};
 
-	template <typename T, typename ... ARGS> T * newAligned(const ARGS &... args)
+	template <typename T, typename ... ARGS> T * newAligned(ARGS &&... args) throws(...)
 	{
 		T* data = (T*)alloc<alignof(T)>::allocate(sizeof(T));
-		return new(data) T(args...);
+		try
+		{
+			return new(data) T(forward<ARGS>(args)...);
+		}
+		catch (...)
+		{
+			alloc<alignof(T)>::free(data);
+			throw;
+		}
 	}
-	template <typename T> T * newAlignedArray(size_t sz)
+	template <typename T> T * newAlignedArray(size_t sz) throws(...)
 	{
 		if (std::is_trivially_default_constructible<T>::value)
 		{
-			return (T*)alloc<alignof(T)>::allocate(sizeof(T) * sz);
+			return (T*)alloc<alignof(T)>::allocate(sz * sizeof(T));
 		}
 		else
 		{
 			static_assert(sizeof(T) % alignof(T) == 0, "sizeof & alignment unmatch!!");
-			size_t * cnt = (size_t*)alloc<alignof(T), sizeof(size_t)>::allocate(sizeof(T) * sz);
+			size_t * cnt = (size_t*)alloc<alignof(T), sizeof(size_t)>::allocate(sz * sizeof(T));
 			*cnt = sz;
-			T * data = (T*)(cnt + 1);
-			T * end = data + sz;
-			for (T * beg = data; beg != end; beg++)
+			T* data = (T*)(cnt + 1);
+			T* end = data + sz;
+			T* beg = data;
+			try
 			{
-				new (beg) T;
+				for (; beg != end; beg++)
+				{
+					new (beg) T;
+				}
+			}
+			catch (...)
+			{
+				for (; data != beg; data++)
+				{
+					data->~T();
+				}
+				throw;
 			}
 			return data;
 		}
 	}
-	template <typename T> T * newAlignedArrayNC(size_t sz)
+	template <typename T> T * newAlignedArrayNC(size_t sz) noexcept
 	{
 		static_assert(sizeof(T) % alignof(T) == 0, "sizeof & alignment unmatch!!");
 		return (T*)alloc<alignof(T)>::allocate(sizeof(T) * sz);
@@ -233,6 +273,6 @@ void operator delete(void* p);
 #define kr_expand(ptr, sz, ...)		(::kr::alloc<__VA_ARGS__>::expand(ptr,sz))
 #define kr_msize(ptr, ...)			(::kr::alloc<__VA_ARGS__>::msize(ptr))
 
-#define _newAligned(T, ...)			reline_new(new((T*)::kr::alloc<alignof(T)>::allocate(sizeof(T))) T(__VA_ARGS__))
-#define _newAlignedArray(T, cnt)	reline_new(::kr::_pri_::newAlignedArray<T>(cnt))
-#define _newAlignedArrayNC(T, cnt)	reline_new(::kr::_pri_::newAlignedArrayNC<T>(cnt))
+#define _newAligned(T, ...)			reline_new(::kr::newAligned<T>(__VA_ARGS__))
+#define _newAlignedArray(T, cnt)	reline_new(::kr::newAlignedArray<T>(cnt))
+#define _newAlignedArrayNC(T, cnt)	reline_new(::kr::newAlignedArrayNC<T>(cnt))

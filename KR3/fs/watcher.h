@@ -37,10 +37,10 @@ namespace kr
 		~DirectoryWatcher() noexcept;
 		void open(pcstr16 dir, bool subtree) throws(Error);
 		void close() noexcept;
-		virtual void onCreate(Text16 name) noexcept = 0;
-		virtual void onDelete(Text16 name) noexcept = 0;
+		virtual void onCreated(Text16 name) noexcept = 0;
+		virtual void onDeleted(Text16 name) noexcept = 0;
 		virtual void onModified(Text16 name) noexcept = 0;
-		virtual void onRename(Text16 oldname, Text16 newname) noexcept = 0;
+		virtual void onRenamed(Text16 newname, Text16 oldname) noexcept = 0;
 
 	private:
 		void _request() noexcept;

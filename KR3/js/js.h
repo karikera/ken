@@ -10,7 +10,6 @@
 #include "rawdata.h"
 #include "news.h"
 #include "persistent.h"
-#include "external.h"
 #include "value.h"
 // #include "private.h"
 #include "class.h"

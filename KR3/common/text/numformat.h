@@ -33,7 +33,7 @@ namespace kr
 			{
 				m_value = _value;
 			}
-			m_size = m_cipher + m_minus;
+			m_size = (size_t)m_cipher + m_minus;
 		}
 
 		template <typename C>
@@ -82,7 +82,7 @@ namespace kr
 			dword cipher = math::cipher(m_value, m_radix);
 			m_contlen = maxt(cipher, _fixed);
 			m_zerolen = m_contlen - cipher;
-			m_size = m_contlen + m_minus;
+			m_size = (size_t)m_contlen + m_minus;
 		}
 
 		template <typename C>
@@ -189,7 +189,7 @@ namespace kr
 		:public AddBufferable<NumberFloat<0, T>, BufferInfo<AutoComponent>>
 	{
 	private:
-		enum Mode
+		enum class Mode
 		{
 			ExpMinus,
 			ExpPlus,
@@ -237,13 +237,13 @@ namespace kr
 				if (isinf(v))
 				{
 					m_minus = (v < 0);
-					m_mode = Infinite;
-					m_size = m_minus + 3;
+					m_mode = Mode::Infinite;
+					m_size = (size_t)m_minus + 3;
 				}
 				else
 				{
 					m_minus = false;
-					m_mode = NaN;
+					m_mode = Mode::NaN;
 					m_size = 3;
 				}
 				return;
@@ -272,7 +272,7 @@ namespace kr
 					}
 					if (decimal >= 10) size++; // dot
 					m_exp.decimal = decimal;
-					m_mode = ExpMinus;
+					m_mode = Mode::ExpMinus;
 					m_size = size;
 				}
 				else if (len < 0)
@@ -287,7 +287,7 @@ namespace kr
 						size--;
 					}
 					m_size = size;
-					m_mode = Decimal;
+					m_mode = Mode::Decimal;
 					m_decimal.value = value;
 				}
 				else if (len < max_size - 2)
@@ -302,12 +302,12 @@ namespace kr
 					if (decimal == 0)
 					{
 						m_integer.value = integer;
-						m_mode = Integer;
-						m_size = len + 1;
+						m_mode = Mode::Integer;
+						m_size = (size_t)len + 1;
 					}
 					else
 					{
-						m_mode = Mixed;
+						m_mode = Mode::Mixed;
 						dword size = max_size;
 						m_mixed.integer = integer;
 						for (;;)
@@ -325,9 +325,9 @@ namespace kr
 				}
 				else if (len < max_size)
 				{
-					m_mode = Integer;
+					m_mode = Mode::Integer;
 					m_integer.value = (dword)lround(v);
-					m_size = len + 1;
+					m_size = (size_t)len + 1;
 				}
 				else
 				{
@@ -345,13 +345,13 @@ namespace kr
 					}
 					if (decimal >= 10) size++; // dot
 					m_exp.decimal = decimal;
-					m_mode = ExpPlus;
+					m_mode = Mode::ExpPlus;
 					m_size = size;
 				}
 			}
 			else
 			{
-				m_mode = Integer;
+				m_mode = Mode::Integer;
 				m_integer.value = 0;
 				m_size = 1;
 			}
@@ -374,8 +374,8 @@ namespace kr
 
 			switch (m_mode)
 			{
-			case ExpPlus:
-			case ExpMinus:
+			case Mode::ExpPlus:
+			case Mode::ExpMinus:
 			{
 				dword value = m_exp.exp;
 				C * to = end - m_exp.explen;
@@ -385,7 +385,7 @@ namespace kr
 					*--end = (C)(value % 10 + '0');
 					value /= 10;
 				}
-				if (m_mode == ExpMinus) *--end = (C)'-';
+				if (m_mode == Mode::ExpMinus) *--end = (C)'-';
 				*--end = (C)'e';
 				value = m_exp.decimal;
 				if (m_exp.decimal < 10)
@@ -408,7 +408,7 @@ namespace kr
 				}
 				break;
 			}
-			case Decimal:
+			case Mode::Decimal:
 			{
 				dword value = m_decimal.value;
 				C * beg = dest + 2;
@@ -424,7 +424,7 @@ namespace kr
 				*end = '0';
 				break;
 			}
-			case Integer:
+			case Mode::Integer:
 			{
 				dword value = m_integer.value;
 				while (end != dest)
@@ -435,7 +435,7 @@ namespace kr
 				}
 				break;
 			}
-			case Mixed:
+			case Mode::Mixed:
 			{
 				dword value = m_mixed.decimal;
 				C * to = end - m_mixed.pointpos;
@@ -456,12 +456,12 @@ namespace kr
 				}
 				break;
 			}
-			case Infinite:
+			case Mode::Infinite:
 				*dest++ = 'i';
 				*dest++ = 'n';
 				*dest++ = 'f';
 				break;
-			case NaN:
+			case Mode::NaN:
 				*dest++ = 'n';
 				*dest++ = 'a';
 				*dest++ = 'n';
@@ -538,7 +538,7 @@ namespace kr
 		{
 			m_radix = radix;
 			uint cipher = math::cipher(number, radix);
-			m_size = cipher + (cipher - 1) / 3;
+			m_size = (size_t)cipher + (cipher - 1) / 3;
 			m_number = number;
 		}
 

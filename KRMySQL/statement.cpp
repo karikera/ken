@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "mysql_include.h"
-#include <errmsg.h>
+#include <mysql/errmsg.h>
 #include "statement.h"
 
 #define KRSQL_RETRY_WRAP(cmd) \

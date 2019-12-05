@@ -5,12 +5,12 @@
 
 #include <sstream>
 
-Field::Field(Class * parent, Class * c, AText str)
+Field::Field(Class * parent, Class * c, AText str) noexcept
 	:Value(c, str), parent(parent)
 {
 	m_prepare = false;
 }
-Field::~Field()
+Field::~Field() noexcept
 {
 }
 Keep<Identity> Field::find(Text str)
@@ -41,22 +41,22 @@ bool Field::prepared() noexcept
 	return m_prepare;
 }
 
-ConstField::ConstField(Class * parent, Class * type, AText name):Field(parent, type, name)
+ConstField::ConstField(Class * parent, Class * type, AText name) noexcept :Field(parent, type, name)
 {
 }
-ConstField::~ConstField()
+ConstField::~ConstField() noexcept
 {
 }
-Value * ConstField::getMaxValue()
+Value * ConstField::getMaxValue() noexcept
 {
 	return this;
 }
 
-ValueConstField::ValueConstField(Class * parent, AText name, Constant * v)
+ValueConstField::ValueConstField(Class * parent, AText name, Constant * v) noexcept
 	:ConstField(parent, v->getType(), move(name)), value(v)
 {
 }
-ValueConstField::~ValueConstField()
+ValueConstField::~ValueConstField() noexcept
 {
 }
 

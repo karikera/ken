@@ -140,7 +140,7 @@ Text MultipartFormData::get(Text name) noexcept
 HttpClient::HttpClient(HttpServer* server, Socket* socket) noexcept
 	:MTClient(socket)
 {
-	m_state = ReadHeader;
+	m_state = State::ReadHeader;
 	m_server = server;
 
 	CsLock __lock = doutLock;
@@ -164,7 +164,7 @@ void HttpClient::onRead() throws(...)
 	{
 		switch (m_state)
 		{
-		case ReadHeader:
+		case State::ReadHeader:
 			try
 			{
 				_readHeadLine();
@@ -201,11 +201,11 @@ void HttpClient::onRead() throws(...)
 				m_server->findPage(m_path, &m_fp);
 				if (m_fp.page)
 				{
-					m_state = ProcessPage;
+					m_state = State::ProcessPage;
 				}
 				else
 				{
-					m_state = SendFile;
+					m_state = State::SendFile;
 				}
 			}
 			catch (ThrowRetry)
@@ -215,19 +215,19 @@ void HttpClient::onRead() throws(...)
 			catch (NotEnoughSpaceException&)
 			{
 				m_fp.page = m_server->getErrorPage(HttpStatus::BadRequest);
-				m_state = ProcessErrorPage;
+				m_state = State::ProcessErrorPage;
 			}
 			catch (HttpStatus status)
 			{
 				m_fp.page = m_server->getErrorPage(status);
-				m_state = ProcessPage;
+				m_state = State::ProcessPage;
 			}
 			break;
-		case ProcessPage:
+		case State::ProcessPage:
 			try
 			{
 				m_fp.page->process(this);
-				m_state = IgnoreReceive;
+				m_state = State::IgnoreReceive;
 				return;
 			}
 			catch (ThrowRetry)
@@ -237,31 +237,31 @@ void HttpClient::onRead() throws(...)
 			catch (NotEnoughSpaceException&)
 			{
 				m_fp.page = m_server->getErrorPage(HttpStatus::BadRequest);
-				m_state = ProcessErrorPage;
+				m_state = State::ProcessErrorPage;
 			}
 			catch (HttpStatus code)
 			{
 				m_fp.page = m_server->getErrorPage(code);
-				m_state = ProcessErrorPage;
+				m_state = State::ProcessErrorPage;
 			}
 			catch (...)
 			{
 				m_fp.page = m_server->getErrorPage(HttpStatus::InternalServerError);
-				m_state = ProcessErrorPage;
+				m_state = State::ProcessErrorPage;
 			}
 			break;
-		case ProcessErrorPage:
+		case State::ProcessErrorPage:
 			try
 			{
 				m_fp.page->process(this);
-				m_state = IgnoreReceive;
+				m_state = State::IgnoreReceive;
 			}
 			catch (...)
 			{
 				close();
 			}
 			return;
-		case SendFile:
+		case State::SendFile:
 		{
 			writeHeader({
 				"HTTP/1.0 200 OK\r\n"
@@ -269,11 +269,11 @@ void HttpClient::onRead() throws(...)
 				"Content-Type: ", m_server->getMIMEType(m_fp.path), "\r\n"
 				"Content-Length: ", TSZ() << m_fp.file->size(), "\r\n"
 				});
-			m_state = IgnoreReceive;
+			m_state = State::IgnoreReceive;
 			onSendDone();
 			return;
 		}
-		case IgnoreReceive:
+		case State::IgnoreReceive:
 			return;
 		}
 	}

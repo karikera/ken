@@ -3,18 +3,18 @@
 #include "root.h"
 #include "expression.h"
 
-Value::Value(Class * c, AText name)
+Value::Value(Class * c, AText name) noexcept
 	:Identity(name), type(c), m_size(nullptr)
 {
 }
-Value::~Value()
+Value::~Value() noexcept
 {
 }
 Class* Value::getType() noexcept
 {
 	return type;
 }
-Keep<Identity> Value::find(Text str) // ErrMessage
+Keep<Identity> Value::find(Text str) throws(ErrMessage)
 {
 	throw ErrMessage("Cannot found %s", TSZ(str).c_str());
 }

@@ -677,32 +677,9 @@ namespace
 	};
 }
 
-template <Charset charset, typename To>
-size_t ToConvert<charset, To>::length(Text text) noexcept
-{
-	return MsConvert<charset, To>::length(text);
-}
-template <Charset charset, typename To>
-size_t ToConvert<charset, To>::encode(To * out, Text text) noexcept
-{
-	return MsConvert<charset, To>::encode(out, text);
-}
-template <Charset charset, typename To>
-size_t ToConvert<charset, To>::delength(ToText text) noexcept
-{
-	return MsConvert<charset, To>::delength(text);
-}
-template <Charset charset, typename To>
-size_t ToConvert<charset, To>::decode(char * out, ToText text) noexcept
-{
-	return MsConvert<charset, To>::decode(out, text);
-}
-
-template <Charset charset>
-bool meml<charset>::isDbcs(char chr) noexcept
+static bool msIsBdcs(char chr, CPINFO* cpinfo) noexcept
 {
 	uint idx = 0;
-	CPINFO * cpinfo = &MsCodePage<charset>::cpinfo;
 	while (idx < cpinfo->MaxCharSize)
 	{
 		if ((byte)chr < cpinfo->LeadByte[idx])
@@ -721,21 +698,36 @@ bool meml<charset>::isDbcs(char chr) noexcept
 	return false;
 }
 
-#define EXPORT_CHARSET(charset) \
-template size_t ToConvert<charset, char32>::delength(Text32 text) noexcept; \
-template size_t ToConvert<charset, char32>::decode(char * out, Text32 text) noexcept; \
-template size_t ToConvert<charset, char32>::length(Text text) noexcept; \
-template size_t ToConvert<charset, char32>::encode(char32 * out, Text text) noexcept; \
-\
-template size_t ToConvert<charset, char16>::delength(Text16 text) noexcept; \
-template size_t ToConvert<charset, char16>::decode(char * out, Text16 text) noexcept; \
-template size_t ToConvert<charset, char16>::length(Text text) noexcept; \
-template size_t ToConvert<charset, char16>::encode(char16 * out, Text text) noexcept; \
-\
-template bool meml<charset>::isDbcs(char chr) noexcept;
 
-EXPORT_CHARSET(Charset::Ansi);
-EXPORT_CHARSET(Charset::EucKr);
+#define EXPORT_CHARSET(charset, C) \
+template <> \
+size_t kr::ToConvert<charset, C>::delength(View<C> text) noexcept \
+{ return MsConvert<charset, C>::delength(text); } \
+template <> \
+size_t kr::ToConvert<charset, C>::decode(char * out, View<C> text) noexcept \
+{ return MsConvert<charset, C>::decode(out, text); } \
+template <> \
+size_t kr::ToConvert<charset, C>::length(Text text) noexcept \
+{ return MsConvert<charset, C>::length(text); } \
+template <> \
+size_t kr::ToConvert<charset, C>::encode(C * out, Text text) noexcept \
+{ return MsConvert<charset, C>::encode(out, text); } \
+
+EXPORT_CHARSET(Charset::Ansi, char16);
+EXPORT_CHARSET(Charset::EucKr, char16);
+EXPORT_CHARSET(Charset::Ansi, char32);
+EXPORT_CHARSET(Charset::EucKr, char32);
+
+template <>
+bool meml<Charset::Ansi>::isDbcs(char chr) noexcept
+{
+	return msIsBdcs(chr, &MsCodePage<Charset::Ansi>::cpinfo);
+}
+template <>
+bool meml<Charset::EucKr>::isDbcs(char chr) noexcept
+{
+	return msIsBdcs(chr, &MsCodePage<Charset::EucKr>::cpinfo);
+}
 
 #else
 

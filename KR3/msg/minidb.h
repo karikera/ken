@@ -12,7 +12,7 @@ namespace kr
 	public:
 		class Table;
 
-		class Item:public Bufferable<Item, BufferInfo<void, false, false, false, false> >
+		class Item:public Bufferable<Item, BufferInfo<void, method::Memory, false, false> >
 		{
 			friend Table;
 		public:

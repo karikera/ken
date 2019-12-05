@@ -15,7 +15,8 @@ void emscripten_set_main_loop(void(*func)(), int fps, int simulate_infinite_loop
 		DebugBreak(); // TODO: Need implement
 		return;
 	}
-
+#pragma warning(push)
+#pragma warning(disable: 28159)
 	DWORD next = GetTickCount();
 	DWORD term = 1000 / fps;
 	MSG msg;
@@ -56,6 +57,7 @@ void emscripten_set_main_loop(void(*func)(), int fps, int simulate_infinite_loop
 			if (wait <= 0) break;
 		}
 	}
+#pragma warning(pop)
 }
 
 void emscripten_set_canvas_size(int width, int height)

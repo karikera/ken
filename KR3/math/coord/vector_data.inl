@@ -33,6 +33,8 @@ namespace kr
 			value = _value;
 		}
 
+#pragma warning(push)
+#pragma warning(disable:26495)
 		ATTR_INLINE vec4a_ctor::vector_constructor(float _all) noexcept
 		{
 #if defined(EMSIMD) || defined(MSSIMD)
@@ -69,6 +71,8 @@ namespace kr
 			m_vector.w = (float)_v.w;
 #endif
 		}
+#pragma warning(pop)
+
 		ATTR_INLINE const ivec4a vec4a_ctor::ibits() const noexcept
 		{
 #ifdef EMSIMD
@@ -194,6 +198,8 @@ namespace kr
 			return res.shuffle<3, 1, 2, 0>();
 		}
 
+#pragma warning(push)
+#pragma warning(disable:26495)
 		ATTR_INLINE ivec4a_ctor::vector_constructor(int _all) noexcept
 		{
 #ifdef __EMSCRIPTEN__
@@ -214,6 +220,7 @@ namespace kr
 			m_vector = __ivector4{ _w, _z, _y, _x };
 #endif
 		}
+#pragma warning(pop)
 		ATTR_INLINE const vec4a ivec4a_ctor::fbits() const noexcept
 		{
 #ifdef MSSIMD

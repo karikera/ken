@@ -1,5 +1,9 @@
 #pragma once
 
+#include "compiler.h"
+#include "macro.h"
+#include "type.h"
+#include "exception.h"
 
 namespace kr
 {
@@ -7,6 +11,13 @@ namespace kr
 	// 자동 컴포넌트, 복사 함수가 탬플릿 함수로 구현되어,
 	// 어떠한 컴포넌트 대상으로도 복사가 가능한 컴포넌트이다.
 	struct AutoComponent {};
+
+	template <typename T>
+	class Protected :protected T
+	{
+	protected:
+		using T::T;
+	};
 
 	// 빈 클래스이다.
 	struct Empty {};
@@ -256,6 +267,9 @@ namespace kr
 		// 쓰기전에 버퍼에 모아서 한번에 쓰기를 하게된다.
 		template <typename Derived, bool endFlush = false, bool autoClose = false, size_t BUFFER_SIZE = 8192>
 		class BufferedOStream;
+
+		template <typename C>
+		class SizeOStream;
 	}
 
 	// fs
@@ -285,30 +299,23 @@ namespace kr
 	// text
 	namespace ary
 	{
-		namespace _pri_
-		{
-			template <class Data, typename C> class WrapImpl;
-		}
+		template <class Data, typename C> class WrapImpl;
 
-		namespace data
-		{
-			template <size_t CAP, typename C, class Parent> class BufferedData;
-			template <typename C, class Parent> class AllocatedData;
-			template <typename C, class Parent> class TemporaryData;
-			template <typename C, class Parent> class ReadableData;
-			template <typename C, class Parent> class WritableData;
-			template <typename C, class Parent> class AccessableData;
-		}
-		namespace method
-		{
-			template <class Parent> class BufferIOMethod;
-			template <class Parent> class BufferIMethod;
-			template <class Parent> class IStreamMethod;
-			template <class Parent> class OStreamMethod;
-			template <class Parent> class IRStreamMethod;
-		}
+		template <size_t CAP, typename C, class Parent> class BufferedData;
+		template <typename C, class Parent> class AllocatedData;
+		template <typename C, class Parent> class TemporaryData;
+		template <typename C, class Parent> class ReadableData;
+		template <typename C, class Parent> class WritableData;
+		template <typename C, class Parent> class EndlessWritableData;
+		template <typename C, class Parent> class AccessableData;
 
-		template <class Data> using Wrap = _pri_::WrapImpl<Data, typename Data::Component>;
+		template <class Parent> class BufferIOMethod;
+		template <class Parent> class BufferIMethod;
+		template <class Parent> class IStreamMethod;
+		template <class Parent> class OStreamMethod;
+		template <class Parent> class IRStreamMethod;
+
+		template <class Data> using Wrap = WrapImpl<Data, typename Data::Component>;
 	}
 	
 	// 컨테이너
@@ -318,13 +325,40 @@ namespace kr
 	// Parent: 추가로 상속되는 클래스
 	template <typename C, bool rdonly = true, class Parent = Empty>
 	class Container;
+
+	template <class Derived, typename Component, typename Parent = Empty>
+	class HasWriteTo;
+	template <class Derived, typename Component, typename Parent = Empty>
+	class HasCopyTo;
+	template <typename Derived, typename Component, typename Parent = Empty>
+	class HasOnlyCopyTo;
+	template <class Derived, typename Component, typename Parent = Empty>
+	class CopyToByWriteTo;
+	template <class Derived, typename Component, typename Parent = Empty>
+	class WriteToByCopyTo;
+	template <typename Derived, typename Component, typename Parent = Empty>
+	class HasStreamTo;
+	template <class Derived, typename Component, typename Parent = Empty>
+	using HasCopyWriteTo = HasCopyTo<Derived, Component, HasWriteTo<Derived, Component, Parent> >;
+
+	namespace method
+	{
+		template <typename Derived, typename Info>
+		class Memory;
+		template <typename Derived, typename Info>
+		class WriteTo;
+		template <typename Derived, typename Info>
+		class CopyTo;
+		template <typename Derived, typename Info>
+		class CopyWriteTo;
+	}
 	
 	// 버퍼의 정보
 	// C: 컴포넌트의 타입
 	// _nullspace: 마지막에 null 종료 문자열이 들어가는지 여부이다.
 	// _readonly: 읽기 전용인지 여부이다.
 	// Parent: 추가로 상속할 부모 클래스
-	template <typename C, bool copyTo = true, bool writeTo = false, bool _nullspace = false, bool _readonly = true, class Parent = Empty>
+	template <typename C, template <typename, typename> class Method = method::CopyTo, bool _szable = false, bool _readonly = true, class Parent = Empty>
 	class BufferInfo;
 
 	// 버퍼일 수 있는 클래스
@@ -334,26 +368,26 @@ namespace kr
 	class Bufferable;
 
 	template <typename Derived, typename C, typename Parent = Empty>
-	using Printable = Bufferable<Derived, BufferInfo<C, false, true, false, true, Parent>>;
+	using Printable = Bufferable<Derived, BufferInfo<C, method::WriteTo, false, true, Parent>>;
 			
 	// 참조하는 배열(쓰기 가능), 근원이 사라지면 안된다.
-	template <typename C> using WView = ary::_pri_::WrapImpl<ary::data::AccessableData<C, Empty>, C>;
+	template <typename C> using WView = ary::WrapImpl<ary::AccessableData<C, Empty>, C>;
 
 	// 참조하는 배열(읽기 전용), 근원이 사라지면 안된다.
-	template <typename C> using View = ary::_pri_::WrapImpl<ary::data::ReadableData<C, Empty>, C>;
+	template <typename C> using View = ary::WrapImpl<ary::ReadableData<C, Empty>, C>;
 
 	// 할당된 배열, 복사시 메모리가 할당되어진다.
-	template <typename C> using Array = ary::_pri_::WrapImpl<ary::data::AllocatedData<C, Empty>, C>;
+	template <typename C> using Array = ary::WrapImpl<ary::AllocatedData<C, Empty>, C>;
 
 	// 임시 배열, 메모리가 스택형 임시 버퍼에 할당된다.
 	// 임시 메모리 끼리는 할당과 삭제 순서가 스택 순서여야한다.
-	template <typename C> using TmpArray = ary::_pri_::WrapImpl<ary::data::TemporaryData<C, Empty>, C>;
+	template <typename C> using TmpArray = ary::WrapImpl<ary::TemporaryData<C, Empty>, C>;
 
 	// 배열 라이터, C로 이루어진 배열등에 기록시킨다.
-	template <typename C> using ArrayWriter = ary::_pri_::WrapImpl<ary::data::WritableData<C, Empty>, C>;
+	template <typename C> using ArrayWriter = ary::WrapImpl<ary::WritableData<C, Empty>, C>;
 
 	// 정적 배열, 최대 CAP 개의 요소를 담을 수 있다.
-	template <typename C, size_t CAP> using BArray = ary::_pri_::WrapImpl<ary::data::BufferedData<CAP, C, Empty>, C>;
+	template <typename C, size_t CAP> using BArray = ary::WrapImpl<ary::BufferedData<CAP, C, Empty>, C>;
 
 	// 2D 할당 배열, 복사시 메모리가 할당되며, 2차원 배열이다.
 	template <typename T> using Array2D = Array<Array<T>>;
@@ -477,7 +511,6 @@ namespace kr
 	using bufferize_t = typename Bufferize<T, C>::type;
 
 	class nullterm_t;
-	static nullterm_t &nullterm = nullref;
 
 	// is ~~
 	template <template <typename...> class BASE, typename TARGET>
@@ -510,7 +543,7 @@ namespace kr
 		struct conversion_tester
 		{
 			template <typename Derived, typename C, bool _szable, bool _readonly, typename Parent>
-			conversion_tester(const Bufferable<Derived, BufferInfo<C, false, false, _szable, _readonly, Parent>>&);
+			conversion_tester(const Bufferable<Derived, BufferInfo<C, method::Memory, _szable, _readonly, Parent>>&);
 		};
 
 		static constexpr bool value = is_convertible<T, conversion_tester>::value;
@@ -538,22 +571,22 @@ namespace kr
 		{
 		};
 
-		template <typename Derived, typename C, bool copyTo, bool writeTo, bool szable, bool readonly, class Parent, bool exists>
+		template <typename Derived, typename C, template <typename, typename> class Method, bool _szable, bool _readonly, class Parent, bool exists>
 		struct AddBufferableCond {
 			static_assert(is_same<C, typename Parent::Component>::value, "Container type unmatch");
-			static_assert(szable == Parent::szable, "Container szable unmatch");
-			static_assert(readonly == Parent::readonly, "Container readonly unmatch");
+			static_assert(_szable == Parent::szable, "Container szable unmatch");
+			static_assert(_readonly == Parent::readonly, "Container readonly unmatch");
 			using type = Parent;
 		};
-		template <typename Derived, typename C, bool copyTo, bool writeTo, bool szable, bool readonly, class Parent>
-		struct AddBufferableCond<Derived, C, copyTo, writeTo, szable, readonly, Parent, false> {
-			using type = Bufferable<Derived, BufferInfo<C, copyTo, writeTo, szable, readonly, Parent> >;
+		template <typename Derived, typename C, template <typename, typename> class Method, bool _szable, bool _readonly, class Parent>
+		struct AddBufferableCond<Derived, C, Method, _szable, _readonly, Parent, false> {
+			using type = Bufferable<Derived, BufferInfo<C, Method, _szable, _readonly, Parent> >;
 		};
 		template <typename Derived, typename Info>
 		struct AddBufferableType;
-		template <typename Derived, typename C, bool copyTo, bool writeTo, bool szable, bool readonly, class Parent>
-		struct AddBufferableType<Derived, BufferInfo<C, copyTo, writeTo, szable, readonly, Parent> >
-			:AddBufferableCond<Derived, C, copyTo, writeTo, szable, readonly, Parent, IsBuffer<Parent>::value>
+		template <typename Derived, typename C, template <typename, typename> class Method, bool _szable, bool _readonly, class Parent>
+		struct AddBufferableType<Derived, BufferInfo<C, Method, _szable, _readonly, Parent> >
+			:AddBufferableCond<Derived, C, Method, _szable, _readonly, Parent, IsBuffer<Parent>::value>
 		{
 		};
 	}

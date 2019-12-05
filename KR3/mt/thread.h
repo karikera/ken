@@ -17,10 +17,11 @@ namespace kr
 	{
 	private:
 #ifdef WIN32
-		ThreadHandle * m_handle;
+		using RawThread = ThreadHandle*;
 #else
-		pthread_t m_handle;
+		using RawThread = pthread_t;
 #endif
+		RawThread m_handle;
 
 	public:
 #ifdef WIN32
@@ -42,7 +43,7 @@ namespace kr
 		template <typename T, int(*fn)(T*)>
 		void create(T * param) noexcept
 		{
-			return createRaw([](void * param){ return (RawThreadReturn)(RawThreadReturnInt)*fn((T*)param); }, param);
+			return createRaw([](void * param){ return (RawThreadReturn)(RawThreadReturnInt)fn((T*)param); }, param);
 		}
 		template <typename This, int (This::*fn)()>
 		void create(This * param) noexcept
@@ -56,10 +57,10 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		void createLambda(LAMBDA lambda)
+		void createLambda(LAMBDA &&lambda) throws(...)
 		{
-			using NLAMBDA = meta::ChReturn<int, LAMBDA>;
-			NLAMBDA * plambda = _new NLAMBDA(move(lambda));
+			using NLAMBDA = meta::ChReturn<int, decay_t<LAMBDA> >;
+			NLAMBDA * plambda = _new NLAMBDA(forward<LAMBDA>(lambda));
 			return createRaw([](void * p){ 
 				int ret = (int)(*(NLAMBDA*)p)();
 				delete (NLAMBDA*)p;
@@ -67,8 +68,8 @@ namespace kr
 			}, plambda);
 		}
 
-		ThreadObject() noexcept = default;
-		ThreadObject(const ThreadObject &) noexcept = default;
+		ThreadObject() = default;
+		ThreadObject(const ThreadObject &) = default;
 		ThreadObject(nullptr_t) noexcept
 		{
 #ifdef WIN32
@@ -118,7 +119,7 @@ namespace kr
 #endif
 		}
 
-		int join() noexcept
+		int join() const noexcept
 		{
 #ifdef WIN32
 			return (int)m_handle->join();
@@ -128,7 +129,7 @@ namespace kr
 			return (int)(intptr_t)state;
 #endif
 		}
-		void terminate() noexcept
+		void terminate() const noexcept
 		{
 #ifdef WIN32
 			m_handle->terminate();
@@ -136,13 +137,17 @@ namespace kr
 			pthread_cancel(m_handle);
 #endif
 		}
-		void setName(pcstr name) noexcept
+		void setName(pcstr name) const noexcept
 		{
 #ifdef WIN32
 			m_handle->getId().setName(name);
 #elif __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 12
 			pthread_setname_np(m_handle, name);
 #endif
+		}
+		RawThread getRawHandle() const noexcept
+		{
+			return m_handle;
 		}
 	};
 
@@ -200,12 +205,13 @@ namespace kr
 		virtual int thread() noexcept = 0;
 
 		template <typename LAMBDA>
-		static LambdaThread<LAMBDA>* wrap(LAMBDA lambda) noexcept;
+		static LambdaThread<decay_t<LAMBDA> >* wrap(LAMBDA &&lambda) noexcept;
 	};
 	template <typename LAMBDA> class LambdaThread:public Thread
 	{
 	public:
-		LambdaThread(LAMBDA lambda);
+		LambdaThread(const LAMBDA &lambda);
+		LambdaThread(LAMBDA &&lambda);
 		~LambdaThread() override;
 		int thread() noexcept override;
 	private:
@@ -214,13 +220,18 @@ namespace kr
 }
 
 template <typename LAMBDA>
-kr::LambdaThread<LAMBDA>* kr::Thread::wrap(LAMBDA lambda) noexcept
+kr::LambdaThread<decay_t<LAMBDA> >* kr::Thread::wrap(LAMBDA &&lambda) noexcept
 {
-	return _new LambdaThread<LAMBDA>(move(lambda));
+	return _new LambdaThread<decay_t<LAMBDA> >(forward<LAMBDA>(lambda));
 }
 template <typename LAMBDA>
-kr::LambdaThread<LAMBDA>::LambdaThread(LAMBDA lambda)
-	:m_lambda(move(lambda))
+kr::LambdaThread<LAMBDA>::LambdaThread(const LAMBDA &lambda)
+	:m_lambda(lambda)
+{
+}
+template <typename LAMBDA>
+kr::LambdaThread<LAMBDA>::LambdaThread(LAMBDA &&lambda)
+	: m_lambda(move(lambda))
 {
 }
 template <typename LAMBDA>

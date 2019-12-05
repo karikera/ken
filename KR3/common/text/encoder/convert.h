@@ -378,3 +378,29 @@ namespace kr
 		return (Utf16ToAnsi)tx;
 	}
 }
+
+#define EXTERN_CHARSET(charset, C) \
+template <> \
+size_t kr::ToConvert<charset, C>::length(Text text) noexcept; \
+template <> \
+size_t kr::ToConvert<charset, C>::encode(C* out, Text text) noexcept; \
+template <> \
+size_t kr::ToConvert<charset, C>::delength(View<C> text) noexcept; \
+template <> \
+size_t kr::ToConvert<charset, C>::decode(char* out, View<C> text) noexcept; \
+
+EXTERN_CHARSET(kr::Charset::None, kr::char16);
+EXTERN_CHARSET(kr::Charset::None, kr::char32);
+EXTERN_CHARSET(kr::Charset::Utf8, kr::char16);
+EXTERN_CHARSET(kr::Charset::Utf8, kr::char32);
+EXTERN_CHARSET(kr::Charset::Ansi, kr::char16);
+EXTERN_CHARSET(kr::Charset::Ansi, kr::char32);
+
+bool kr::meml<kr::Charset::Ansi>::isDbcs(char chr) noexcept;
+bool kr::meml<kr::Charset::EucKr>::isDbcs(char chr) noexcept;
+bool kr::meml<kr::Charset::Utf8>::isDbcs(char chr) noexcept;
+
+#undef EXTERN_CHARSET
+
+extern template class kr::ToConvert<kr::Charset::Utf8, kr::char16>;
+extern template class kr::ToConvert<kr::Charset::Default, kr::char16>;

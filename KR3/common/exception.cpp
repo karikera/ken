@@ -45,7 +45,8 @@ ATTR_NORETURN void kr::error(const char * strMessage, ...) noexcept
 	va_list vl;
 	char temp[1024];
 	va_start(vl, strMessage);
-	size_t len = vsnprintf(temp, sizeof(temp) - 1, strMessage, vl);
+	size_t len = vsnprintf(temp, countof(temp) - 1, strMessage, vl);
+	_assert(len < countof(temp));
 	temp[len] = '\0';
 	dout << temp << endl;
 	dout.flush();
@@ -61,7 +62,8 @@ void kr::warning(const char * strMessage, ...) noexcept
 	va_list vl;
 	char temp[1024];
 	va_start(vl, strMessage);
-	size_t len = vsnprintf(temp, sizeof(temp) - 1, strMessage, vl);
+	size_t len = vsnprintf(temp, countof(temp) - 1, strMessage, vl);
+	_assert(len < countof(temp));
 	temp[len] = '\0';
 	dout << temp << endl;
 	dout.flush();

@@ -1,5 +1,33 @@
 #pragma once
 
+#include "compiler.h"
+
+#include <atomic>
+#include <type_traits>
+
+#include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <assert.h>
+#include <math.h>
+
+#include <initializer_list>
+#include <utility>
+#include <type_traits>
+#include <atomic>
+#include <exception>
+#include <stdexcept>
+
+namespace kr
+{
+	using std::initializer_list;
+	using std::move;
+	using std::forward;
+	using std::pair;
+}
+
 using std::atomic;
 using std::is_base_of;
 using std::is_base_of_v;
@@ -12,12 +40,13 @@ using std::add_const_t;
 using std::remove_reference_t;
 using std::remove_pointer_t;
 using std::remove_const_t;
+using std::decay_t;
 using std::is_convertible;
 using std::is_convertible_v;
 template <typename T>
-using remove_constref_t = remove_const_t<remove_reference_t<T>>;
-template <typename T>
 using remove_constptr_t = remove_const_t<remove_pointer_t<T>>;
+template <typename T>
+using remove_constref_t = remove_const_t<remove_reference_t<T>>;
 
 #define MUST_BASE_OF(der, ...) static_assert((bool)is_base_of<__VA_ARGS__, der>::value,#der " is not base of " #__VA_ARGS__)
 #define CLASS_HEADER(this_t,...) \
@@ -63,7 +92,7 @@ constexpr size_t operator ""_sz(unsigned long long n)
 #define countof(x)	(::kr::meta::array_countof<decltype(x)>::value)
 #define endof(x)	((x) + countof(x))
 
-#define UNPACK(x) x
+#define UNPACK(...) __VA_ARGS__
 #define _PRI_TOSTR(x) #x
 #define TOSTR(x) _PRI_TOSTR(x)
 #define _PRI_CONCAT(x,y) x##y
@@ -116,14 +145,29 @@ constexpr size_t operator ""_sz(unsigned long long n)
 #define RFORI7(fn,x,...)	UNPACK(RFORI6(fn,__VA_ARGS__)), fn(x,6)
 #define RFORI8(fn,x,...)	UNPACK(RFORI7(fn,__VA_ARGS__)), fn(x,7)
 #define RFORI(fn,...)	UNPACK(CONCAT(RFORI,COUNTOF(__VA_ARGS__))(fn,__VA_ARGS__))
-#define _KR_PRI_FORI(fn,...)	UNPACK((fn, CONCAT(RFOR,COUNTOF(__VA_ARGS__))(UNPACK, __VA_ARGS__)))
+#define _KR_PRI_FORI(fn,...)	UNPACK((fn, CONCAT(RFORI,COUNTOF(__VA_ARGS__))(UNPACK, __VA_ARGS__)))
 #define FORI(fn,...)	CONCAT(RFORI,COUNTOF(__VA_ARGS__))_KR_PRI_FORI(fn, __VA_ARGS__)
 
-#define _KR_PRI_FOR_TYPES(x,i)		x v##i
+#define RSEMI_FORI1(fn,x)		fn(x,0)
+#define RSEMI_FORI2(fn,x,...)	UNPACK(RSEMI_FORI1(fn,__VA_ARGS__)); fn(x,1)
+#define RSEMI_FORI3(fn,x,...)	UNPACK(RSEMI_FORI2(fn,__VA_ARGS__)); fn(x,2)
+#define RSEMI_FORI4(fn,x,...)	UNPACK(RSEMI_FORI3(fn,__VA_ARGS__)); fn(x,3)
+#define RSEMI_FORI5(fn,x,...)	UNPACK(RSEMI_FORI4(fn,__VA_ARGS__)); fn(x,4)
+#define RSEMI_FORI6(fn,x,...)	UNPACK(RSEMI_FORI5(fn,__VA_ARGS__)); fn(x,5)
+#define RSEMI_FORI7(fn,x,...)	UNPACK(RSEMI_FORI6(fn,__VA_ARGS__)); fn(x,6)
+#define RSEMI_FORI8(fn,x,...)	UNPACK(RSEMI_FORI7(fn,__VA_ARGS__)); fn(x,7)
+#define RSEMI_FORI(fn,...)	UNPACK(CONCAT(SEMI_RFORI,COUNTOF(__VA_ARGS__))(fn,__VA_ARGS__))
+#define _KR_PRI_SEMI_FORI(fn,...)	UNPACK((fn, CONCAT(SEMI_RFORI,COUNTOF(__VA_ARGS__))(UNPACK, __VA_ARGS__)))
+#define SEMI_FORI(fn,...)	CONCAT(RSEMI_FORI,COUNTOF(__VA_ARGS__))_KR_PRI_SEMI_FORI(fn, __VA_ARGS__)
+
+#define _KR_PRI_FOR_TYPES(x,i)	x v##i
 #define _KR_PRI_FOR_VALUES(x,i)	v##i
+#define _KR_PRI_FOR_CTOR(x,i) v##i(v##i)
 
 #define FOR_TYPES(...)		UNPACK(FORI(_KR_PRI_FOR_TYPES,__VA_ARGS__))
 #define FOR_VALUES(...)		UNPACK(FORI(_KR_PRI_FOR_VALUES,__VA_ARGS__))
+#define FOR_PROPERTIES(...)	UNPACK(SEMI_FORI(_KR_PRI_FOR_TYPES,__VA_ARGS__))
+#define FOR_CTOR(...)		UNPACK(FORI(_KR_PRI_FOR_CTOR,__VA_ARGS__))
 
 #define _kr_pri_throw_call_0 noexcept(false)
 #define _kr_pri_throw_call_1 noexcept

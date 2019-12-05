@@ -171,7 +171,7 @@ namespace kr
 			using vector_data<T, count, aligned, order>::m_data;
 			using vector_data<T, count, aligned, order>::vector_data;
 
-			vector_base() noexcept = default;
+			vector_base() = default;
 			explicit vector_base(T arg) noexcept;
 		};
 
@@ -183,7 +183,7 @@ namespace kr
 			using vector_constructor<T, count - 1, aligned, order, T, params ...>::vector_constructor;
 			using vector_constructor<T, count - 1, aligned, order, T, params ...>::m_data;
 
-			vector_constructor() noexcept = default;
+			vector_constructor() = default;
 			
 			template <bool aligned2>
 			ATTR_INLINE explicit vector_constructor(const vector<T, count, aligned2, order> & o, params ... ext) noexcept
@@ -222,13 +222,16 @@ namespace kr
 			using super::m_data;
 			using super::super;
 
-			vector_constructor() noexcept = default;
-			vector_constructor(const vector_constructor&) noexcept = default;
+			vector_constructor() = default;
+			vector_constructor(const vector_constructor&) = default;
+#pragma warning(push)
+#pragma warning(disable:26495)
 			ATTR_INLINE vector_constructor(params ... args) noexcept
 			{
 				const T buffer[] = { args ... };
 				meta::order_util<order, OrderBasic, sizeof ... (params)>::copy(m_data, buffer);
 			}
+#pragma warning(pop)
 			template <typename T2, size_t count2, bool aligned2, typename order2>
 			ATTR_INLINE explicit vector_constructor(const vector_data<T2, count2, aligned2, order2> &v) noexcept
 			{
@@ -257,8 +260,8 @@ namespace kr
 			using super::b;
 			using super::a;
 
-			vector_constructor() noexcept = default;
-			vector_constructor(const vector_constructor&) noexcept = default;
+			vector_constructor() = default;
+			vector_constructor(const vector_constructor&) = default;
 			ATTR_INLINE vector_constructor(byte _r, byte _g, byte _b, byte _a) noexcept;
 			ATTR_INLINE explicit vector_constructor(dword _value) noexcept;
 			template <typename T2, size_t count2, bool aligned2, typename order2>
@@ -283,8 +286,8 @@ namespace kr
 			using constructor_t = vector_constructor;
 			using vector_base<float, 4, true, OrderRGBA>::m_data;
 			using vector_base<float, 4, true, OrderRGBA>::vector_base;
-			vector_constructor() noexcept = default;
-			vector_constructor(const vector_constructor&) noexcept = default;
+			vector_constructor() = default;
+			vector_constructor(const vector_constructor&) = default;
 			ATTR_INLINE explicit vector_constructor(float _all) noexcept;
 			ATTR_INLINE vector_constructor(const __vector4& v) noexcept;
 			ATTR_INLINE vector_constructor(float _x, float _y, float _z, float _w = 1.f) noexcept;
@@ -326,8 +329,8 @@ namespace kr
 			using constructor_t = vector_constructor;
 			using vector_base<int, 4, true, OrderRGBA>::m_data;
 			using vector_base<int, 4, true, OrderRGBA>::vector_base;
-			vector_constructor() noexcept = default;
-			vector_constructor(const vector_constructor&) noexcept = default;
+			vector_constructor() = default;
+			vector_constructor(const vector_constructor&) = default;
 			ATTR_INLINE explicit vector_constructor(int _all) noexcept;
 			ATTR_INLINE vector_constructor(const __ivector4 & v) noexcept;
 			ATTR_INLINE vector_constructor(int _x, int _y, int _z, int _w) noexcept;

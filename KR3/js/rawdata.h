@@ -15,6 +15,8 @@ namespace kr
 		friend JsScope;
 		friend JsRuntime;
 		friend JsException;
+		friend JsObjectT<JsObject>;
+		friend JsWeak;
 	public:
 		~JsRawData() noexcept;
 		JsRawData(const JsRawData& data) noexcept;
@@ -24,6 +26,7 @@ namespace kr
 		JsRawData(Text text, Charset cs) noexcept;
 		KRJS_EXPORT JsRawData() noexcept;
 		KRJS_EXPORT explicit JsRawData(const JsPersistent& data) noexcept;
+		KRJS_EXPORT explicit JsRawData(const JsWeak& data) noexcept;
 		KRJS_EXPORT explicit JsRawData(Text16 text) noexcept;
 		KRJS_EXPORT explicit JsRawData(const JsRawDataValue& data) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsRawDataValue&& data) noexcept;
@@ -38,27 +41,31 @@ namespace kr
 		KRJS_EXPORT explicit JsRawData(JsNewArrayBuffer arr) noexcept;
 		KRJS_EXPORT bool isEmpty() const noexcept;
 		KRJS_EXPORT JsType getType() const noexcept;
-		KRJS_EXPORT void setProperty(Text16 name, const JsRawData &value) const noexcept;
-		KRJS_EXPORT void setProperty(const JsPropertyId &name, const JsRawData& value) const noexcept;
-		KRJS_EXPORT JsRawData getProperty(Text16 name) const noexcept;
-		KRJS_EXPORT JsRawData getProperty(const JsPropertyId& name) const noexcept;
+		KRJS_EXPORT void setByIndex(const JsRawData& name, const JsRawData &value) const noexcept;
+		KRJS_EXPORT void setByProperty(const JsPropertyId &name, const JsRawData& value) const noexcept;
+		KRJS_EXPORT JsRawData getByIndex(const JsRawData& name) const noexcept;
+		KRJS_EXPORT JsRawData getByProperty(const JsPropertyId& name) const noexcept;
 		KRJS_EXPORT bool instanceOf(const JsRawData& value) const noexcept;
 		KRJS_EXPORT void* getExternalData() const noexcept;
 		KRJS_EXPORT WBuffer getArrayBuffer() const noexcept;
 		KRJS_EXPORT WBuffer getDataViewBuffer() const noexcept;
 		KRJS_EXPORT WBuffer getTypedArrayBuffer(JsTypedArrayType * type) const noexcept;
 		WBuffer getTypedArrayBuffer() const noexcept;
+		KRJS_EXPORT size_t getArrayLength() const throws(JsException);
+		KRJS_EXPORT void setArrayLength(size_t length) const throws(JsException);
 		KRJS_EXPORT JsRawData call(JsRawData _this, JsArgumentsIn arguments) const throws(JsException);
 		KRJS_EXPORT bool equals(const JsRawData & other) const noexcept;
 		KRJS_EXPORT bool abstractEquals(const JsRawData& other) const noexcept;
 		KRJS_EXPORT JsRawData toString() const throws(JsException);
+		KRJS_EXPORT void freeze() noexcept;
+		KRJS_EXPORT bool isFreezed() noexcept;
 
 		// get value without any-cast
 		// need to match type
 		template <typename T>
 		T as() const noexcept;
 		template <typename LAMBDA>
-		void getTypedArrayBufferL(const LAMBDA& onBuffer) noexcept;
+		void getTypedArrayBufferL(LAMBDA&& onBuffer) noexcept;
 
 	private:
 		JsRawDataValue m_data;
@@ -104,7 +111,7 @@ T kr::JsRawData::as() const noexcept
 }
 
 template <typename LAMBDA>
-void kr::JsRawData::getTypedArrayBufferL(const LAMBDA& onBuffer) noexcept
+void kr::JsRawData::getTypedArrayBufferL(LAMBDA&& onBuffer) noexcept
 {
 	JsTypedArrayType type;
 	Buffer buffer = getTypedArrayBuffer(&type);

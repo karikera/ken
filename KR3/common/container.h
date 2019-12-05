@@ -1,10 +1,11 @@
 #pragma once
 
-#include "../main.h"
+#include "reference.h"
 #include "../meta/attacher.h"
 #include "../meta/value.h"
 #include "../meta/if.h"
 #include "memlib.h"
+
 #include <wchar.h>
 
 namespace kr
@@ -21,7 +22,6 @@ namespace kr
 	using internal_component_t = typename internal_component<T>::type;
 
 #define KR_DEFINE_MMEM() using memm = memt<sizeof(InternalComponent)>
-
 
 	template <typename C, bool rdonly, class Parent> 
 	class Container: public Parent

@@ -211,6 +211,9 @@ void StateCache::cleanUpState() noexcept
 	memset(&m_samplers, 0, sizeof(m_depthStencil));
 }
 
+TextureFile::TextureFile(CachedTexture* texture) noexcept
+{
+}
 TextureFile::TextureFile(Keep<CachedTexture> texture) noexcept
 	:m_texture(move(texture))
 {
