@@ -106,7 +106,7 @@ int CT_CDECL wmain(int argn, wchar_t ** args)
 			}
 			else
 			{
-				ucerr << filename << u'(' << fis.getLine() << u"): error unknown var type(" << acpToUtf16(def) << u")" << endl;
+				ucerr << filename << u'(' << fis.getLine() << u"): error unknown var type(" << ansiToUtf16(def) << u")" << endl;
 			}
 		}
 		fos.flush();
@@ -122,7 +122,7 @@ int CT_CDECL wmain(int argn, wchar_t ** args)
 	}
 	catch (LangParser::UnexpectedCharacterException& e)
 	{
-		ucerr << filename << u'(' << fis.getLine() << u"): Unexpected character " << (char16)e.actually << u" (respected: " << acpToUtf16(e.respected) << u")" << endl;
+		ucerr << filename << u'(' << fis.getLine() << u"): Unexpected character " << (char16)e.actually << u" (respected: " << ansiToUtf16(e.respected) << u")" << endl;
 	}
 	catch (...)
 	{

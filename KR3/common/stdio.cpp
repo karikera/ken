@@ -101,7 +101,7 @@ ConsoleOutputStream<ConsoleType::Debug, char16> ConsoleOutputStream<ConsoleType:
 template <>
 void DebugOutput::$write(const char *chr, size_t sz) noexcept
 {
-	udout << acpToUtf16(Text(chr, sz));
+	udout << ansiToUtf16(Text(chr, sz));
 }
 
 DebugOutput16::ConsoleOutputStream() noexcept

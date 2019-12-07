@@ -16,8 +16,9 @@ namespace kr
 
 		TaskQueue() noexcept;
 		TaskQueue(const TaskQueue&) = delete;
+		~TaskQueue() noexcept;
 		TaskQueue& operator =(const TaskQueue&) = delete;
-		void clearTask() noexcept;
+		ATTR_DEPRECATED("all tasks must complete") void clearTask() noexcept;
 		void attach(Task* work) noexcept;
 
 	private:

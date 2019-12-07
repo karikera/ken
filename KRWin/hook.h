@@ -170,6 +170,18 @@ namespace kr
 			Read,
 			Lea,
 		};
+
+		enum class Operator
+		{
+			ADD,
+			OR,
+			ADC,
+			SBB,
+			AND,
+			SUB,
+			XOR,
+			CMP,
+		};
 		
 		class CodeWriter :public ArrayWriter<byte>
 		{
@@ -197,8 +209,9 @@ namespace kr
 			void mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept;
 			void mov(Register dest, AddressPointerRule address, Register src, int32_t offset = 0) noexcept;
 			void lea(Register dest, Register src, int32_t offset = 0) noexcept;
-			void sub(Register dest, char chr) noexcept;
-			void add(Register dest, char chr) noexcept;
+			void operex(Operator oper, Register dest, int32_t chr) noexcept;
+			void sub(Register dest, int32_t chr) noexcept;
+			void add(Register dest, int32_t chr) noexcept;
 			void test(Register dest, Register src) noexcept;
 			void jump(void* to, Register tmp) noexcept;
 			void call(void* to, Register tmp) noexcept;

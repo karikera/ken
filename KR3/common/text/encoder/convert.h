@@ -342,11 +342,11 @@ namespace kr
 	{
 		return tx;
 	}
-	inline AnsiToUtf16 acpToUtf16(Text tx) noexcept
+	inline AnsiToUtf16 ansiToUtf16(Text tx) noexcept
 	{
 		return (AnsiToUtf16)tx;
 	}
-	inline Text16 acpToUtf16(Text16 tx) noexcept
+	inline Text16 ansiToUtf16(Text16 tx) noexcept
 	{
 		return tx;
 	}

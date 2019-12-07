@@ -46,7 +46,7 @@ namespace kr
 			}
 			void _resize(size_t nsize) throws(NotEnoughSpaceException)
 			{
-				_realloc(nsize, maxt($size()*3/2, nsize, 4));
+				_realloc(nsize, maxt($size()*3/2, nsize, 4_sz));
 			}
 			void _init(const Component* beg, size_t sz) throws(NotEnoughSpaceException)
 			{

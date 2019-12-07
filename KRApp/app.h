@@ -55,10 +55,7 @@ namespace kr
 #ifdef __KR_APP_FLUSHER
 	public:
 #endif
-#ifdef WIN32
-		EventPump * m_pump;
-#endif
-		PromiseManager * m_prommgr;
+		EventPump* m_pump;
 	};
 
 	void openDevTools() noexcept;

@@ -75,6 +75,14 @@ namespace kr
 		using counter = meta::make_numlist_counter<sizeof ... (ARGS)>;
 		using Call = numunwrap<counter>;
 	};
+	template <typename RET, typename ... ARGS>
+	struct JsMeta<RET(*)(ARGS ...) noexcept> :JsMeta<RET(*)(ARGS ...)>
+	{
+	};
+	template <typename ... ARGS>
+	struct JsMeta<void(*)(ARGS ...) noexcept> :JsMeta<void(*)(ARGS ...)>
+	{
+	};
 	template <typename CLASS, typename RET, typename ... ARGS>
 	struct JsMeta<RET(CLASS::*)(ARGS ...)>
 	{

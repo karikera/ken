@@ -108,9 +108,8 @@ namespace kr
 			}
 		};
 
-		using purelambda_t = remove_constref_t<LAMBDA>;
 		PromiseImpl * prom = _new PromiseImpl;
-		threadingVoid([prom, lambda = (purelambda_t)forward<LAMBDA>(lambda)]() mutable {
+		threadingVoid([prom, lambda = forward<LAMBDA>(lambda)]() mutable {
 			try
 			{
 				promise_meta::with<void, T>::call(prom->_resolveValue(), lambda, nullptr);

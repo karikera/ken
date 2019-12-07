@@ -49,7 +49,7 @@ namespace
 void ::kr::_pri_::emOndrawCallback() noexcept
 {
 	s_main->onDraw();
-	s_main->m_prommgr->process();
+	s_main->m_pump->processOnce();
 }
 #endif
 
@@ -96,10 +96,7 @@ namespace
 
 Application::Application() noexcept
 	:
-#ifdef WIN32 
-	m_pump(EventPump::getInstance()),
-#endif
-	m_prommgr(PromiseManager::getInstance())
+	m_pump(EventPump::getInstance())
 {
 }
 Application::~Application() noexcept
@@ -170,31 +167,31 @@ void Application::create(int width, int height) noexcept
 	emscripten_set_keydown_callback("#window", this, false, [](int eventType, const EmscriptenKeyboardEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onKeyDown(keyEvent->keyCode, keyEvent->repeat);
-		app->m_prommgr->process();
+		app->m_pump->processOnce();
 		return true;
 	});
 	emscripten_set_keyup_callback("#window", this, false, [](int eventType, const EmscriptenKeyboardEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onKeyUp(keyEvent->keyCode);
-		app->m_prommgr->process();
+		app->m_pump->processOnce();
 		return true;
 	});
 	emscripten_set_mousedown_callback("#window", this, false, [](int eventType, const EmscriptenMouseEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onMouseDown(keyEvent->canvasX, keyEvent->canvasY, keyEvent->button);
-		app->m_prommgr->process();
+		app->m_pump->processOnce();
 		return true;
 	});
 	emscripten_set_mouseup_callback("#window", this, false, [](int eventType, const EmscriptenMouseEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onMouseMove(keyEvent->canvasX, keyEvent->canvasY);
-		app->m_prommgr->process();
+		app->m_pump->processOnce();
 		return true;
 	});
 	emscripten_set_mousemove_callback("#window", this, false, [](int eventType, const EmscriptenMouseEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onMouseUp(keyEvent->canvasX, keyEvent->canvasY, keyEvent->button);
-		app->m_prommgr->process();
+		app->m_pump->processOnce();
 		return true;
 	});
 	emscripten_set_resize_callback("#window", this, false,
@@ -206,7 +203,7 @@ void Application::create(int width, int height) noexcept
 		app->m_width = width;
 		app->m_height = height;
 		app->onResize(width, height);
-		app->m_prommgr->process();
+		app->m_pump->processOnce();
 		return true;
 	});
 #endif
@@ -309,7 +306,6 @@ int Application::getHeight() noexcept
 {
 	return m_height;
 }
-
 
 void Application::swap() noexcept
 {

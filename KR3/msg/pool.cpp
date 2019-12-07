@@ -45,7 +45,6 @@ TaskThread::~TaskThread() noexcept
 {
 	postQuit();
 	m_thread.join();
-	clearTask(); // 작업이 전부 끝난뒤 지우는 게 낫지 않을까?
 }
 ThreadObject TaskThread::getThreadObject() noexcept
 {
@@ -59,11 +58,7 @@ void TaskThread::postQuit() noexcept
 }
 void TaskThread::attach(Task* task) noexcept
 {
-	if (m_quited)
-	{
-		task->cancel();
-		return;
-	}
+	_assert(!m_quited); // 작업은 전부 처리하는 것을 목표로 한다
 	TaskQueue::attach(task);
 }
 
@@ -92,8 +87,6 @@ ThreadPoolKrImpl::~ThreadPoolKrImpl() noexcept
 	{
 		thread.join();
 	}
-	clearTask(); // 작업이 전부 끝난뒤 지우는 게 낫지 않을까?
-
 	m_threads = nullptr;
 }
 ThreadPoolKrImpl * ThreadPoolKrImpl::getInstance() noexcept

@@ -6,81 +6,6 @@
 
 using namespace kr;
 
-PromiseManager::PromiseManager() noexcept
-{
-	m_pprocess = &m_process;
-}
-PromiseManager * PromiseManager::getInstance() noexcept
-{
-	static thread_local PromiseManager manager;
-	return &manager;
-}
-void PromiseManager::process() noexcept
-{
-	for (;;)
-	{
-		PromiseRaw * process = m_process;
-		if (process == nullptr) return;
-		m_process = nullptr;
-		m_pprocess = &m_process;
-
-		do
-		{
-			PromiseRaw * processNext = process->m_sibling;
-			PromiseRaw::State state = process->m_state;
-			process->m_ending = true;
-			PromiseRaw * next = process->m_next;
-			process->m_next = nullptr;
-
-			while (next)
-			{
-				_assert((uintptr_t)next % alignof(PromiseRaw) == 0);
-				PromiseRaw * nextSibling = next->m_sibling;
-				switch (process->m_state)
-				{
-				case PromiseRaw::Resolved: next->onThen(process); break;
-				case PromiseRaw::Rejected: next->onKatch(process); break;
-				case PromiseRaw::Pending:
-				default:
-					_assert(!"Pending promise processed\n");
-					break;
-				}
-				next = nextSibling;
-			}
-			if (process->m_ending)
-			{
-				delete process;
-			}
-			process = processNext;
-		} while (process);
-	}
-}
-void PromiseManager::finish() noexcept
-{
-	PromiseRaw * process = m_process;
-	if (process == nullptr) return;
-	m_process = nullptr;
-	m_pprocess = &m_process;
-	process->_deleteCascade();
-}
-size_t PromiseManager::getProcessCount() noexcept
-{
-	size_t count = 0;
-	PromiseRaw * prom = m_process;
-	while (prom)
-	{
-		PromiseRaw * sib = prom;
-		do
-		{
-			_assert((uintptr_t)sib % alignof(PromiseRaw) == 0);
-			count++;
-			sib = sib->m_sibling;
-		} while (sib);
-		prom = prom->m_next;
-	}
-	return count;
-}
-
 PromiseRaw::PromiseRaw() noexcept
 {
 	m_state = Pending;
@@ -118,7 +43,7 @@ void PromiseRaw::_setState(State state) noexcept
 {
 	_assert(m_state == State::Pending);
 	m_state = state;
-	PromiseManager * manager = PromiseManager::getInstance();
+	EventPump * manager = EventPump::getInstance();
 	*manager->m_pprocess = this;
 	manager->m_pprocess = &m_sibling;
 }

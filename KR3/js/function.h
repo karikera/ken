@@ -113,8 +113,7 @@ namespace kr
 		// 사용 가능한 타입: bool, int, float, double, std::wstring
 		template <typename LAMBDA> JsFunctionT(LAMBDA &&func) noexcept
 		{
-			using purelambda_t = remove_constref_t<LAMBDA>;
-			auto lambda = [func = (purelambda_t)forward<LAMBDA>(func)](const JsArguments & args)->JsValue
+			auto lambda = [func = forward<LAMBDA>(func)](const JsArguments & args)->JsValue
 			{
 				return JsMeta<decay_t<LAMBDA> >::Call::call(func, args);
 			};

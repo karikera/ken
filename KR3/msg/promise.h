@@ -5,6 +5,8 @@
 
 namespace kr
 {
+	class EventPump;
+
 	template <typename T>
 	class Promise;
 	template <typename T>
@@ -91,28 +93,9 @@ namespace kr
 		};
 	}
 
-	class PromiseManager
-	{
-		friend PromiseRaw;
-
-	public:
-		static PromiseManager* getInstance() noexcept;
-
-		void process() noexcept;
-		void finish() noexcept;
-		size_t getProcessCount() noexcept;
-
-	private:
-		PromiseManager() noexcept;
-
-		PromiseRaw * m_process;
-		PromiseRaw ** m_pprocess;
-
-	};
-	
 	class PromiseRaw
 	{
-		friend PromiseManager;
+		friend EventPump;
 
 		template <typename T>
 		friend class Promise;
@@ -150,7 +133,7 @@ namespace kr
 		virtual void onKatch(PromiseRaw * from) noexcept;
 
 	private:
-		void _deleteCascade() noexcept;
+		ATTR_DEPRECATED("all tasks must complete") void _deleteCascade() noexcept;
 		void _setState(State state) noexcept;
 		void _addNext(PromiseRaw * next) noexcept;
 		void _readdNext(PromiseRaw * next) noexcept;

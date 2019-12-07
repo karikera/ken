@@ -17,6 +17,9 @@ namespace kr
 		~Process() noexcept;
 
 		void close() noexcept;
+#ifdef WIN32
+		void cmd(pstr16 parameter, pcstr16 curdir = nullptr) throws(Error);
+#endif
 		void shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
 		void exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr) throws(Error);
 		void exec(pstr16 commandLine) throws(Error);

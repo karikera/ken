@@ -49,7 +49,7 @@ void Process::close() noexcept
 	m_stdout_read = nullptr;
 	m_process = nullptr;
 }
-void Process::shell(Text16 command, pcstr16 curdir) throws(Error)
+void Process::cmd(pstr16 parameter, pcstr16 curdir) throws(Error)
 {
 	static AText16 s_comspec;
 	staticCode
@@ -58,7 +58,11 @@ void Process::shell(Text16 command, pcstr16 curdir) throws(Error)
 		s_comspec.c_str();
 	};
 
-	exec(s_comspec.data(), TSZ16() << u"/c " << command, curdir);
+	exec(s_comspec.data(), parameter, curdir);
+}
+void Process::shell(Text16 command, pcstr16 curdir) throws(Error)
+{
+	return cmd(TSZ16() << u"/c " << command, curdir);
 }
 void Process::exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir) throws(Error)
 {

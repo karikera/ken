@@ -16,6 +16,7 @@ namespace kr
 	};
 	class EventPump
 	{
+		friend void PromiseRaw::_setState(State state) noexcept;
 	public:
 		constexpr static dword MAXIMUM_WAIT = EventHandle::MAXIMUM_WAIT - 1;
 		class Timer;
@@ -55,8 +56,8 @@ namespace kr
 		};
 	public:
 		void quit(int exitCode) noexcept;
-		void clear() noexcept;
-		void terminate() noexcept;
+		void waitAll() noexcept;
+		ATTR_DEPRECATED("all tasks must complete") void clearTasks() noexcept;
 
 		// node는 내부에서 관리하게 된다.
 		// return: 이미 만료 혹은 취소된 이벤트의 경우 false
@@ -138,17 +139,22 @@ namespace kr
 		EventPump() noexcept;
 		~EventPump() noexcept;
 
+		size_t _getPromiseCount() noexcept;
+		void _processPromise() noexcept;
 		dword _tryProcess(EventHandle * const * events, dword count) throws(QuitException);
 		TmpArray<EventHandle *> _makeEventArray(View<EventHandle *> events) noexcept;
 		TmpArray<EventHandle *> _makeEventArray(View<EventProcedure> proc) noexcept;
 		void _processMessage() throws(QuitException);
-		dword _processTimer(dword maxSleep);
-		void _fireAfterProcess() noexcept;
+		dword _processTimer(dword maxSleep) throws(QuitException);
 
 		CriticalSection m_timercs;
 		EventHandle* m_msgevent;
 		NodeHead m_start;
 		ThreadId m_threadId;
+		
+	private:
+		PromiseRaw* m_process;
+		PromiseRaw** m_pprocess;
 	};
 
 	namespace _pri_
@@ -157,7 +163,7 @@ namespace kr
 		struct CallWithParamIfHas
 		{
 			template <typename LAMBDA>
-			static void call(LAMBDA && lambda, EventPump::Timer * param) noexcept
+			static void call(LAMBDA && lambda, EventPump::Timer * param) throws(...)
 			{
 				lambda(param);
 			}
@@ -166,7 +172,7 @@ namespace kr
 		struct CallWithParamIfHas<0>
 		{
 			template <typename LAMBDA>
-			static void call(LAMBDA && lambda, EventPump::Timer * param) noexcept
+			static void call(LAMBDA && lambda, EventPump::Timer * param) throws(...)
 			{
 				lambda();
 			}
@@ -183,7 +189,7 @@ namespace kr
 				: Timer(at), m_lambda(forward<LAMBDA>(lambda))
 			{
 			}
-			void call() override
+			void call() throws(...) override
 			{
 				constexpr size_t argn = meta::function<LAMBDA>::args_t::size;
 				_pri_::CallWithParamIfHas<argn>::call(m_lambda, this);

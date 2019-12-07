@@ -2,7 +2,7 @@
 
 #include <KR3/main.h>
 
-struct alignas(16) _CONTEXT;
+struct _CONTEXT;
 typedef _CONTEXT CONTEXT;
 
 namespace kr

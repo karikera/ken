@@ -437,12 +437,12 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 		}
 		catch(OutOfRangeException &e)
 		{
-			udout << u"Out Of Range Date AText, " << acpToUtf16(str);
+			udout << u"Out Of Range Date AText, " << ansiToUtf16(str);
 			throw e;
 		}
 		catch(InvalidSourceException &e)
 		{
-			udout << u"Out Of Range Date AText, " << acpToUtf16(str);
+			udout << u"Out Of Range Date AText, " << ansiToUtf16(str);
 			throw e;
 		}
 #endif

@@ -422,19 +422,30 @@ void CodeWriter::lea(Register dest, Register src, int32_t offset) noexcept
 {
 	movex(BitType::Full, src, dest, AccessType::Lea, offset);
 }
-void CodeWriter::sub(Register dest, char chr) noexcept
+void CodeWriter::operex(Operator oper, Register dest, int32_t chr) noexcept
 {
 	write(0x48);
-	write(0x83);
-	write(0xe8 | dest);
-	write(chr);
+	bool is32bits = (int8_t)chr != chr;
+	if (is32bits && dest == RAX)
+	{
+		write(0x05 | ((int)oper << 3));
+		writeas<int32_t>(chr);
+	}
+	else
+	{
+		write(0x83 ^ (is32bits << 1));
+		write(0xc0 | ((int)oper << 3) | dest);
+		if (is32bits) writeas<int32_t>(chr);
+		else write((int8_t)chr);
+	}
 }
-void CodeWriter::add(Register dest, char chr) noexcept
+void CodeWriter::sub(Register dest, int32_t chr) noexcept
 {
-	write(0x48);
-	write(0x83);
-	write(0xc0 | dest);
-	write(chr);
+	operex(Operator::SUB, dest, chr);
+}
+void CodeWriter::add(Register dest, int32_t chr) noexcept
+{
+	operex(Operator::ADD, dest, chr);
 }
 void CodeWriter::test(Register dest, Register src) noexcept
 {

@@ -7,6 +7,10 @@ TaskQueue::TaskQueue() noexcept
 	:m_leftWorks(0)
 {
 }
+TaskQueue::~TaskQueue() noexcept
+{
+	_assert(m_works.empty()); // 작업은 전부 처리하는 것을 목표로 한다
+}
 void TaskQueue::process() throws(...)
 {
 	for (;;)
