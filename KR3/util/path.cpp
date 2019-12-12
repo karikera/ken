@@ -82,11 +82,11 @@ template <> bool CurrentDirectory::set<char16>(const char16 * text) const noexce
 }
 template <> size_t CurrentDirectory::$copyTo<char16>(char16 * dest) const noexcept
 {
-	return acpToUtf16((Text)"").copyTo(dest);
+	return ansiToUtf16((Text)"").copyTo(dest);
 }
 template <> size_t CurrentDirectory::$sizeAs<char16>() const noexcept
 {
-	return acpToUtf16(s_virtualCurrentPath).size();
+	return ansiToUtf16(s_virtualCurrentPath).size();
 }
 
 #endif

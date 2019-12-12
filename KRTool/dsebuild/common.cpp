@@ -16,7 +16,7 @@ ErrMessage::ErrMessage(const char * msg, ...) noexcept
 }
 void ErrMessage::print() noexcept
 {
-	ucerr << g_filename << u'(' << g_is.getLine() << u"): error " << acpToUtf16((Text)m_message) << endl;
+	ucerr << g_filename << u'(' << g_is.getLine() << u"): error " << ansiToUtf16((Text)m_message) << endl;
 }
 
 void must(char chr, char must) throws(ErrMessage)

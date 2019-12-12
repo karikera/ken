@@ -406,6 +406,15 @@ void CodeWriter::movex(BitType bittype, Register reg1, Register reg2, AccessType
 	if (offsettype == 0x40) writeas<int8_t>(offset);
 	else if (offsettype == 0x80) writeas<int32_t>(offset);
 }
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept
+{
+	write(0x48);
+	write(0xc7);
+	write(0x40 | dest);
+	if (dest == RSP) write(0x24);
+	write(0x26);
+	writeas<int32_t>(value);
+}
 void CodeWriter::mov(AddressPointerRule address, Register dest, Register src) noexcept
 {
 	mov(address, dest, 0, src);

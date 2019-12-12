@@ -162,6 +162,12 @@ namespace kr
 			return find(key) != end();
 		}
 
+		TV& get(const TI& key, const TV& defValue) noexcept
+		{
+			const_iterator iter = find(key);
+			if (iter == end()) return defValue;
+			return iter->second;
+		}
 		const TV& get(const TI& key, const TV& defValue) const noexcept
 		{
 			const_iterator iter = find(key);

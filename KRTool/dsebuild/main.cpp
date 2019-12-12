@@ -58,7 +58,7 @@ int CT_CDECL wmain(int count, const wchar_t ** args)
 	}
 	catch (LangParser::UnexpectedCharacterException& e)
 	{
-		ucerr << g_filename << u'(' << g_is.getLine() << u"): error Unexpected character " << (char16)e.actually << u" (respected: " << acpToUtf16(e.respected) << u')' << endl;
+		ucerr << g_filename << u'(' << g_is.getLine() << u"): error Unexpected character " << (char16)e.actually << u" (respected: " << ansiToUtf16(e.respected) << u')' << endl;
 	}
 	catch(ErrMessage& err)
 	{

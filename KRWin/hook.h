@@ -205,6 +205,7 @@ namespace kr
 			void mov(Register dest, Register src) noexcept;
 			void movb(Register dest, Register src) noexcept;
 			void movex(BitType bittype, Register reg1, Register reg2, AccessType atype, int32_t offset) noexcept;
+			void mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept;
 			void mov(AddressPointerRule address, Register dest, Register src) noexcept;
 			void mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept;
 			void mov(Register dest, AddressPointerRule address, Register src, int32_t offset = 0) noexcept;
