@@ -30,14 +30,10 @@ namespace kr
 	public:
 		KRJS_EXPORT JsScope() noexcept;
 		KRJS_EXPORT ~JsScope() noexcept;
-		KRJS_EXPORT void add(const JsRawData& ref) noexcept;
-		KRJS_EXPORT const JsRawData& returnValue(const JsRawData& value) noexcept;
 
 	private:
 #ifdef KRJS_USE_V8
 #else
-		kr::Array<JsRawData> m_refs;
-		JsScope* m_prev;
 #endif
 	};
 
