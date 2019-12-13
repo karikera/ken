@@ -55,9 +55,9 @@ struct _ErrorCatchThrow
 #else
 #define NOERR _NOERR CONCAT(__rvc, __COUNTER__) =
 #define JsAssertRelease(...) do { JsValueRef __kr_ref = (__VA_ARGS__); \
-	JsErrorCode err = JsRelease(__kr_ref, nullptr); _assert(__kr_ref != JS_INVALID_REFERENCE && err == JsNoError); } while(0, 0)
+	JsErrorCode err = JsRelease(__kr_ref, nullptr); _assert(__kr_ref == JS_INVALID_REFERENCE || err == JsNoError); } while(0, 0)
 #define JsAssertAddRef(...) do { JsValueRef __kr_ref = (__VA_ARGS__); \
-	JsErrorCode err = JsAddRef(__kr_ref, nullptr); _assert(__kr_ref != JS_INVALID_REFERENCE && err == JsNoError); } while(0, 0)
+	JsErrorCode err = JsAddRef(__kr_ref, nullptr); _assert(__kr_ref == JS_INVALID_REFERENCE || err == JsNoError); } while(0, 0)
 #endif
 #define ERRCT _ErrorCatchThrow CONCAT(__rvc, __COUNTER__) =
 
@@ -410,9 +410,11 @@ _ErrorCatchThrow::_ErrorCatchThrow(JsErrorCode err) throws(kr::JsException)
 // scope
 kr::JsScope::JsScope() noexcept
 {
+	ondebug(s_scopeStackCounter++);
 }
 kr::JsScope::~JsScope() noexcept
 {
+	ondebug(s_scopeStackCounter--);
 }
 
 // rawdata
