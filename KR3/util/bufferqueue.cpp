@@ -572,7 +572,7 @@ Buffer BufferQueue::readwith(HashTester<void>& needle, TBuffer* temp) noexcept
 	auto iter = begin();
 	auto iter_end = end();
 
-	if (iter == iter_end) return false;
+	if (iter == iter_end) return nullptr;
 
 	{
 		Buffer text = *iter;
@@ -610,7 +610,7 @@ Buffer BufferQueue::readwith(HashTester<void>& needle, TBuffer* temp) noexcept
 		}
 		*temp << text;
 	}
-	return nullptr;
+	return *temp;
 }
 bool BufferQueue::empty() noexcept
 {

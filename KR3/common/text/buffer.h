@@ -64,48 +64,6 @@ namespace kr
 	};
 	static constexpr const nullterm_t nullterm = nullterm_t();
 
-	template <typename C>
-	struct Names
-	{
-		static const C _true[4];
-		static const C _false[5];
-		static const C _nullptr[7];
-		static const C _whitspace[5];
-	};
-	template <typename C>
-	const C Names<C>::_true[4] = {
-		(C)'t',
-		(C)'r',
-		(C)'u',
-		(C)'e',
-	};
-	template <typename C>
-	const C Names<C>::_false[5] = {
-		(C)'f',
-		(C)'a',
-		(C)'l',
-		(C)'s',
-		(C)'e',
-	};
-	template <typename C>
-	const C Names<C>::_nullptr[7] = {
-		(C)'n',
-		(C)'u',
-		(C)'l',
-		(C)'l',
-		(C)'p',
-		(C)'t',
-		(C)'r',
-	};
-	template <typename C>
-	const C Names<C>::_whitspace[5] = {
-		(C)' ',
-		(C)'\t',
-		(C)'\r',
-		(C)'\n',
-		(C)'\0',
-	};
-	
 	namespace _pri_
 	{
 		template <typename C>

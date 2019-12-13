@@ -1,6 +1,7 @@
 #pragma once
 
 #include <KR3/main.h>
+#include <KR3/meta/chreturn.h>
 #include "mysql_ref.h"
 #include "exception.h"
 

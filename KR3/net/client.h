@@ -12,6 +12,12 @@
 
 namespace kr
 {
+	template <typename T>
+	struct GetPacketId
+	{
+		static constexpr size_t value = T::ID;
+	};
+
 	class Client
 	{
 	public:
@@ -65,7 +71,7 @@ namespace kr
 		template <typename T> 
 		void sendPacket(T & value) noexcept
 		{
-			constexpr size_t opcode = SPackets::template index_of<T>::value;
+			constexpr size_t opcode = GetPacketId<T>::value;
 			static_assert(opcode <= 0xff, "packet opcode overflow");
 			byte bopcode = (byte)opcode;
 			serializeWrite(bopcode);
