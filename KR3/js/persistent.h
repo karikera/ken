@@ -6,6 +6,7 @@ namespace kr
 {
 	class JsPersistent
 	{
+		friend kr::_pri_::InternalTools;
 		friend JsRawData;
 		friend JsWeak;
 		friend _pri_::JsCast;

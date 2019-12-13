@@ -102,6 +102,7 @@ namespace kr
 				NOERR JsSetObjectBeforeCollectCallback(out.m_data, nativeobj, [](JsRef func, void* state) {
 					((OBJ*)state)->Release();
 					});
+				int ref = getRef(out.m_data);
 				return out;
 			}
 			static const JsRawData& detachValue(JsScope& scope, const JsRawData& ref) noexcept
@@ -325,6 +326,78 @@ namespace kr
 				JsException ex;
 				ex.m_exception = exception;
 				throw ex;
+			}
+			static int getRef(JsRef data) noexcept
+			{
+				uint refcount;
+				NOERR JsAddRef(data, &refcount);
+				NOERR JsRelease(data, nullptr);
+				return refcount - 1;
+			}
+			static int getRef(JsRawData data) noexcept
+			{
+				return getRef(data.m_data);
+			}
+			static int getRef(const JsPersistent& data) noexcept
+			{
+				return getRef(data.m_data);
+			}
+			static void test() noexcept
+			{
+				uint refcount = 0;
+
+				class DtorTest
+				{
+				private:
+					bool* m_dtored;
+
+				public:
+					DtorTest(bool* out) noexcept
+						:m_dtored(out){
+					}
+
+					DtorTest(DtorTest&& _moved) {
+						m_dtored = _moved.m_dtored;
+						_moved.m_dtored = nullptr;
+					}
+					~DtorTest() noexcept
+					{
+						if (m_dtored)
+						{
+							_assert(*m_dtored == false);
+							*m_dtored = true;
+						}
+					}
+				};
+				JsPersistent saved;
+				{
+					JsScope scope;
+					JsValue func = JsFunction::makeT([&] {
+						JsValue test = JsNewObject;
+						uint first = getRef(test);
+						saved = test;
+						refcount = getRef(test);
+						_assert(first + 1 == refcount);
+						return test;
+						});
+					JsValue test = func();
+					int funcref = getRef(func);
+					int nref = getRef(test);
+					_assert(nref == refcount);
+					JsRelease(test.m_data, nullptr);
+				}
+				{
+					int nref = getRef(saved);
+					_assert(nref == refcount - 1);
+				}
+
+				JsRuntime::gc();
+
+				{
+					JsScope scope;
+					int nref = getRef((JsValue)saved);
+					_assert(nref == refcount);
+				}
 			}
 		};
 	}
@@ -960,6 +1033,10 @@ void kr::JsRuntime::gc() noexcept
 void kr::JsRuntime::idle() noexcept
 {
 	NOERR JsIdle(nullptr);
+}
+void kr::JsRuntime::test() noexcept
+{
+	return InternalTools::test();
 }
 
 // context

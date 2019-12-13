@@ -21,6 +21,7 @@ namespace kr
 		KRJS_EXPORT static void dispose() noexcept;
 		KRJS_EXPORT static void gc() noexcept;
 		KRJS_EXPORT static void idle() noexcept;
+		KRJS_EXPORT static void test() noexcept;
 	};
 
 	class JsScope

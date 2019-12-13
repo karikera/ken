@@ -88,6 +88,13 @@ namespace test
 	TEST_CLASS(JsUnitTest)
 	{
 	public:
+		TEST_METHOD(internalTest)
+		{
+			JsRuntime runtime;
+			JsContext ctx;
+			JsContext::Scope _scope = ctx;
+			JsRuntime::test();
+		}
 		TEST_METHOD(scriptTest)
 		{
 			delete (_pri_::JsClassInfo*)1;
