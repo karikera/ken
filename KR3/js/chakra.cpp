@@ -1153,7 +1153,7 @@ void kr::JsContext::_exit() noexcept
 
 void kr::JsContext::_cleanForce() noexcept
 {
-	s_scopeStackCounter = 0;
+	ondebug(s_scopeStackCounter = 0);
 	_exit();
 }
 
