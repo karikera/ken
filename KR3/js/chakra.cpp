@@ -1122,7 +1122,7 @@ void kr::JsContext::enter() noexcept
 	s_context = this;
 	_assert(InternalTools::checkCurrentContext(nullptr));
 	JsSetCurrentContext(m_context);
-	s_scopeStackCounter++;
+	ondebug(s_scopeStackCounter++);
 	JsRawData* clsptr = m_classes.data();
 
 	for (_pri_::JsClassInfo& info : s_classList)
@@ -1136,12 +1136,12 @@ void kr::JsContext::enter() noexcept
 void kr::JsContext::exit() noexcept
 {
 	_assert(InternalTools::checkCurrentContext(m_context));
-	s_scopeStackCounter--;
+	ondebug(s_scopeStackCounter--);
 	JsSetCurrentContext(nullptr);
 }
 void kr::JsContext::exitCurrent() noexcept
 {
-	s_scopeStackCounter--;
+	ondebug(s_scopeStackCounter--);
 	JsSetCurrentContext(nullptr);
 }
 void kr::JsContext::_exit() noexcept
