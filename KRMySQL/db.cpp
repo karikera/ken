@@ -99,14 +99,15 @@ bool kr::sql::MySQL::setCharset(Text charset) noexcept
 }
 void kr::sql::MySQL::query(Text query) throws(ThrowRetry, Exception)
 {
-	switch (mysql_real_query(m_conn, query.begin(), intact<dword>(query.size())))
+	int err = mysql_real_query(m_conn, query.begin(), intact<dword>(query.size()));
+	switch (err)
 	{
 	case 0: return;
 	case CR_SERVER_GONE_ERROR:
 	case CR_SERVER_LOST:
 		throw ThrowRetry();
 	default: // CR_COMMANDS_OUT_OF_SYNC, CR_UNKNOWN_ERROR
-		exception(m_conn);
+		exception(m_conn, err);
 	}
 }
 void kr::sql::MySQL::query(MySQL & db, Text qr) throws(Exception)
@@ -126,7 +127,8 @@ void kr::sql::MySQL::query(MySQL & db, Text qr) throws(Exception)
 }
 bool kr::sql::MySQL::nextResult() throws(ThrowRetry, Exception)
 {
-	switch (mysql_next_result(m_conn))
+	int err = mysql_next_result(m_conn);
+	switch (err)
 	{
 	case 0: return true;
 	case -1: return false;
@@ -134,7 +136,7 @@ bool kr::sql::MySQL::nextResult() throws(ThrowRetry, Exception)
 	case CR_SERVER_LOST:
 		throw ThrowRetry();
 	default: // CR_COMMANDS_OUT_OF_SYNC, CR_UNKNOWN_ERROR
-		exception(m_conn);
+		exception(m_conn, err);
 	}
 }
 void kr::sql::MySQL::clearResult() throws(ThrowRetry, Exception)
@@ -143,7 +145,8 @@ void kr::sql::MySQL::clearResult() throws(ThrowRetry, Exception)
 	{
 		MYSQL_RES* res = mysql_use_result(m_conn);
 		mysql_free_result(res);
-		switch (mysql_next_result(m_conn))
+		int err = mysql_next_result(m_conn);
+		switch (err)
 		{
 		case 0: break;
 		case -1: return;
@@ -151,7 +154,7 @@ void kr::sql::MySQL::clearResult() throws(ThrowRetry, Exception)
 		case CR_SERVER_LOST:
 			throw ThrowRetry();
 		default: // CR_COMMANDS_OUT_OF_SYNC, CR_UNKNOWN_ERROR
-			exception(m_conn);
+			exception(m_conn, err);
 		}
 	}
 }

@@ -22,12 +22,13 @@ qword sql::PreparedStatementImpl::affactedRows() noexcept
 }
 void sql::PreparedStatementImpl::execute() throws(ThrowRetry, Exception)
 {
-	switch (mysql_stmt_execute(m_stmt))
+	int err = mysql_stmt_execute(m_stmt);
+	switch (err)
 	{
 	case 0: return;
 	case CR_SERVER_LOST:
 	case CR_SERVER_GONE_ERROR: throw ThrowRetry();
-	default: exception(m_stmt);
+	default: exception(m_stmt, err);
 	}
 }
 void sql::PreparedStatementImpl::execute(MySQL & db) throws(Exception)
@@ -42,15 +43,15 @@ sql::PreparedStatementImpl::PreparedStatementImpl(MySQL& sql, Text query) throws
 	{
 		m_stmt = mysql_stmt_init(sql.get());
 		if (m_stmt == nullptr) notEnoughMemory();
-		int res = mysql_stmt_prepare(m_stmt, m_query.begin(), (unsigned long)m_query.size());
-		switch (res)
+		int err = mysql_stmt_prepare(m_stmt, m_query.begin(), (unsigned long)m_query.size());
+		switch (err)
 		{
 		case 0: return;
 		case CR_SERVER_LOST:
 		case CR_SERVER_GONE_ERROR:
 			sql.reconnect();
 			break;
-		default: exception(m_stmt); // CR_COMMANDS_OUT_OF_SYNC, CR_OUT_OF_MEMORY, CR_UNKNOWN_ERROR
+		default: exception(m_stmt, err); // CR_COMMANDS_OUT_OF_SYNC, CR_OUT_OF_MEMORY, CR_UNKNOWN_ERROR
 		}
 	}
 }
@@ -60,28 +61,31 @@ sql::PreparedStatementImpl::~PreparedStatementImpl() noexcept
 }
 void sql::PreparedStatementImpl::_bindParam(MYSQL_BIND * bind) throws(Exception)
 {
-	switch(mysql_stmt_bind_param(m_stmt, bind))
+	int err = mysql_stmt_bind_param(m_stmt, bind);
+	switch(err)
 	{
 	case 0: return;
-	default: exception(m_stmt); // CR_UNSUPPORTED_PARAM_TYPE, CR_OUT_OF_MEMORY, CR_UNKNOWN_ERROR
+	default: exception(m_stmt, err); // CR_UNSUPPORTED_PARAM_TYPE, CR_OUT_OF_MEMORY, CR_UNKNOWN_ERROR
 	}
 }
 void sql::PreparedStatementImpl::_bindResult(MYSQL_BIND* bind) throws(Exception)
 {
-	switch(mysql_stmt_bind_result(m_stmt, bind))
+	int err = mysql_stmt_bind_result(m_stmt, bind);
+	switch(err)
 	{
 	case 0: return;
-	default: exception(m_stmt); // CR_UNSUPPORTED_PARAM_TYPE, CR_OUT_OF_MEMORY, CR_UNKNOWN_ERROR
+	default: exception(m_stmt, err); // CR_UNSUPPORTED_PARAM_TYPE, CR_OUT_OF_MEMORY, CR_UNKNOWN_ERROR
 	}
 }
 void sql::PreparedStatementImpl::_storeResult() throws(ThrowRetry, Exception)
 {
-	switch (mysql_stmt_store_result(m_stmt))
+	int err = mysql_stmt_store_result(m_stmt);
+	switch (err)
 	{
 	case 0: return;
 	case CR_SERVER_LOST:
 	case CR_SERVER_GONE_ERROR: throw ThrowRetry();
-	default: exception(m_stmt);
+	default: exception(m_stmt, err);
 	}
 }
 void sql::PreparedStatementImpl::_storeResult(MySQL & db) throws(Exception)
@@ -99,12 +103,15 @@ bool sql::PreparedStatementImpl::_fetch() throws(ThrowRetry, ThrowAllocate, Exce
 	{
 	case 0: return true;
 	case 1:
-		switch (mysql_stmt_errno(m_stmt))
+	{
+		int err = mysql_stmt_errno(m_stmt);
+		switch (err)
 		{
 		case CR_SERVER_LOST:
 		case CR_SERVER_GONE_ERROR: throw ThrowRetry();
-		default: exception(m_stmt);
+		default: exception(m_stmt, err);
 		}
+	}
 	case MYSQL_DATA_TRUNCATED: throw ThrowAllocate();
 	default: // MYSQL_NO_DATA
 		return false;
@@ -116,11 +123,12 @@ bool sql::PreparedStatementImpl::_fetch(MySQL & db) throws(ThrowAllocate, Except
 }
 void sql::PreparedStatementImpl::_fetchColumn(MYSQL_BIND * bind, kr::uint index) throws(ThrowRetry, Exception)
 {
-	switch (mysql_stmt_fetch_column(m_stmt, bind, index, 0))
+	int err = mysql_stmt_fetch_column(m_stmt, bind, index, 0);
+	switch (err)
 	{
 	case 0: return;
 	default: // CR_NO_DATA, CR_INVALID_PARAMETER_NO
-		exception(m_stmt);
+		exception(m_stmt, err);
 	}
 }
 
