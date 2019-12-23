@@ -44,13 +44,12 @@ namespace
 DispatchedEvent::DispatchedEvent(EventHandle * event) noexcept
 	: m_event(event), m_pump(EventPump::getInstance())
 {
-	AddRef();
-
 	EventDispatcher * dispatcher;
 
 	s_csDispatcher.enter();
 	if (s_dispatchers.empty())
 	{
+		AddRef();
 		dispatcher = _new EventDispatcher;
 		dispatcher->m_dispatched[0] = this;
 		dispatcher->m_events.push(event);
@@ -60,7 +59,7 @@ DispatchedEvent::DispatchedEvent(EventHandle * event) noexcept
 	else
 	{
 		dispatcher = s_dispatchers.back();
-		if (dispatcher->_add(this))
+		if (dispatcher->_add(this)) // AddRef is called in _add
 		{
 			s_dispatchers.detachLast();
 		}
@@ -106,6 +105,7 @@ EventDispatcher::EventDispatcher() noexcept
 EventDispatcher::~EventDispatcher() noexcept
 {
 	delete m_events.front();
+	join();
 }
 Promise<void> * EventDispatcher::promise(EventHandle * event) noexcept
 {
@@ -135,7 +135,7 @@ void EventDispatcher::_remove(DispatchedEvent * event) noexcept
 	{
 		DispatchedEvent *& dptr = m_dispatched[idx];
 		DispatchedEvent * old = dptr;
-		dptr = m_dispatched[count - 1];
+		dptr = m_dispatched[count - 2];
 		m_events.pick(idx+1);
 	}
 
@@ -153,12 +153,11 @@ bool EventDispatcher::_add(DispatchedEvent * event) noexcept
 	size_t idx = m_events.size();
 	m_dispatched[idx - 1] = event;
 	m_events.push(event->m_event);
-	m_references[0] = 0;
-	bool isEnd = m_events.remaining() == 0;
+	bool isFull = m_events.remaining() == 0;
 
 	m_insert.leave();
 
-	return isEnd;
+	return isFull;
 }
 int EventDispatcher::thread() noexcept
 {
@@ -167,9 +166,10 @@ int EventDispatcher::thread() noexcept
 	{
 		DWORD res = WaitForMultipleObjects(intact<DWORD>(m_events.size()), (HANDLE*)m_events.data(), false, INFINITE);
 		_assert(res != WAIT_FAILED);
-		if (res > WAIT_ABANDONED_0)
+		if (res >= WAIT_ABANDONED_0)
 		{
 			res -= WAIT_ABANDONED_0;
+			if (res == 0) return 0;
 			size_t cnt = m_events.size();
 			if (cnt == EventHandle::MAXIMUM_WAIT)
 			{

@@ -338,9 +338,6 @@ namespace kr
 
 	namespace buffer
 	{
-		template <typename Derived, typename Info>
-		class Memory;
-
 		template <typename Derived, typename Component, template <typename, typename> class Method, bool szable, bool readonly, typename Parent>
 		class Memory<Derived, BufferInfo<Component, Method, szable, readonly, Parent> > 
 			:public WriteToByCopyTo<Derived, Component, BufferInfo<Component, Method, szable, readonly, Parent> >
@@ -439,7 +436,7 @@ namespace kr
 				return _v == nullptr || (begin() <= _v && _v <= end());
 			}
 			template <class _Derived, bool a, bool b, class _Parent>
-			bool contains_ptr(const Bufferable<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>>& _v) const noexcept
+			bool contains_ptr(const Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>>& _v) const noexcept
 			{
 				return contains_ptr(_v.begin());
 			}
@@ -891,19 +888,19 @@ namespace kr
 
 			SplitIterator<Component> splitIterable(const InternalComponent &chr) const noexcept
 			{
-				return { *this, chr };
+				return SplitIterator<Component>((Ref)*this, chr);
 			}
 			TextSplitIterator<Component> splitIterable(Ref chr) const noexcept
 			{
-				return { *this, chr };
+				return TextSplitIterator<Component> ((Ref)*this, chr);
 			}
 			ReverseSplitIterator<Component> reverseSplitIterable(const InternalComponent &chr) const noexcept
 			{
-				return { *this, chr };
+				return ReverseSplitIterator<Component> ((Ref)*this, chr );
 			}
 			ReverseTextSplitIterator<Component> reverseSplitIterable(Ref chr) const noexcept
 			{
-				return { *this, chr };
+				return ReverseTextSplitIterator<Component> ((Ref)*this, chr);
 			}
 
 			LoopIterator<Component> loopIterable(size_t offset) noexcept

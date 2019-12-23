@@ -23,12 +23,12 @@ namespace kr
 			constexpr BufferIMethod(BufferIMethod&&) = default;
 
 			template <class _Derived, bool a, bool b, class _Parent>
-			BufferIMethod(Bufferable<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> & data) noexcept
+			BufferIMethod(buffer::Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> & data) noexcept
 				:Super(data.begin(), data.end())
 			{
 			}
 			template <class _Derived, bool a, bool b, class _Parent>
-			BufferIMethod(const Bufferable<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> & data) noexcept
+			BufferIMethod(const buffer::Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> & data) noexcept
 				:Super(data.begin(), data.end())
 			{
 			}

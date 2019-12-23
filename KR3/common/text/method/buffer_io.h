@@ -448,7 +448,7 @@ namespace kr
 			// internal moving
 			// maybe same component will use default constructor
 			template <typename _Derived, bool a, bool b, class _Parent>
-			explicit BufferIOMethod(Bufferable<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> && _mv) throws(NotEnoughSpaceException)
+			explicit BufferIOMethod(buffer::Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> && _mv) throws(NotEnoughSpaceException)
 				:BufferIOMethod()
 			{
 				_move(_mv.begin(), _mv.size());

@@ -75,7 +75,7 @@ namespace kr
 			Hasher() = default;
 
 			template <typename _Derived, typename _C, bool _szable, bool _readonly, typename _Parent>
-			Hasher(const Bufferable<_Derived, BufferInfo<_C, method::Memory, _szable, _readonly, _Parent>> &data) noexcept
+			Hasher(const buffer::Memory<_Derived, BufferInfo<_C, method::Memory, _szable, _readonly, _Parent>>& data) noexcept
 			{
 				update(data.template cast<void>());
 			}

@@ -4,20 +4,6 @@
 
 namespace kr
 {
-	namespace _pri_
-	{
-		template <typename T, template <typename, typename, typename> class Method>
-		struct has_method
-		{
-			struct has_method_castable
-			{
-				template <typename Derived, typename C, typename Info>
-				has_method_castable(const Method<Derived, C, Info>& v) noexcept;
-			};
-			static constexpr bool value = is_convertible<T, has_method_castable>::value;
-		};
-	}
-
 	template <bool _szable, class Parent = Empty>
 	struct HasWriteToInfo :Parent
 	{

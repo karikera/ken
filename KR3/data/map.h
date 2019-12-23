@@ -58,7 +58,7 @@ namespace kr
 		{
 		public:
 			template <typename Derived, typename Info>
-			MapKey(const Bufferable<Derived, Info>& buffer) noexcept
+			MapKey(const buffer::Memory<Derived, Info>& buffer) noexcept
 			{
 				using C = typename Info::Component;
 				m_size = buffer.size() * sizeof(C);
@@ -75,7 +75,7 @@ namespace kr
 		{
 		public:
 			template <typename Derived, typename C, bool _szable, bool _readonly, typename _Parent>
-			MapKeyStatic(const Bufferable<Derived, BufferInfo<C, method::Memory, _szable, _readonly, _Parent> >& buffer) noexcept
+			MapKeyStatic(const buffer::Memory<Derived, BufferInfo<C, method::Memory, _szable, _readonly, _Parent> >& buffer) noexcept
 			{
 				m_buffer = buffer.data();
 				m_size = buffer.sizeBytes();
@@ -148,9 +148,9 @@ namespace kr
 	}
 
 	template <typename TI, typename TV, bool referencedInput = false>
-	class Map:public meta::if_t<IsMemBuffer<TI>::value, _pri_::MapWrapper<TI, TV, referencedInput>, std::unordered_map<TI, TV> >
+	class Map:public meta::if_t<IsMemory<TI>::value, _pri_::MapWrapper<TI, TV, referencedInput>, std::unordered_map<TI, TV> >
 	{
-		using Super = meta::if_t<IsMemBuffer<TI>::value, _pri_::MapWrapper<TI, TV, referencedInput>, std::unordered_map<TI, TV> >;
+		using Super = meta::if_t<IsMemory<TI>::value, _pri_::MapWrapper<TI, TV, referencedInput>, std::unordered_map<TI, TV> >;
 	public:
 		using typename Super::const_iterator;
 		using Super::Super;

@@ -38,7 +38,7 @@ namespace kr
 			using Parent::_realloc;
 			using Parent::_alloc;
 
-			ComponentRef* $_extend(size_t inc) throws(NotEnoughSpaceException)
+			InternalComponentRef* $_extend(size_t inc) throws(NotEnoughSpaceException)
 			{
 				size_t sz = $size();
 				_resize(sz + inc);
@@ -66,7 +66,7 @@ namespace kr
 			{
 				_init(beg, sz);
 			}
-			ComponentRef* $_padding(size_t inc)
+			InternalComponentRef* $_padding(size_t inc)
 			{
 				_assert(inc != 0);
 				size_t sz = $size();

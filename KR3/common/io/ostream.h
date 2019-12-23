@@ -89,13 +89,13 @@ namespace kr
 
 			// reserve memory with increase size
 			// no constructor
-			inline ComponentRef* _extend(size_t size) throws(NotEnoughSpaceException)
+			inline InternalComponentRef* _extend(size_t size) throws(NotEnoughSpaceException)
 			{
 				return static_cast<Derived*>(this)->$_extend(size);
 			}
 			// reserve memory without increase size
 			// no constructor
-			inline ComponentRef* _padding(size_t size) throws(NotEnoughSpaceException)
+			inline InternalComponentRef* _padding(size_t size) throws(NotEnoughSpaceException)
 			{
 				return static_cast<Derived*>(this)->$_padding(size);
 			}
@@ -103,14 +103,14 @@ namespace kr
 			// capacity를 늘리지 않고, 예외 없이 강제로 준비한다.
 			inline Component* prepareForce(size_t size) noexcept
 			{
-				Component * e = end();
+				InternalComponentRef* e = end();
 				_addEnd(size);
 				mema::ctor(e, end());
 				return e;
 			}
 			inline Component* prepare(size_t size) throws(NotEnoughSpaceException)
 			{
-				Component * e = _extend(size);
+				InternalComponentRef * e = _extend(size);
 				mema::ctor(e, end());
 				return e;
 			}
@@ -232,8 +232,8 @@ namespace kr
 
 		template <typename T>
 		struct PrintTo:public meta::if_t<
-			has_method<T, HasOnlyCopyTo>::value ||
-			has_method<T, HasStreamTo>::value, 
+			IsHasOnlyCopyTo<T>::value ||
+			IsHasStreamTo<T>::value, 
 			PrintToMixed, PrintToAsBuffer>
 		{
 		};

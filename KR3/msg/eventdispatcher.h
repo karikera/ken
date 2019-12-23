@@ -28,8 +28,8 @@ namespace kr
 		EventPump* m_pump;
 
 	private:
-		EventDispatcher * m_dispatcher;
-		EventHandle * m_event;
+		EventDispatcher* m_dispatcher;
+		EventHandle* m_event;
 	};
 
 	template <typename LAMBDA>
@@ -115,6 +115,5 @@ namespace kr
 		CriticalSection m_insert;
 		DispatchedEvent * m_dispatched[EventHandle::MAXIMUM_WAIT-1];
 		atomic<int> m_eventCounter;
-		uint m_references[EventHandle::MAXIMUM_WAIT - 1];
 	};
 }

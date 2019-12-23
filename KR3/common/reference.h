@@ -361,11 +361,25 @@ namespace kr
 	template <typename C, template <typename, typename> class Method = method::CopyTo, bool _szable = false, bool _readonly = true, class Parent = Empty>
 	class BufferInfo;
 
-	// 버퍼일 수 있는 클래스
+
+	namespace _pri_
+	{
+		template <class Derived, typename BufferInfo>
+		struct Bufferable_t;
+		template <class Derived, typename C, template <typename, typename> class Method, bool _szable, bool _readonly, typename _Parent>
+		struct Bufferable_t<Derived, BufferInfo<C, Method, _szable, _readonly, _Parent> >
+		{
+			using type = Method<Derived, BufferInfo<C, Method, _szable, _readonly, _Parent> >;
+		};
+	}
+
+	// 메모리 범위를 가지는 버퍼
 	// Derived: 자식 클래스
 	// BufferInfo: 버퍼의 상세 정보
-	template <class Derived, typename BufferInfo> 
-	class Bufferable;
+	// 컴포넌트 타입이 같다면, Array나 BArray 등에 넣을 수 있다
+	// 컴포넌트가 char라면, AText나 BText 등에 넣을 수 있다
+	template <typename Derived, typename BufferInfo>
+	using Bufferable = typename _pri_::Bufferable_t<Derived, BufferInfo>::type;
 
 	template <typename Derived, typename C, typename Parent = Empty>
 	using Printable = Bufferable<Derived, BufferInfo<C, method::WriteTo, false, true, Parent>>;
@@ -537,20 +551,58 @@ namespace kr
 
 		static constexpr bool value = is_convertible<T, conversion_tester>::value;
 	};
-	template <typename T> struct IsBuffer : is_base_of_t<Bufferable, T> {};
-	template <typename T> struct IsMemBuffer
-	{
-		struct conversion_tester
-		{
-			template <typename Derived, typename C, bool _szable, bool _readonly, typename Parent>
-			conversion_tester(const Bufferable<Derived, BufferInfo<C, method::Memory, _szable, _readonly, Parent>>&);
-		};
 
-		static constexpr bool value = is_convertible<T, conversion_tester>::value;
+	namespace _pri_
+	{
+		template <typename T, template <typename, typename, typename> class Method>
+		struct has_method
+		{
+			struct has_method_castable
+			{
+				template <typename Derived, typename C, typename Info>
+				has_method_castable(const Method<Derived, C, Info>& v) noexcept;
+			};
+			static constexpr bool value = is_convertible<T, has_method_castable>::value;
+		};
+	}
+
+	namespace buffer
+	{
+		template <typename Derived, typename BufferInfo>
+		class Memory;
+	}
+	namespace method
+	{
+		template <typename Derived, typename Info>
+		class Memory;
+	}
+
+	template <typename T>
+	using IsHasOnlyCopyTo = _pri_::has_method<T, HasOnlyCopyTo>;
+	template <typename T>
+	using IsHasCopyTo = _pri_::has_method<T, HasCopyTo>;
+	template <typename T>
+	using IsHasWriteTo = _pri_::has_method<T, HasWriteTo>;
+	template <typename T>
+	using IsHasStreamTo = _pri_::has_method<T, HasStreamTo>;
+	template <typename T>
+	struct IsMemory
+	{
+		struct memory_castable
+		{
+			template <typename Derived, typename BufferInfo>
+			memory_castable(const buffer::Memory<Derived, BufferInfo>& v) noexcept;
+		};
+		static constexpr bool value = is_convertible<T, memory_castable>::value;
+	};
+
+	template <typename T> struct IsBuffer
+	{
+		static constexpr bool value = IsHasOnlyCopyTo<T>::value || IsHasCopyTo<T>::value || IsHasWriteTo<T>::value;
 	};
 	template <typename T> struct IsTransBeffer
 	{
-		static constexpr bool value = IsBuffer<T>::value && !IsMemBuffer<T>::value;
+		static constexpr bool value = IsBuffer<T>::value || !IsMemory<T>::value;
 	};
 
 	// add ~~

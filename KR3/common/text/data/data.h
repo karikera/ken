@@ -268,7 +268,7 @@ namespace kr
 			InternalComponent* m_limit;
 
 		public:
-			void _setEnd(C* str) noexcept
+			void _setEnd(InternalComponentRef* str) noexcept
 			{
 				m_end = (InternalComponent*)str;
 			}
@@ -276,11 +276,11 @@ namespace kr
 			{
 				m_end += inc;
 			}
-			void _setLimit(C* str) noexcept
+			void _setLimit(InternalComponentRef* str) noexcept
 			{
 				m_limit = (InternalComponent*)str;
 			}
-			C* $_extend(size_t inc) throws(NotEnoughSpaceException)
+			InternalComponentRef* $_extend(size_t inc) throws(NotEnoughSpaceException)
 			{
 				InternalComponent* out = m_end;
 				InternalComponent* nptr = out + inc;
@@ -288,7 +288,7 @@ namespace kr
 				m_end = nptr;
 				return out;
 			}
-			C* $_padding(size_t inc) throws(NotEnoughSpaceException)
+			InternalComponentRef* $_padding(size_t inc) throws(NotEnoughSpaceException)
 			{
 				if (m_end + inc > m_limit) throw NotEnoughSpaceException();
 				return m_end;

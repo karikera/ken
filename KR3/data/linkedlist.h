@@ -343,13 +343,13 @@ namespace kr
 			using Super::m_axis;
 
 
-			template <typename F> class Sorter
+			template <typename LAMBDA> class Sorter
 			{
 			public:
-				Sorter(F &func, NodeLinkData * axis) noexcept
-					:m_cmpfunc(move(func)), m_list(axis->m_next)
+				Sorter(LAMBDA&& func, NodeLinkData* axis) noexcept
+					:m_cmpfunc(forward<LAMBDA>(func)), m_list(axis->m_next)
 				{
-					NodeLinkData * last = axis->m_previous;
+					NodeLinkData* last = axis->m_previous;
 					last->m_next = nullptr;
 					m_list->m_previous = last;
 				}
@@ -379,7 +379,7 @@ namespace kr
 				}
 
 			private:
-				F &m_cmpfunc;
+				LAMBDA &&m_cmpfunc;
 				NodeLinkData* m_list;
 
 				NodeLinkData* _pop() // EofException
@@ -772,18 +772,18 @@ namespace kr
 					lambda(node);
 				}
 			}
-			template <typename F>
-			void sort(F &cmpfunc) noexcept
+			template <typename LAMBDA>
+			void sort(LAMBDA&& cmpfunc) noexcept
 			{
-				Sorter<F> sort(cmpfunc, &m_axis);
+				Sorter<LAMBDA> sort(forward<LAMBDA>(cmpfunc), &m_axis);
 				NodeLinkData * first = sort.sort();
 				NodeLinkData * last = first->m_previous;
 				m_axis.m_next = first;
 				m_axis.m_previous = last;
 				first->m_previous = last->m_next = static_cast<Node*>(&m_axis);
 			}
-			template <typename F, typename V>
-			Node* search(F cmpfunc, V value) noexcept
+			template <typename LAMBDA, typename V>
+			Node* search(LAMBDA&&cmpfunc, V value) noexcept
 			{
 				Node* p = m_axis.m_next;
 				while (p != &m_axis)

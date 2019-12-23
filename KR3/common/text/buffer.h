@@ -23,24 +23,6 @@ namespace kr
 		static constexpr bool readonly = _readonly;
 	};
 
-	// 버퍼러블 CRTP
-	// 메모리 범위를 가지는 버퍼이다.
-	// 컴포넌트 타입이 같다면, Array나 BArray 등에 넣을 수 있다.
-	// 컴포넌트가 char라면, AText나 BText 등에 넣을 수 있다.
-	template <class Derived, class Info>
-	class Bufferable;
-
-	template <class Derived, typename C, template <typename, typename> class Method, bool _szable, bool _readonly, typename _Parent>
-	class Bufferable<Derived, BufferInfo<C, Method, _szable, _readonly, _Parent> > 
-		:public Method<Derived, BufferInfo<C, Method, _szable, _readonly, _Parent> >
-	{
-		CLASS_HEADER(Bufferable, Method<Derived, BufferInfo<C, Method, _szable, _readonly, _Parent> >);
-	public:
-		INHERIT_COMPONENT();
-
-		using Super::Super;
-	};
-
 	class nullterm_t final : public Bufferable<nullterm_t, BufferInfo<AutoComponent, method::CopyWriteTo, true, true> >
 	{
 	public:
