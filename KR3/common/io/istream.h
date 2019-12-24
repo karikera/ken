@@ -49,43 +49,30 @@ namespace kr
 	template <typename Component, typename DerivedOut, typename InfoOut, typename DerivedIn, typename ParentIn>
 	size_t passThrough(OutStream<DerivedOut, Component, InfoOut>* os,
 		InStream<DerivedIn, Component, StreamInfo<false, ParentIn> >* is,
-		size_t size) throws(...)
+		size_t size) throws(EofException, ...)
 	{
 		constexpr size_t STREAM_SIZE = 8192;
 		using OS = remove_pointer_t<decltype(os)>;
 		using IS = remove_pointer_t<decltype(is)>;
 		size_t streamed = 0;
 
-		if (size < STREAM_SIZE)
+		try
 		{
-			WriteLock<OS> lock(size);
-			try
+			for (;;)
 			{
+				size_t lockSize = mint(size, STREAM_SIZE);
+				WriteLock<OS> lock(lockSize);
 				Component* dest = lock.lock(os);
-				size_t readed = is->read(dest, size);
+				size_t readed = is->read(dest, lockSize);
 				streamed += readed;
 				lock.unlock(os, readed);
-			}
-			catch (EofException&)
-			{
+				size -= lockSize;
+				if (size == 0) break;
 			}
 		}
-		else
+		catch (EofException&)
 		{
-			WriteLock<OS> lock(STREAM_SIZE);
-			try
-			{
-				for (;;)
-				{
-					Component* dest = lock.lock(os);
-					size_t readed = is->read(dest, STREAM_SIZE);
-					streamed += readed;
-					lock.unlock(os, readed);
-				}
-			}
-			catch (EofException&)
-			{
-			}
+			if (streamed == 0) throw;
 		}
 		return streamed;
 	}

@@ -155,9 +155,9 @@ namespace kr
 	}
 
 	template <typename T, bool referencedInput = false>
-	class Set:public meta::if_t<IsMemBuffer<T>::value, _pri_::SetWrapper<meta::if_t<referencedInput, Buffer, ABuffer>, T>, std::unordered_set<T> >
+	class Set:public meta::if_t<IsMemory<T>::value, _pri_::SetWrapper<meta::if_t<referencedInput, Buffer, ABuffer>, T>, std::unordered_set<T> >
 	{
-		using Super = meta::if_t<IsMemBuffer<T>::value, _pri_::SetWrapper<meta::if_t<referencedInput, Buffer, ABuffer>, T>, std::unordered_set<T> >;
+		using Super = meta::if_t<IsMemory<T>::value, _pri_::SetWrapper<meta::if_t<referencedInput, Buffer, ABuffer>, T>, std::unordered_set<T> >;
 	public:
 		using Super::Super;
 		using Super::find;

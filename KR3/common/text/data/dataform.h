@@ -35,6 +35,7 @@ namespace kr
 			using Parent::$capacity;
 
 			using Parent::_setSize;
+			using Parent::_resize;
 			using Parent::_realloc;
 			using Parent::_alloc;
 
@@ -44,10 +45,7 @@ namespace kr
 				_resize(sz + inc);
 				return $begin() + sz;
 			}
-			void _resize(size_t nsize) throws(NotEnoughSpaceException)
-			{
-				_realloc(nsize, maxt($size()*3/2, nsize, 4_sz));
-			}
+			
 			void _init(const Component* beg, size_t sz) throws(NotEnoughSpaceException)
 			{
 				_alloc(sz, sz);
@@ -146,11 +144,18 @@ namespace kr
 				if (ncap > CAP) throw NotEnoughSpaceException();
 				_setSize(nsize);
 			}
+			// It does not call constructor when it extended
+			// It call destructor when it shrinked
+			void _resize(size_t nsize) throws(NotEnoughSpaceException)
+			{
+				_realloc(nsize, nsize);
+			}
+			// It does not call constructor when it extended
+			// It call destructor when it shrinked
 			void _realloc(size_t nsize, size_t ncap) throws(NotEnoughSpaceException)
 			{
 				_assert(nsize <= ncap);
 				if (ncap > CAP) throw NotEnoughSpaceException();
-
 				InternalComponent* old_end = $end();
 				_setSize(nsize);
 				InternalComponent* new_end = $end();
@@ -284,6 +289,39 @@ namespace kr
 				m_begin = Allocator::_mem_alloc(cap);
 				_setSize($size);
 			}
+			// It does not call constructor when it extended
+			// It call destructor when it shrinked
+			void _resize(size_t nsize) throws(NotEnoughSpaceException)
+			{
+				size_t cap = $capacity();
+				if (nsize <= cap)
+				{
+					if (m_begin == null) return;
+					InternalComponent* old_end = $end();
+					_setSize(nsize);
+					InternalComponent* new_end = $end();
+					if (old_end > new_end) mema::dtor(new_end, old_end);
+					return;
+				}
+				size_t ncap = maxt($size() * 3 / 2, nsize, 4_sz);
+				_assert(nsize <= ncap);
+				if (m_begin == null)
+				{
+					m_begin = (InternalComponent*)Allocator::_mem_alloc(ncap);
+				}
+				else
+				{
+					if (!Allocator::_mem_expand(m_begin, ncap))
+					{
+						size_t osize = $size();
+						m_begin = (InternalComponent*)Allocator::_obj_move(m_begin, ncap,
+							[&](InternalComponent* to) { mema::ctor_move_d(to, m_begin, osize); });
+					}
+				}
+				_setSize(nsize);
+			}
+			// It does not call constructor when it extended
+			// It call destructor when it shrinked
 			void _realloc(size_t nsize, size_t ncap) throws(NotEnoughSpaceException)
 			{
 				_assert(nsize <= ncap);

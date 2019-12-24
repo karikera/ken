@@ -62,7 +62,7 @@ kr::sql::MySQL::MySQL(const char * host, const char * id, const char * password,
 	try
 	{
 		m_conn = mysql_init(nullptr);
-		if(m_conn == nullptr) exception(m_conn);
+		if (m_conn == nullptr) notEnoughMemory();
 		_connect();
 	}
 	catch(SqlException&)
@@ -87,7 +87,7 @@ void kr::sql::MySQL::rollback() noexcept
 {
 	mysql_rollback(m_conn);
 }
-void kr::sql::MySQL::reconnect() throws(Exception)
+void kr::sql::MySQL::connect() throws(Exception)
 {
 	_connect();
 }
@@ -100,15 +100,7 @@ bool kr::sql::MySQL::setCharset(Text charset) noexcept
 void kr::sql::MySQL::query(Text query) throws(ThrowRetry, Exception)
 {
 	int err = mysql_real_query(m_conn, query.begin(), intact<dword>(query.size()));
-	switch (err)
-	{
-	case 0: return;
-	case CR_SERVER_GONE_ERROR:
-	case CR_SERVER_LOST:
-		throw ThrowRetry();
-	default: // CR_COMMANDS_OUT_OF_SYNC, CR_UNKNOWN_ERROR
-		exception(m_conn, err);
-	}
+	exception(m_conn, err);
 }
 void kr::sql::MySQL::query(MySQL & db, Text qr) throws(Exception)
 {
@@ -121,23 +113,16 @@ void kr::sql::MySQL::query(MySQL & db, Text qr) throws(Exception)
 		}
 		catch (ThrowRetry&)
 		{
-			reconnect();
+			connect();
 		}
 	}
 }
 bool kr::sql::MySQL::nextResult() throws(ThrowRetry, Exception)
 {
 	int err = mysql_next_result(m_conn);
-	switch (err)
-	{
-	case 0: return true;
-	case -1: return false;
-	case CR_SERVER_GONE_ERROR:
-	case CR_SERVER_LOST:
-		throw ThrowRetry();
-	default: // CR_COMMANDS_OUT_OF_SYNC, CR_UNKNOWN_ERROR
-		exception(m_conn, err);
-	}
+	if (err == -1) return false;
+	exception(m_conn, err);
+	return true;
 }
 void kr::sql::MySQL::clearResult() throws(ThrowRetry, Exception)
 {
@@ -146,16 +131,8 @@ void kr::sql::MySQL::clearResult() throws(ThrowRetry, Exception)
 		MYSQL_RES* res = mysql_use_result(m_conn);
 		mysql_free_result(res);
 		int err = mysql_next_result(m_conn);
-		switch (err)
-		{
-		case 0: break;
-		case -1: return;
-		case CR_SERVER_GONE_ERROR:
-		case CR_SERVER_LOST:
-			throw ThrowRetry();
-		default: // CR_COMMANDS_OUT_OF_SYNC, CR_UNKNOWN_ERROR
-			exception(m_conn, err);
-		}
+		if (err == -1) return;
+		exception(m_conn, err);
 	}
 }
 kr::sql::Result kr::sql::MySQL::useResult() throws(ThrowRetry, Exception)
@@ -173,7 +150,7 @@ kr::sql::Result kr::sql::MySQL::useResult(MySQL& db) throws(SqlException)
 		}
 		catch (ThrowRetry&)
 		{
-			reconnect();
+			connect();
 		}
 	}
 }
@@ -192,7 +169,7 @@ kr::sql::Result kr::sql::MySQL::storeResult(MySQL & db) throws(SqlException)
 		}
 		catch (ThrowRetry&)
 		{
-			reconnect();
+			connect();
 		}
 	}
 }
@@ -217,11 +194,13 @@ const char* kr::sql::MySQL::getErrorMessage() noexcept
 	return mysql_error(m_conn);
 }
 
-void kr::sql::MySQL::_connect() throws(Exception)
+void kr::sql::MySQL::_connect() throws(SqlException)
 {
 	if (mysql_real_connect(m_conn, m_host, m_id, m_password, m_db, m_port, nullptr, CLIENT_MULTI_STATEMENTS) == nullptr)
 	{
-		exception(m_conn);
+		int err = mysql_errno(m_conn);
+		warning("[MySQL][%d] %s", err, err);
+		throw SqlException();
 	}
 
 	if(m_charset == nullptr) return;

@@ -45,7 +45,7 @@ namespace kr
 			void ready() noexcept;
 			void commit() noexcept;
 			void rollback() noexcept;
-			void reconnect() throws(SqlException);
+			void connect() throws(SqlException);
 			bool setCharset(Text charset) noexcept;
 			void query(Text query) throws(ThrowRetry, SqlException);
 			void query(MySQL & db, Text qr) throws(SqlException);
@@ -92,7 +92,7 @@ inline bool kr::sql::MySQL::connection(LAMBDA &lambda) throws(SqlException)
 		}
 		catch (ThrowRetry&)
 		{
-			reconnect();
+			connect();
 		}
 		catch (SqlException&e)
 		{
@@ -114,7 +114,7 @@ inline bool kr::sql::MySQL::transection(LAMBDA &lambda) throws(SqlException)
 		}
 		catch (ThrowRetry&)
 		{
-			reconnect();
+			connect();
 		}
 		catch (SqlException&e)
 		{

@@ -3,39 +3,31 @@
 #include "mysql_include.h"
 #include "exception.h"
 
-ATTR_NORETURN void kr::sql::exception(MYSQL * mysql) throws(SqlException)
+#include <mysql/errmsg.h>
+
+void kr::sql::exception(MYSQL* mysql, int err) throws(ThrowRetry, SqlException)
 {
-	warning("[MySQL][%d] %s", mysql_errno(mysql), mysql_error(mysql));
-	throw SqlException();
+	if (err == -1) err = mysql_errno(mysql);
+	switch (err)
+	{
+	case 0: return;
+	case CR_SERVER_LOST:
+	case CR_SERVER_GONE_ERROR: throw ThrowRetry();
+	default:
+		warning("[MySQL][%d] %s", err, err);
+		throw SqlException();
+	}
 }
-ATTR_NORETURN void kr::sql::exception(MYSQL* mysql, int err) throws(SqlException)
+void kr::sql::exception(MYSQL_STMT* stmt, int err) throws(ThrowRetry, SqlException)
 {
-	int nerr = mysql_errno(mysql);
-	if (nerr == err)
+	if (err == -1) err = mysql_stmt_errno(stmt);
+	switch (err)
 	{
-		warning("[MySQL][%d] %s", nerr, mysql_error(mysql));
+	case 0: return;
+	case CR_SERVER_LOST:
+	case CR_SERVER_GONE_ERROR: throw ThrowRetry();
+	default:
+		warning("[MySQL][%d] %s", err, err);
+		throw SqlException();
 	}
-	else
-	{
-		warning("[MySQL][%d->%d] %s", err, nerr, mysql_error(mysql));
-	}
-	throw SqlException();
-}
-ATTR_NORETURN void kr::sql::exception(MYSQL_STMT* stmt) throws(SqlException)
-{
-	warning("[MySQL][%d] %s", mysql_stmt_errno(stmt), mysql_stmt_error(stmt));
-	throw SqlException();
-}
-ATTR_NORETURN void kr::sql::exception(MYSQL_STMT* stmt, int err) throws(SqlException)
-{
-	int nerr = mysql_stmt_errno(stmt);
-	if (nerr == err)
-	{
-		warning("[MySQL][%d] %s", nerr, mysql_stmt_error(stmt));
-	}
-	else
-	{
-		warning("[MySQL][%d->%d] %s", err, nerr, mysql_stmt_error(stmt));
-	}
-	throw SqlException();
 }

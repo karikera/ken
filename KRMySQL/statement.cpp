@@ -6,7 +6,7 @@
 
 #define KRSQL_RETRY_WRAP(cmd) \
 	_assert(m_stmt->mysql == db.get());\
-	for(;;){ try{ return cmd; } catch(ThrowRetry&){ db.reconnect(); } }
+	for(;;){ try{ return cmd; } catch(ThrowRetry&){ db.connect(); } }
 
 using namespace kr;
 
@@ -23,20 +23,14 @@ qword sql::PreparedStatementImpl::affactedRows() noexcept
 void sql::PreparedStatementImpl::execute() throws(ThrowRetry, Exception)
 {
 	int err = mysql_stmt_execute(m_stmt);
-	switch (err)
-	{
-	case 0: return;
-	case CR_SERVER_LOST:
-	case CR_SERVER_GONE_ERROR: throw ThrowRetry();
-	default: exception(m_stmt, err);
-	}
+	exception(m_stmt, err);
 }
 void sql::PreparedStatementImpl::execute(MySQL & db) throws(Exception)
 {
 	KRSQL_RETRY_WRAP(execute());
 }
 
-sql::PreparedStatementImpl::PreparedStatementImpl(MySQL& sql, Text query) throws(Exception)
+sql::PreparedStatementImpl::PreparedStatementImpl(MySQL& sql, Text query) throws(SqlException)
 	:m_query(query)
 {
 	for (;;)
@@ -44,14 +38,13 @@ sql::PreparedStatementImpl::PreparedStatementImpl(MySQL& sql, Text query) throws
 		m_stmt = mysql_stmt_init(sql.get());
 		if (m_stmt == nullptr) notEnoughMemory();
 		int err = mysql_stmt_prepare(m_stmt, m_query.begin(), (unsigned long)m_query.size());
-		switch (err)
+		try
 		{
-		case 0: return;
-		case CR_SERVER_LOST:
-		case CR_SERVER_GONE_ERROR:
-			sql.reconnect();
-			break;
-		default: exception(m_stmt, err); // CR_COMMANDS_OUT_OF_SYNC, CR_OUT_OF_MEMORY, CR_UNKNOWN_ERROR
+			exception(m_stmt, err);
+		}
+		catch (ThrowRetry&)
+		{
+			sql.connect();
 		}
 	}
 }

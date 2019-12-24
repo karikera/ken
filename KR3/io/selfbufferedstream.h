@@ -85,13 +85,13 @@ namespace kr
 
 			void need(size_t size)
 			{
-				while (size > (size_t)((InternalComponent*)m_buffer.end() - (InternalComponent*)m_read))
+				while (size > (size_t)(m_buffer.end() - m_read))
 				{
 					size_t remaining = m_buffer.remaining();
 					if (remaining == 0)
 					{
 						if (m_read == m_buffer.begin()) throw TooBigException();
-						size_t remainsize = (InternalComponent*)m_buffer.end() - (InternalComponent*)m_read;
+						size_t remainsize = m_buffer.end() - m_read;
 						m_buffer.copy(m_read, remainsize);
 						m_read = m_buffer.begin();
 						m_buffer << m_stream->read(m_buffer.remaining());
@@ -669,7 +669,7 @@ namespace kr
 			
 		protected:
 			Base* m_stream;
-			const Component * m_read;
+			InternalComponentRef* m_read;
 			BText<BUFFER_SIZE> m_buffer;
 		};
 	}
