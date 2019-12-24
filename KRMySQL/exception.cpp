@@ -14,7 +14,7 @@ void kr::sql::exception(MYSQL* mysql, int err) throws(ThrowRetry, SqlException)
 	case CR_SERVER_LOST:
 	case CR_SERVER_GONE_ERROR: throw ThrowRetry();
 	default:
-		warning("[MySQL][%d] %s", err, err);
+		warning("[MySQL][%d] %s", err, mysql_error(mysql));
 		throw SqlException();
 	}
 }
@@ -27,7 +27,7 @@ void kr::sql::exception(MYSQL_STMT* stmt, int err) throws(ThrowRetry, SqlExcepti
 	case CR_SERVER_LOST:
 	case CR_SERVER_GONE_ERROR: throw ThrowRetry();
 	default:
-		warning("[MySQL][%d] %s", err, err);
+		warning("[MySQL][%d] %s", err, mysql_stmt_error(stmt));
 		throw SqlException();
 	}
 }

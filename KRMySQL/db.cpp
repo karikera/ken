@@ -199,7 +199,7 @@ void kr::sql::MySQL::_connect() throws(SqlException)
 	if (mysql_real_connect(m_conn, m_host, m_id, m_password, m_db, m_port, nullptr, CLIENT_MULTI_STATEMENTS) == nullptr)
 	{
 		int err = mysql_errno(m_conn);
-		warning("[MySQL][%d] %s", err, err);
+		warning("[MySQL][%d] %s", err, mysql_error(m_conn));
 		throw SqlException();
 	}
 
