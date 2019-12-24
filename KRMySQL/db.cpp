@@ -63,7 +63,6 @@ kr::sql::MySQL::MySQL(const char * host, const char * id, const char * password,
 	{
 		m_conn = mysql_init(nullptr);
 		if (m_conn == nullptr) notEnoughMemory();
-		_connect();
 	}
 	catch(SqlException&)
 	{
