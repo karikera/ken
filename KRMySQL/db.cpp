@@ -56,18 +56,11 @@ MYSQL * kr::sql::MySQL::get() noexcept
 {
 	return m_conn;
 }
-kr::sql::MySQL::MySQL(const char * host, const char * id, const char * password, const char * db, const char * charset, int port) noexcept
+kr::sql::MySQL::MySQL(_In_opt_ const char * host, _In_opt_ const char * id, _In_opt_ const char * password, _In_opt_ const char * db, _In_opt_ const char * charset, int port) noexcept
 	:m_host(host),m_id(id),m_password(password),m_db(db), m_charset(charset), m_port(port)
 {
-	try
-	{
-		m_conn = mysql_init(nullptr);
-		if (m_conn == nullptr) notEnoughMemory();
-	}
-	catch(SqlException&)
-	{
-		error("SQL Connection Initializing failed.");
-	}
+	m_conn = mysql_init(nullptr);
+	if (m_conn == nullptr) notEnoughMemory();
 }
 kr::sql::MySQL::~MySQL() noexcept
 {
@@ -197,8 +190,10 @@ void kr::sql::MySQL::_connect() throws(SqlException)
 {
 	if (mysql_real_connect(m_conn, m_host, m_id, m_password, m_db, m_port, nullptr, CLIENT_MULTI_STATEMENTS) == nullptr)
 	{
-		int err = mysql_errno(m_conn);
-		warning("[MySQL][%d] %s", err, mysql_error(m_conn));
+		ondebug(
+			int err = mysql_errno(m_conn);
+			warning("[MySQL][%d] %s", err, mysql_error(m_conn));
+		);
 		throw SqlException();
 	}
 

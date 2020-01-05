@@ -432,7 +432,7 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 	if (strcmp(entry->function, "mainCRTStartup") == 0) return;
 
 	TSZ16 buf;
-	buf << filename << u'(' << entry->line << u"): " << (Utf8ToUtf16)(Text)entry->function << u'\n';
+	buf << filename << u'(' << entry->line << u"): " << (Utf8ToUtf16)(Text)entry->function;
 	onOutput(buf);
 }
 void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept
@@ -440,7 +440,7 @@ void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexce
 	TSZ16 buf;
 	buf << u"ERROR: " << (Utf8ToUtf16)(Text)function << u", Error: ";
 	ErrorCode(gle).getMessageTo<char16>(&buf);
-	buf << u"(0x" << hexf(gle, 8) << u')' << u" (Address: " << (void*)(uintptr_t)addr << u")\n";
+	buf << u"(0x" << hexf(gle, 8) << u')' << u" (Address: " << (void*)(uintptr_t)addr << u')';
 	onOutput(buf);
 }
 

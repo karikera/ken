@@ -46,19 +46,19 @@ const autovar<sizeof(ptr)> Library::get(pcstr str) noexcept
 }
 template <> size_t ProcessAndModule::getName<char>(char* dest, size_t capacity) const noexcept
 {
-	return GetModuleBaseNameA(process, module, dest, intact<DWORD>(capacity));
+	return GetModuleBaseNameA(process, winmodule, dest, intact<DWORD>(capacity));
 }
 template <> size_t ProcessAndModule::getNameLength<char>() const noexcept
 {
-	return GetModuleBaseNameA(process, module, nullptr, 0);
+	return GetModuleBaseNameA(process, winmodule, nullptr, 0);
 }
 template <> size_t ProcessAndModule::getName<char16>(char16* dest, size_t capacity) const noexcept
 {
-	return GetModuleBaseNameW(process, module, wide(dest), intact<DWORD>(capacity));
+	return GetModuleBaseNameW(process, winmodule, wide(dest), intact<DWORD>(capacity));
 }
 template <> size_t ProcessAndModule::getNameLength<char16>() const noexcept
 {
-	return GetModuleBaseNameW(process, module, nullptr, 0);
+	return GetModuleBaseNameW(process, winmodule, nullptr, 0);
 }
 
 void Cursor::operator delete(void * p)
@@ -1036,10 +1036,10 @@ bool win::Process::terminate() noexcept
 }
 Module * win::Process::getFirstModule() noexcept
 {
-	HMODULE module;
+	HMODULE winmodule;
 	DWORD junk;
-	if (!EnumProcessModules(this, &module, sizeof(module), &junk)) return nullptr;
-	return (Module*)module;
+	if (!EnumProcessModules(this, &winmodule, sizeof(winmodule), &junk)) return nullptr;
+	return (Module*)winmodule;
 }
 Module* win::Process::injectDll(pcstr strDllPath) noexcept
 {

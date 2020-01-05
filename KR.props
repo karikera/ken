@@ -78,6 +78,7 @@
       <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
+      <EnableModules>true</EnableModules>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0412</Culture>
@@ -93,18 +94,9 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)' == 'ReleaseTest'">
     <ClCompile>
-      <PreprocessorDefinitions>NDEBUG;PROJECTRUN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJECTRUN;NDEBUG;RELEASE_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
-    <Link>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-    </Link>
-    <Lib>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release'">
     <ClCompile>

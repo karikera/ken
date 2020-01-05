@@ -46,7 +46,7 @@ namespace kr
 			class Iterator
 			{
 			public:
-				Iterator(win::Module* module, PIMAGE_IMPORT_DESCRIPTOR desc) noexcept;
+				Iterator(win::Module* winmodule, PIMAGE_IMPORT_DESCRIPTOR desc) noexcept;
 				Iterator& operator ++() noexcept;
 				FunctionDesc operator *() const noexcept;
 				bool isEnd() const noexcept;
@@ -74,7 +74,7 @@ namespace kr
 		class IATHookerList :public IATModule
 		{
 		public:
-			IATHookerList(win::Module* module, LPCSTR dll) noexcept;
+			IATHookerList(win::Module* winmodule, LPCSTR dll) noexcept;
 			void hooking(LPCSTR func, LPVOID hook) noexcept;
 			void hooking(ULONG_PTR func, LPVOID hook) noexcept;
 			void unhook() noexcept;
@@ -103,7 +103,7 @@ namespace kr
 		{
 		public:
 			IMAGE_IMPORT_DESCRIPTOR * iat;
-			HMODULE module;
+			HMODULE winmodule;
 
 			DllSearcher() noexcept;
 			pcstr first() noexcept;

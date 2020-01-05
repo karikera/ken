@@ -53,7 +53,7 @@ namespace kr
 		{
 		public:
 			Process * process;
-			Module * module;
+			Module * winmodule;
 
 			KR_WRITABLE_METHOD(ProcessAndModule, name, true,
 				(m_this->getName<C>(dest, m_this->getNameLength<C>() + 1)),

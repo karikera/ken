@@ -11,9 +11,9 @@ struct PEStructure
 	IMAGE_DEBUG_DIRECTORY* img_debug_dir;
 	IMAGE_IMPORT_DESCRIPTOR* img_import_desc;
 
-	PEStructure(HMODULE module) noexcept
+	PEStructure(HMODULE winmodule) noexcept
 	{
-		IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)module;
+		IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)winmodule;
 		_assert(dos->e_magic == IMAGE_DOS_SIGNATURE);
 
 		IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)((byte*)dos + dos->e_lfanew);
@@ -41,19 +41,19 @@ void hook::forceCopy(void* dest, const void* src, size_t size) noexcept
 
 DllSearcher::DllSearcher() noexcept
 {
-	HMODULE module = GetModuleHandle(nullptr);
-	this->module = module;
-	this->iat = PEStructure(module).img_import_desc;
+	HMODULE winmodule = GetModuleHandle(nullptr);
+	this->winmodule = winmodule;
+	this->iat = PEStructure(winmodule).img_import_desc;
 }
 pcstr DllSearcher::first() noexcept
 {
-	return (LPCSTR)((uintptr_t)module + iat->Name);
+	return (LPCSTR)((uintptr_t)winmodule + iat->Name);
 }
 pcstr DllSearcher::next() noexcept
 {
 	iat++;
 	if (iat->Name == 0) return nullptr;
-	return (LPCSTR)((uintptr_t)module + iat->Name);
+	return (LPCSTR)((uintptr_t)winmodule + iat->Name);
 }
 
 IATHooker::IATHooker() noexcept
@@ -77,13 +77,13 @@ void IATHooker::unhook() noexcept
 	*m_target = m_backup;
 }
 
-IATModule::IATModule(win::Module* module, LPCSTR dll) noexcept
-	: m_module(module)
+IATModule::IATModule(win::Module* winmodule, LPCSTR dll) noexcept
+	: m_module(winmodule)
 {
-	IMAGE_IMPORT_DESCRIPTOR* importdesc = PEStructure(module).img_import_desc;
+	IMAGE_IMPORT_DESCRIPTOR* importdesc = PEStructure(winmodule).img_import_desc;
 	for (; importdesc->Name; importdesc++)
 	{
-		LPCSTR szLibName = (LPCSTR)((uintptr_t)module + importdesc->Name);
+		LPCSTR szLibName = (LPCSTR)((uintptr_t)winmodule + importdesc->Name);
 		if (_stricmp(szLibName, dll) != 0) continue;
 		m_desc = importdesc;
 		return;
@@ -103,9 +103,9 @@ IATHooker IATModule::hooking(uintptr_t functionName, LPVOID pHook) noexcept
 	else return IATHooker(pTarget, pHook);
 }
 
-IATModule::Iterator::Iterator(win::Module * module, PIMAGE_IMPORT_DESCRIPTOR desc) noexcept
+IATModule::Iterator::Iterator(win::Module * winmodule, PIMAGE_IMPORT_DESCRIPTOR desc) noexcept
 {
-	m_module = module;
+	m_module = winmodule;
 	m_ilt = (PIMAGE_THUNK_DATA)((uintptr_t)m_module + desc->OriginalFirstThunk);
 	m_iat = (PIMAGE_THUNK_DATA)((uintptr_t)m_module + desc->FirstThunk);
 }
@@ -176,7 +176,7 @@ PULONG_PTR IATModule::getFunctionStore(ULONG_PTR ordinal) noexcept
 	return nullptr;
 }
 
-IATHookerList::IATHookerList(win::Module* module, LPCSTR dll) noexcept :IATModule(module, dll)
+IATHookerList::IATHookerList(win::Module* winmodule, LPCSTR dll) noexcept :IATModule(winmodule, dll)
 {
 }
 void IATHookerList::hooking(LPCSTR func, LPVOID hook) noexcept
