@@ -112,6 +112,9 @@
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <ClCompile>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile />
@@ -121,11 +124,15 @@
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <ClCompile>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,11 +149,15 @@
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <ClCompile>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -165,6 +176,9 @@
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <ClCompile>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\KR3\KR3.vcxproj">
