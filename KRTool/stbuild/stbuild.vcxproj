@@ -107,7 +107,7 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>kcopy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
+      <Command>if not exist "$(KEN_DIR)batch\$(TargetFileName)" copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

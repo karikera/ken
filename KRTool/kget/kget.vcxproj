@@ -109,8 +109,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
+      <Command>if not exist "$(KEN_DIR)batch\$(TargetFileName)" copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -118,8 +119,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
+      <Command>if not exist "$(KEN_DIR)batch\$(TargetFileName)" copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|Win32'">
@@ -130,8 +132,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
+      <Command>if not exist "$(KEN_DIR)batch\$(TargetFileName)" copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -139,8 +142,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
+      <Command>if not exist "$(KEN_DIR)batch\$(TargetFileName)" copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|x64'">
@@ -151,8 +155,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
+      <Command>if not exist "$(KEN_DIR)batch\$(TargetFileName)" copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -162,8 +167,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
+      <Command>if not exist "$(KEN_DIR)batch\$(TargetFileName)" copy "$(TargetPath)" "$(KEN_DIR)batch\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
