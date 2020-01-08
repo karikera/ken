@@ -12,6 +12,7 @@ using namespace kr;
 constexpr int PROCESS_MESSAGE_COUNT_PER_TRY = 4;
 
 EventPump::EventPump() noexcept
+	:m_reference(1)
 {
 	m_start.m_next = nullptr;
 	m_pprocess = &m_process;
@@ -39,9 +40,9 @@ void EventPump::waitAll() noexcept
 	for (;;)
 	{
 		_processPromise();
-		if (m_start.m_next != nullptr)
+		processOnce();
+		if (m_start.m_next != nullptr || m_reference != 0)
 		{
-			processOnce();
 			DWORD sleep = _processTimer(INFINITE);
 			dword index = MsgWaitForMultipleObjectsEx(1, (HANDLE*)&m_msgevent, sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 			_assert(index != WAIT_FAILED);
@@ -225,6 +226,17 @@ void EventPump::wait(EventHandle * event, duration time) throws(QuitException)
 void EventPump::waitTo(EventHandle * event, timepoint time) throws(QuitException)
 {
 	waitTo(View<EventHandle*>(&event, 1), time);
+}
+void EventPump::AddRef() noexcept
+{
+	
+}
+void EventPump::Release() noexcept
+{
+	if (--m_reference == 0)
+	{
+		m_msgevent->set();
+	}
 }
 dword EventPump::wait(View<EventHandle *> events) throws(QuitException)
 {

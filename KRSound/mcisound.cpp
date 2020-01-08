@@ -103,7 +103,7 @@ Promise<void> * MCISound::open(AText16 filename) noexcept
 	MCIPromise * prom = _new MCIPromise;
 	EventPump * pump = EventPump::getInstance();
 
-	(*s_system)->post([this, prom, pump, filename = move(filename)](void*) mutable{
+	(*s_system)->post([this, prom, pump = (Must<EventPump>)pump, filename = move(filename)](void*) mutable{
 		{
 			MCI_OPEN_PARMSW op;
 			op.dwCallback = 0;

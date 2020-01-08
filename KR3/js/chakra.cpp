@@ -269,14 +269,6 @@ namespace kr
 				NOERR JsGetCurrentContext(&oldctx);
 				return oldctx;
 			}
-			static bool checkCurrentContext(JsContextRef ctx) noexcept
-			{
-				JsContextRef oldctx;
-				NOERR JsGetCurrentContext(&oldctx);
-				bool res = oldctx == ctx;
-				JsAssertRelease(oldctx);
-				return res;
-			}
 			static bool hasExternalData(JsValueRef object) noexcept
 			{
 				bool out;
@@ -692,7 +684,7 @@ kr::JsPersistent::JsPersistent() noexcept
 kr::JsPersistent::JsPersistent(const JsRawData& value) noexcept
 {
 	m_data = value.m_data;
-	NOERR JsAddRef(m_data, nullptr);
+	JsAssertAddRef(m_data);
 }
 kr::JsPersistent::JsPersistent(const JsWeak& obj) noexcept
 {
@@ -1000,7 +992,7 @@ void kr::JsRuntime::setRuntime(const JsRawRuntime &runtime) noexcept
 }
 void kr::JsRuntime::dispose() noexcept
 {
-	NOERR JsDisposeRuntime(s_runtime);
+	JsDisposeRuntime(s_runtime);
 	s_runtime = JS_INVALID_REFERENCE;
 	s_sourceContextCounter = 0;
 }
@@ -1026,10 +1018,6 @@ kr::JsContext::JsContext(const JsContext& _ctx) noexcept
 {
 	JsAddRef(m_context = _ctx.m_context, nullptr);
 	JsAddRef(m_global = _ctx.m_global, nullptr);
-	JsAddRef(m_undefinedValue = _ctx.m_undefinedValue, nullptr);
-	JsAddRef(m_trueValue = _ctx.m_trueValue, nullptr);
-	JsAddRef(m_falseValue = _ctx.m_falseValue, nullptr);
-	JsAddRef(m_nullValue = _ctx.m_nullValue, nullptr);
 	JsAddRef(m_prototypeId = _ctx.m_prototypeId, nullptr);
 	JsAddRef(m_constructorId = _ctx.m_constructorId, nullptr);
 	JsAddRef(m_lengthId = _ctx.m_lengthId, nullptr);
@@ -1051,13 +1039,9 @@ kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 	NOERR JsGetGlobalObject(&m_global);
 	NOERR JsAddRef(m_global, nullptr);
 	NOERR JsGetUndefinedValue(&m_undefinedValue);
-	NOERR JsAddRef(m_undefinedValue, nullptr);
 	NOERR JsGetTrueValue(&m_trueValue);
-	NOERR JsAddRef(m_trueValue, nullptr);
 	NOERR JsGetFalseValue(&m_falseValue);
-	NOERR JsAddRef(m_falseValue, nullptr);
 	NOERR JsGetNullValue(&m_nullValue);
-	NOERR JsAddRef(m_nullValue, nullptr);
 	NOERR JsGetPropertyIdFromName(L"prototype", &m_prototypeId);
 	NOERR JsGetPropertyIdFromName(L"constructor", &m_constructorId);
 	NOERR JsGetPropertyIdFromName(L"length", &m_lengthId);
@@ -1088,7 +1072,6 @@ kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 		}
 	}
 	JsSetCurrentContext(oldctx);
-	JsAssertRelease(oldctx);
 }
 kr::JsContext::~JsContext() noexcept
 {
@@ -1102,10 +1085,6 @@ kr::JsContext::~JsContext() noexcept
 	{
 		JsAssertRelease(value.m_data);
 	}
-	JsAssertRelease(m_undefinedValue);
-	JsAssertRelease(m_trueValue);
-	JsAssertRelease(m_falseValue);
-	JsAssertRelease(m_nullValue);
 	JsAssertRelease(m_prototypeId);
 	JsAssertRelease(m_constructorId);
 	JsAssertRelease(m_lengthId);
@@ -1114,13 +1093,12 @@ kr::JsContext::~JsContext() noexcept
 	JsAssertRelease(m_global);
 	JsSetCurrentContext(oldctx);
 	JsAssertRelease(m_context);
-	JsAssertRelease(oldctx);
 }
 
 void kr::JsContext::enter() noexcept
 {
+	_assert(s_scopeStackCounter == 0);
 	s_context = this;
-	_assert(InternalTools::checkCurrentContext(nullptr));
 	JsSetCurrentContext(m_context);
 	ondebug(s_scopeStackCounter++);
 	JsRawData* clsptr = m_classes.data();
@@ -1135,7 +1113,7 @@ void kr::JsContext::enter() noexcept
 #pragma warning(disable:6387)
 void kr::JsContext::exit() noexcept
 {
-	_assert(InternalTools::checkCurrentContext(m_context));
+	_assert(InternalTools::getCurrentContext() == m_context);
 	ondebug(s_scopeStackCounter--);
 	JsSetCurrentContext(nullptr);
 }
@@ -1146,7 +1124,6 @@ void kr::JsContext::exitCurrent() noexcept
 }
 void kr::JsContext::_exit() noexcept
 {
-
 	JsSetCurrentContext(nullptr);
 }
 #pragma warning(pop)

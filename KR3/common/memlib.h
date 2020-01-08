@@ -72,7 +72,7 @@ namespace kr
 		_VOID_ xor_copy(ptr _dst, cptr _src, size_t _len, dword _key) noexcept;
 		_RETURN_ bool equals(cptr _dst, cptr _src, size_t _len) noexcept;
 		_RETURN_ bool equals_i(cptr _dst, cptr _src, size_t _len) noexcept;
-		_RETURN_ int compare(cptr _dst, cptr _src, size_t _len) noexcept;
+		ATTR_NO_DISCARD _RETURN_ int compare(cptr _dst, cptr _src, size_t _len) noexcept;
 		template <typename T>
 		_RETURN_ T* compare_p(T* _dst, tconst<T>* _src, size_t _len) noexcept;
 		

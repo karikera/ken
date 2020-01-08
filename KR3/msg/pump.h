@@ -14,7 +14,7 @@ namespace kr
 		void * param;
 		void(*callback)(void*);
 	};
-	class EventPump
+	class EventPump:public Interface<Empty>
 	{
 		friend void PromiseRaw::_setState(State state) noexcept;
 	public:
@@ -123,6 +123,8 @@ namespace kr
 		void wait(EventHandle * event) throws(QuitException);
 		void wait(EventHandle * event, duration time) throws(QuitException);
 		void waitTo(EventHandle * event, timepoint time) throws(QuitException);
+		void AddRef() noexcept;
+		void Release() noexcept;
 
 		Promise<void> * promise(duration time) noexcept;
 		Promise<void> * promiseTo(timepoint at) noexcept;
@@ -151,6 +153,7 @@ namespace kr
 		EventHandle* m_msgevent;
 		NodeHead m_start;
 		ThreadId m_threadId;
+		atomic<size_t> m_reference;
 		
 	private:
 		PromiseRaw* m_process;

@@ -233,7 +233,7 @@ __left:
 	return 0;
 }
 template <>
-inline ATTR_NO_DISCARD int kr::memt<1>::compare(cptr _dst, cptr _src, size_t _len) noexcept
+ATTR_NO_DISCARD inline int kr::memt<1>::compare(cptr _dst, cptr _src, size_t _len) noexcept
 {
 	return memcmp(_dst, _src, _len);
 }

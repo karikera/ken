@@ -25,7 +25,7 @@ namespace kr
 		virtual void call() noexcept = 0;
 
 	protected:
-		EventPump* m_pump;
+		Must<EventPump> m_pump;
 
 	private:
 		EventDispatcher* m_dispatcher;
@@ -59,7 +59,7 @@ namespace kr
 	{
 	private:
 		LAMBDA m_lambda;
-		EventPump* m_pump;
+		Must<EventPump> m_pump;
 
 	public:
 		DispatchedEventLambdaCurrentThread(EventHandle* event, const LAMBDA &lambda) noexcept

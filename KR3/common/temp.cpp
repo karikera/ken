@@ -134,8 +134,13 @@ kr::StackAllocator::~StackAllocator() noexcept
 }
 void kr::StackAllocator::terminate() noexcept
 {
-	_assert(empty());
-	kr_free(m_last);
+	Node * node = m_last;
+	while (node != nullptr)
+	{
+		Node * prev = node->prev;
+		kr_free(node);
+		node = prev;
+	}
 	m_last = nullptr;
 }
 ATTR_NO_DISCARD kr::autoptr kr::StackAllocator::allocate(size_t sz) noexcept

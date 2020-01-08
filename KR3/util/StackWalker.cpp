@@ -453,4 +453,5 @@ kr::StackWriter::StackWriter(CONTEXT* ctx) noexcept
 void kr::StackWriter::onOutput(Text16 szText) noexcept
 {
 	m_out.write(szText);
+	m_out << endl;
 }
