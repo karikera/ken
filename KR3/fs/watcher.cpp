@@ -55,6 +55,8 @@ void DirectoryWatcher::open(const char16 * dir, bool subtree) throws(Error)
 }
 void DirectoryWatcher::close() noexcept
 {
+	CancelIoEx(m_dir, _overlapped());
+	SleepEx(0, true); // resolve the cancel io state
 	delete m_dir;
 	m_dir = nullptr;
 }
@@ -65,8 +67,9 @@ void DirectoryWatcher::_request() noexcept
 	BOOL ReadDirectoryChangesW_result = ReadDirectoryChangesW(m_dir, m_buffer, sizeof(m_buffer), m_subtree, dwNotifyFilter, &size, _overlapped(),
 		[](DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped) {
 			auto * _this = _from<DirectoryWatcher>(lpOverlapped);
+			if (dwErrorCode == ERROR_OPERATION_ABORTED) return;
+			_assert(dwErrorCode == ERROR_SUCCESS);
 			if (_this->m_dir == nullptr) return;
-
 			if (dwErrorCode == ERROR_SUCCESS)
 			{
 				FILE_NOTIFY_INFORMATION* pfni = (FILE_NOTIFY_INFORMATION*)_this->m_buffer;

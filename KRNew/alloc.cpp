@@ -125,7 +125,7 @@ typedef struct _CrtMemBlockHeader
 namespace
 {
 	kr::_pri_::AllocationMove* s_moving;
-	int s_allocCounter = 0;
+	thread_local int s_allocCounter = 0;
 	int s_allocCounterBreak = 0;
 	bool s_allocCounterBreakEnabled = false;
 	atomic<bool> s_memoryObserverDisabled;

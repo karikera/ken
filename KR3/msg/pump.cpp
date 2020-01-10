@@ -12,7 +12,7 @@ using namespace kr;
 constexpr int PROCESS_MESSAGE_COUNT_PER_TRY = 4;
 
 EventPump::EventPump() noexcept
-	:m_reference(1)
+	:m_reference(0)
 {
 	m_start.m_next = nullptr;
 	m_pprocess = &m_process;
@@ -229,11 +229,13 @@ void EventPump::waitTo(EventHandle * event, timepoint time) throws(QuitException
 }
 void EventPump::AddRef() noexcept
 {
-	
+	m_reference++;
 }
 void EventPump::Release() noexcept
 {
-	if (--m_reference == 0)
+	size_t ref = --m_reference;
+	_assert(ref >= 0);
+	if (ref == 0)
 	{
 		m_msgevent->set();
 	}
