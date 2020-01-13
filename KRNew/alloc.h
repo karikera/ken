@@ -44,6 +44,7 @@ namespace kr
 
 	void disableKrMemoryObserver(bool disabled) noexcept;
 	void setAllocCounterBreak(int counter) noexcept;
+	void removeAllocDebugInfo(void* ptr) noexcept;
 }
 #define reline_new(ptr) (::kr::_pri_::reline_new_pass_impl(ptr, __FILE__, __LINE__))
 #define depend_new(parent, child) (::kr::_pri_::depend_new_impl(\

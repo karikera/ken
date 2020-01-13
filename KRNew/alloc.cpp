@@ -721,6 +721,9 @@ void kr::disableKrMemoryObserver(bool disabled) noexcept
 void kr::setAllocCounterBreak(int counter) noexcept
 {
 }
+void kr::removeAllocDebugInfo(void* block) noexcept
+{
+}
 
 #else
 
@@ -747,6 +750,11 @@ void kr::setAllocCounterBreak(int counter) noexcept
 {
 	s_allocCounterBreak = counter;
 	s_allocCounterBreakEnabled = true;
+}
+void kr::removeAllocDebugInfo(void* ptr) noexcept
+{
+	BlockInfo * block = BlockInfo::from(ptr);
+	if (block != nullptr) s_mo.removeBlock(block);
 }
 
 #endif
