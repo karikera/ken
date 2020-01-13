@@ -51,7 +51,7 @@ struct _ErrorCatchThrow
 #ifdef NDEBUG
 #define NOERR
 #define JsAssertRelease(...)  JsRelease(__VA_ARGS__, nullptr)
-#define JsAssertAddRef(...)  JsRelease(__VA_ARGS__, nullptr)
+#define JsAssertAddRef(...)  JsAddRef(__VA_ARGS__, nullptr)
 #else
 #define NOERR _NOERR CONCAT(__rvc, __COUNTER__) =
 #define JsAssertRelease(...) do { JsValueRef __kr_ref = (__VA_ARGS__); \
@@ -612,7 +612,6 @@ kr::JsRawData kr::JsRawData::call(JsRawData _this, JsArgumentsIn arguments) cons
 		args.push(value.m_data);
 	}
 
-	void* temp = JsSetException;
 	JsRawData res;
 	ERRCT JsCallFunction(m_data, args.data(), intact<unsigned short>(args.size()), &res.m_data);
 	return res;
@@ -1097,7 +1096,7 @@ kr::JsContext::~JsContext() noexcept
 
 void kr::JsContext::enter() noexcept
 {
-	_assert(s_scopeStackCounter == 0);
+	ondebug(_assert(s_scopeStackCounter == 0));
 	s_context = this;
 	JsSetCurrentContext(m_context);
 	ondebug(s_scopeStackCounter++);
