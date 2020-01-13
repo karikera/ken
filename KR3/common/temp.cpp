@@ -25,7 +25,8 @@ kr::StackAllocator::AllocHead * kr::StackAllocator::AllocHead::get(void * p) noe
 
 ATTR_NO_DISCARD kr::StackAllocator::Node* kr::StackAllocator::Node::create(Node * pnode, size_t sz) noexcept
 {
-	Node* newnode = reline_new((Node*)alloc<alignof(Node)>::allocate(sz));
+	Node* newnode = (Node*)alloc<alignof(Node)>::allocate(sz);
+	removeAllocDebugInfo(newnode);
 	newnode->prev = pnode;
 	newnode->axis.usefrom = newnode->axis.useto = (byte*)(newnode + 1);
 	newnode->axis.next = &newnode->axis;
