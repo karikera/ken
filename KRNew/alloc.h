@@ -74,6 +74,7 @@ namespace kr
 {
 	void disableKrMemoryObserver(bool disabled) noexcept;
 	void setAllocCounterBreak(int counter) noexcept;
+	void removeAllocDebugInfo(void* ptr) noexcept;
 }
 
 #define _new new
