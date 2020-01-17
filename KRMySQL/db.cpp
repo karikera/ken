@@ -67,9 +67,9 @@ kr::sql::MySQL::~MySQL() noexcept
 	mysql_close(m_conn);
 }
 
-void kr::sql::MySQL::ready() noexcept
+void kr::sql::MySQL::autocommit(bool enabled) noexcept
 {
-	mysql_autocommit(m_conn, 0);
+	mysql_autocommit(m_conn, enabled);
 }
 void kr::sql::MySQL::commit() noexcept
 {

@@ -42,7 +42,7 @@ namespace kr
 			~MySQL() noexcept;
 			MySQL(const MySQL&) = delete;
 			MYSQL* get() noexcept;
-			void ready() noexcept;
+			void autocommit(bool enabled) noexcept;
 			void commit() noexcept;
 			void rollback() noexcept;
 			void connect() throws(SqlException);
@@ -107,9 +107,10 @@ inline bool kr::sql::MySQL::transection(LAMBDA &lambda) throws(SqlException)
 	{
 		try
 		{
-			ready();
+			autocommit(false);
 			bool res = meta::returnBool(lambda)();
 			commit();
+			autocommit(true);
 			return res;
 		}
 		catch (ThrowRetry&)
@@ -119,11 +120,13 @@ inline bool kr::sql::MySQL::transection(LAMBDA &lambda) throws(SqlException)
 		catch (SqlException&e)
 		{
 			rollback();
+			autocommit(true);
 			throw e;
 		}
 		catch (...)
 		{
 			rollback();
+			autocommit(true);
 			debug();
 			throw;
 		}
