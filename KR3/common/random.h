@@ -14,6 +14,7 @@ namespace kr
 
 		void fill(void * dest, size_t size) noexcept;
 		template <size_t size> void fill(void * value) noexcept;
+		template <size_t size, typename T> void fill(T (&value)[size]) noexcept;
 
 		template <typename T> T get() noexcept;
 		template <typename T> T getSigned(T value) noexcept;

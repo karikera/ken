@@ -48,7 +48,7 @@ size_t kr::Ipv4Address::$size() const noexcept
 template <typename CHR> size_t kr::Ipv4Address::$copyTo(CHR * dest) const noexcept
 {
 	ArrayWriter<CHR> writer(dest, dest + 16);
-	writer << a << '.' << b << '.' << c << '.' << d;
+	writer << a << (CHR)'.' << b << (CHR)'.' << c << (CHR)'.' << d;
 	return writer.end() - dest;
 }
 

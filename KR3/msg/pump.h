@@ -135,13 +135,15 @@ namespace kr
 		int messageLoop() noexcept;
 		int messageLoopWith(View<EventProcedure> proc) noexcept;
 
+		// use to fix webasm
+		size_t getPromiseCount() noexcept;
+
 		static EventPump * getInstance() noexcept;
 
 	private:
 		EventPump() noexcept;
 		~EventPump() noexcept;
 
-		size_t _getPromiseCount() noexcept;
 		void _processPromise() noexcept;
 		dword _tryProcess(EventHandle * const * events, dword count) throws(QuitException);
 		TmpArray<EventHandle *> _makeEventArray(View<EventHandle *> events) noexcept;

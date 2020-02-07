@@ -309,9 +309,6 @@
     <ClInclude Include="util\delta.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="data\mixedarray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="meta\value.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -678,6 +675,15 @@
     <ClInclude Include="util\stackgc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="data\mixedarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data\mixed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="http\wscommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\autovar\autoptr.cpp">
@@ -1026,6 +1032,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="data\map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="http\wscommon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,7 +5,7 @@
 #include <KR3/util/resloader.h>
 #include "common.h"
 
-class kr::image::Palette :public kr::Bufferable<Palette, kr::BufferInfo<color, method::Memory, false, false, krb_image_palette_t> >
+class kr::image::Palette :public kr::Bufferable<Palette, kr::BufferInfo<color, method::Memory, false, false, KrbImagePalette> >
 {
 	using Super = WView<kr::color>;
 public:

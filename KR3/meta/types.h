@@ -365,20 +365,20 @@ namespace kr
 			template <typename LAMBDA> auto call(LAMBDA && lambda) const -> decltype(lambda((*(remove_reference_t<args>*)0) ...));
 			template <typename LAMBDA> static auto castCall(LAMBDA && lambda, args ... v) -> decltype(lambda((*(remove_reference_t<args>*)0) ...));
 
-			template <typename LAMBDA> static void type_loop(LAMBDA && lambda);
-			template <typename LAMBDA> static void type_loop_r(LAMBDA && lambda);
-			template <typename LAMBDA> static void type_switch(size_t idx, LAMBDA && lambda);
-			template <typename LAMBDA> static void type_switch(size_t idx, LAMBDA && lambda, void * value);
-			template <typename LAMBDA> static void type_switch(size_t idx, LAMBDA && lambda, const void * value);
+			template <typename LAMBDA> static void type_loop(LAMBDA && lambda) throws(...);
+			template <typename LAMBDA> static void type_loop_r(LAMBDA && lambda) throws(...);
+			template <typename LAMBDA> static void type_switch(size_t idx, LAMBDA && lambda) throws(...);
+			template <typename LAMBDA> static void type_switch(size_t idx, LAMBDA && lambda, void * value) throws(...);
+			template <typename LAMBDA> static void type_switch(size_t idx, LAMBDA && lambda, const void * value) throws(...);
 			static size_t type_sizeof_at(size_t idx) noexcept;
-			template <typename LAMBDA> void value_loop(LAMBDA && lambda) const;
-			template <typename LAMBDA> void value_loop(LAMBDA && lambda);
-			template <typename LAMBDA> void value_loop_r(LAMBDA && lambda) const;
-			template <typename LAMBDA> void value_loop_r(LAMBDA && lambda);
-			template <typename LAMBDA> void value_loop_with(LAMBDA && lambda, const args & ... p) const;
-			template <typename LAMBDA> void value_loop_with(LAMBDA && lambda, const args & ... p);
-			template <typename LAMBDA, typename ... types_list> void value_loop_with(LAMBDA && lambda, const types_list & ... types_args) const;
-			template <typename LAMBDA, typename ... types_list> void value_loop_with(LAMBDA && lambda, const types_list & ... types_args);
+			template <typename LAMBDA> void value_loop(LAMBDA && lambda) const throws(...);
+			template <typename LAMBDA> void value_loop(LAMBDA && lambda) throws(...);
+			template <typename LAMBDA> void value_loop_r(LAMBDA && lambda) const throws(...);
+			template <typename LAMBDA> void value_loop_r(LAMBDA && lambda) throws(...);
+			template <typename LAMBDA> void value_loop_with(LAMBDA && lambda, const args & ... p) const throws(...);
+			template <typename LAMBDA> void value_loop_with(LAMBDA && lambda, const args & ... p) throws(...);
+			template <typename LAMBDA, typename ... types_list> void value_loop_with(LAMBDA && lambda, const types_list & ... types_args) const throws(...);
+			template <typename LAMBDA, typename ... types_list> void value_loop_with(LAMBDA && lambda, const types_list & ... types_args) throws(...);
 
 			template <size_t from>
 			subarr_t<from>& subarr() noexcept;
@@ -501,83 +501,83 @@ namespace kr
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::type_loop(LAMBDA && lambda)
+		void types<args ... >::type_loop(LAMBDA && lambda) throws(...)
 		{
 			unpack(lambda((args*)0));
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::type_loop_r(LAMBDA && lambda)
+		void types<args ... >::type_loop_r(LAMBDA && lambda) throws(...)
 		{
 			unpackR(lambda((args*)0));
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::type_switch(size_t idx, LAMBDA && lambda)
+		void types<args ... >::type_switch(size_t idx, LAMBDA && lambda) throws(...)
 		{
 			size_t i = 0;
 			unpack(([&]() { if (idx == i++) lambda((args*)0); }()));
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::type_switch(size_t idx, LAMBDA && lambda, void * value)
+		void types<args ... >::type_switch(size_t idx, LAMBDA && lambda, void * value) throws(...)
 		{
 			size_t i = 0;
 			unpack(([&]() { if (idx == i++) lambda((args*)value); }()));
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::type_switch(size_t idx, LAMBDA && lambda, const void * value)
+		void types<args ... >::type_switch(size_t idx, LAMBDA && lambda, const void * value) throws(...)
 		{
 			size_t i = 0;
 			unpack(([&]() { if (idx == i++) lambda((const args*)value); }()));
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::value_loop(LAMBDA && lambda) const
+		void types<args ... >::value_loop(LAMBDA && lambda) const throws(...)
 		{
 			expand_func::_value_loop(this, lambda);
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::value_loop(LAMBDA && lambda)
+		void types<args ... >::value_loop(LAMBDA && lambda) throws(...)
 		{
 			expand_func::_value_loop(this, lambda);
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::value_loop_r(LAMBDA && lambda) const
+		void types<args ... >::value_loop_r(LAMBDA && lambda) const throws(...)
 		{
 			expand_func::_value_loop_r(this, lambda);
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::value_loop_r(LAMBDA && lambda)
+		void types<args ... >::value_loop_r(LAMBDA && lambda) throws(...)
 		{
 			expand_func::_value_loop_r(this, lambda);
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::value_loop_with(LAMBDA && lambda, const args &... p) const
+		void types<args ... >::value_loop_with(LAMBDA && lambda, const args &... p) const throws(...)
 		{
 			expand_func::_value_loop_with(this, lambda, p ...);
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		void types<args ... >::value_loop_with(LAMBDA && lambda, const args &... p)
+		void types<args ... >::value_loop_with(LAMBDA && lambda, const args &... p) throws(...)
 		{
 			expand_func::_value_loop_with(this, lambda, p ...);
 		}
 		template <typename ... args>
 		template <typename LAMBDA, typename ... types_list>
-		void types<args ... >::value_loop_with(LAMBDA && lambda, const types_list & ... types) const
+		void types<args ... >::value_loop_with(LAMBDA && lambda, const types_list & ... types) const throws(...)
 		{
 			constexpr size_t minvalue = mint(size, (types_list::size) ...);
 			make_numlist_counter<minvalue>::loop(lambda, *this, types ...);
 		}
 		template <typename ... args>
 		template <typename LAMBDA, typename ... types_list>
-		void types<args ... >::value_loop_with(LAMBDA && lambda, const types_list & ... types_args)
+		void types<args ... >::value_loop_with(LAMBDA && lambda, const types_list & ... types_args) throws(...)
 		{
 			constexpr size_t minvalue = mint(size, (types_list::size) ...);
 			make_numlist_counter<minvalue>::loop(lambda, *this, types_args ...);

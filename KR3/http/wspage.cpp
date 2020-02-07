@@ -19,59 +19,25 @@ static bool connectionIs(Text list, Text type) noexcept
 WebSocketSession::WebSocketSession(Socket * socket) noexcept
 	:MTClient(socket)
 {
-	m_frameReady = false;
 }
 #pragma warning(pop)
 void WebSocketSession::onRead() throws(...)
 {
+	TBuffer tbuf;
+	Buffer data;
 	for (;;)
 	{
-		if (!m_frameReady)
+		try
 		{
-			if (m_receive.size() < sizeof(WSFrame)) break;
-			m_receive.peek((char*)&m_wsf, sizeof(WSFrame));
-			size_t needex = m_wsf.getExtendSize();
-			if (m_receive.size() < sizeof(WSFrame) + needex) break;
-			m_receive.skip(sizeof(WSFrame));
-			m_receive.read((char*)&m_wsf + sizeof(WSFrame), needex);
-			m_frameReady = true;
+			data = m_wsf.readFrom(&m_receive, &tbuf);
 		}
-
-		switch (m_wsf.opcode)
+		catch (TooBigException&)
 		{
-		case WSOpcode::CONTINUE: break;
-		case WSOpcode::CLOSE:
+			onError("Too big data", ERROR_NOT_ENOUGH_MEMORY);
 			close();
-			return;
-		case WSOpcode::PING: break;
-		case WSOpcode::PONG: break;
-		case WSOpcode::BINARY:
-			break;
-		case WSOpcode::TEXT:
-			break;
+			throw;
 		}
-
-		constexpr size_t MAX = 4096;
-
-		uint64_t datalen64 = m_wsf.getDataLength();
-		if (datalen64 >= MAX)
-		{
-			close();
-			throw TooBigException();
-		}
-		size_t datalen = (size_t)datalen64;
-
-		if (m_receive.size() < datalen) break;
-		m_frameReady = false;
-
-		TBuffer temp;
-		Buffer data = m_receive.read(datalen, &temp);
-		if (m_wsf.mask)
-		{
-			mem::xor_copy((byte*)data.data(), data.data(), datalen, m_wsf.mask);
-		}
-		WSStream wsstream(&data);
-		onData(wsstream);
+		onData(data);
 	}
 }
 
@@ -112,13 +78,6 @@ void WebSocketPage::_handShake(HttpClient * client)
 		throw HttpStatus::BadRequest;
 	}
 
-	BText<128> keys;
-	keys << header.wsKey;
-	keys << "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-	BText<32> acceptKey;
-	acceptKey << (encoder::Base64)(BText<20>)(encoder::Sha1)keys;
-
 	/*
 	Sec-WebSocket-Location: ws://rua.kr:14128/\r\n\
 	Sec-WebSocket-Origin: http://www.rua.kr\r\n\
@@ -128,7 +87,7 @@ void WebSocketPage::_handShake(HttpClient * client)
 		"HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
 		"Upgrade: WebSocket\r\n"
 		"Connection: Upgrade\r\n"
-		"Sec-WebSocket-Accept: ", acceptKey, "\r\n\r\n"
+		"Sec-WebSocket-Accept: ", makeSecWebSocketAccept(header.wsKey), "\r\n\r\n"
 	});
 	client->flush();
 }

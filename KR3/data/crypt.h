@@ -51,16 +51,16 @@ namespace kr
 
 			static constexpr size_t SIZE = -1;
 		};
-		class Base64 :public Encoder<Base64, char, char>
+		class Base64 :public Encoder<Base64, char, void>
 		{
 		public:
 			using Encoder::Encoder;
-			static size_t length(Text text) noexcept;
-			static size_t encode(char * out, Text text) noexcept;
-			static void encode(Writer *out, Text * text) noexcept;
+			static size_t length(Buffer text) noexcept;
+			static size_t encode(char * out, Buffer text) noexcept;
+			static void encode(Writer *out, Buffer* text) noexcept;
 			static size_t delength(Text text) noexcept;
-			static size_t decode(char *out, Text text) noexcept;
-			static void decode(Writer *out, Text * text) noexcept;
+			static size_t decode(void *out, Text text) noexcept;
+			static void decode(BufferWriter *out, Text * text) noexcept;
 
 			static constexpr size_t SIZE = -1;
 		};
@@ -161,7 +161,7 @@ namespace kr
 extern template class kr::encoder::Encoder<kr::encoder::Uri, char, char>;
 extern template class kr::encoder::Encoder<kr::encoder::HtmlEntity, char, char>;
 extern template class kr::encoder::Encoder<kr::encoder::Hex, char, void>;
-extern template class kr::encoder::Encoder<kr::encoder::Base64, char, char>;
+extern template class kr::encoder::Encoder<kr::encoder::Base64, char, void>;
 
 extern template class kr::encoder::Hasher<kr::encoder::Sha1Context>;
 extern template class kr::encoder::Hasher<kr::encoder::Sha256Context>;

@@ -48,7 +48,7 @@ protected:
 
 #define WRAP(v)	v
 #define DECL(format) \
-extern template class kr::image::MemCanvas<PixelFormat##format>;\
-extern template class kr::image::MemBitmap<PixelFormat##format>;
+extern template class kr::image::MemCanvas<kr::PixelFormat##format>;\
+extern template class kr::image::MemBitmap<kr::PixelFormat##format>;
 
 #include "formatlist.h"

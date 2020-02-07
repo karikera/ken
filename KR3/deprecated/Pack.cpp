@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+EMPTY_SOURCE
+
 using namespace kr;
 using std::endl;
 
@@ -13,10 +15,6 @@ namespace
 	const int shuffle_inv[] = { 7,2,4,6,3,0,5,1 };
 }
 
-void empty_cpp()
-{
-
-}
 //
 //void makePack() noexcept
 //{

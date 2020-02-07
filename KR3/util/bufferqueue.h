@@ -103,14 +103,14 @@ namespace kr
 		void commit(size_t size) noexcept;
 		void write(const void * data, size_t size) noexcept;
 		void write(Buffer data) noexcept;
-		void peek(void * dest, size_t size) noexcept;
-		void read(void * dest, size_t size) noexcept;
-		ReadResult read(size_t size) noexcept;
+		void peek(void * dest, size_t size) throws(EofException);
+		void read(void * dest, size_t size) throws(EofException);
+		ReadResult read(size_t size) throws(EofException);
 		ReadResult readto(byte needle) noexcept;
 		ReadResult readto(HashTester<void>& needle) noexcept;
-		Buffer read(size_t size, TBuffer* temp) noexcept;
-		Buffer readwith(byte needle, TBuffer* temp) noexcept;
-		Buffer readwith(HashTester<void>& needle, TBuffer* temp) noexcept;
+		Buffer read(size_t size, TBuffer* temp) throws(EofException);
+		Buffer readwith(byte needle, TBuffer* temp) throws(EofException);
+		Buffer readwith(HashTester<void>& needle, TBuffer* temp) throws(EofException);
 
 		bool empty() noexcept;
 		void clear() noexcept;
@@ -173,43 +173,43 @@ namespace kr
 		{
 			BufferQueue::write(data.cast<void>());
 		}
-		void peek(C* dest, size_t size) noexcept
+		void peek(C* dest, size_t size) throws(EofException)
 		{
 			BufferQueue::peek(dest, size);
 		}
-		void read(C* dest, size_t size) noexcept
+		void read(C* dest, size_t size) throws(EofException)
 		{
 			BufferQueue::read(dest, size);
 		}
-		ReadResult read(size_t size) noexcept
+		ReadResult read(size_t size) throws(EofException)
 		{
 			return BufferQueue::read(size);
 		}
-		ReadResult readwith(C needle) noexcept
+		ReadResult readwith(C needle) throws(EofException)
 		{
 			return BufferQueue::readwith((byte)needle);
 		}
-		ReadResult readwith(View<C> needle) noexcept
+		ReadResult readwith(View<C> needle) throws(EofException)
 		{
 			return BufferQueue::readwith(needle.cast<void>());
 		}
-		View<C> read(size_t size, TmpArray<C>* temp) noexcept
+		View<C> read(size_t size, TmpArray<C>* temp) throws(EofException)
 		{
 			return BufferQueue::read(size, (TmpArray<void>*)temp).cast<C>();
 		}
-		View<C> readwith(C needle, TmpArray<C>* temp) noexcept
+		View<C> readwith(C needle, TmpArray<C>* temp) throws(EofException)
 		{
 			return BufferQueue::readwith((byte)needle, (TmpArray<void>*)temp).cast<C>();
 		}
-		View<C> readwith(HashTester<C>& needle, TmpArray<C>* temp) noexcept
+		View<C> readwith(HashTester<C>& needle, TmpArray<C>* temp) throws(EofException)
 		{
 			return BufferQueue::readwith((HashTester<void>&)needle, (TmpArray<void>*)temp).cast<C>();
 		}
-		void readwith(byte needle, io::VOStream<void> out, size_t limit) throws(ThrowRetry)
+		void readwith(byte needle, io::VOStream<void> out, size_t limit) throws(EofException)
 		{
 			return BufferQueue::readwith(needle, out, limit);
 		}
-		void readwith(View<C> needle, io::VOStream<C> out, size_t limit) throws(ThrowRetry)
+		void readwith(View<C> needle, io::VOStream<C> out, size_t limit) throws(EofException)
 		{
 			return BufferQueue::readwith(needle.cast<void>(), (io::VOStream<void>&)out, limit);
 		}

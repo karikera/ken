@@ -367,7 +367,7 @@ EventPump * EventPump::getInstance() noexcept
 	return &pump;
 }
 
-size_t EventPump::_getPromiseCount() noexcept
+size_t EventPump::getPromiseCount() noexcept
 {
 	size_t count = 0;
 	PromiseRaw* prom = m_process;

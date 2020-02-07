@@ -406,16 +406,16 @@ size_t Hex::encode(char * out, Buffer text) noexcept
 	return dest - out;
 }
 
-size_t Base64::length(Text text) noexcept
+size_t Base64::length(Buffer text) noexcept
 {
 	return (text.size() + 2) / 3 * 4;
 }
-void Base64::encode(Writer *out, Text * text) noexcept
+void Base64::encode(Writer *out, Buffer * text) noexcept
 {
 	size_t writed = encode64(out->end(), out->remaining(), text->begin(), text->size());
 	out->commit(writed);
 }
-size_t Base64::encode(char *out, Text text) noexcept
+size_t Base64::encode(char *out, Buffer text) noexcept
 {
 	return encode64(out, text.begin(), text.size());
 }
@@ -423,11 +423,11 @@ size_t Base64::delength(Text text) noexcept
 {
 	return decode64_len(text.begin(), text.size());
 }
-size_t Base64::decode(char *out, Text text) noexcept
+size_t Base64::decode(void *out, Text text) noexcept
 {
 	return decode64(out, text.begin(), text.size());
 }
-void Base64::decode(Writer *out, Text * text) noexcept
+void Base64::decode(BufferWriter *out, Text * text) noexcept
 {
 	size_t writed = decode64(out->end(), out->remaining(), text->begin(), text->size());
 	out->commit(writed);

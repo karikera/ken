@@ -143,7 +143,7 @@ template class kr::ToConvert<Charset::Default, char16>;
 template class kr::encoder::Encoder<kr::encoder::Uri, char, char>;
 template class kr::encoder::Encoder<kr::encoder::HtmlEntity, char, char>;
 template class kr::encoder::Encoder<kr::encoder::Hex, char, void>;
-template class kr::encoder::Encoder<kr::encoder::Base64, char, char>;
+template class kr::encoder::Encoder<kr::encoder::Base64, char, void>;
 
 template class kr::encoder::Hasher<kr::encoder::Sha1Context>;
 template class kr::encoder::Hasher<kr::encoder::Sha256Context>;

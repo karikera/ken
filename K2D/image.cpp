@@ -3,6 +3,7 @@
 
 #include <KR3/main.h>
 #include <KR3/util/wide.h>
+#include <KR3/util/resloader.h>
 
 #include "stdcommon.h"
 #include "bitmap.h"
@@ -313,14 +314,14 @@ size_t kr::image::ImageData::getByteSize() const noexcept
 
 bool kr::image::ImageData::load(krb::File file, krb::Extension extension, Palette* palette) noexcept
 {
-	struct ImageCallback : krb_image_callback_t
+	struct ImageCallback : KrbImageCallback
 	{
 		ImageData * data;
 	};
 	ImageCallback cb;
 	cb.data = this;
 	cb.palette = palette != nullptr ? palette : nullptr;
-	cb.start = [](krb_image_callback_t * _this, krb_image_info_t * info){
+	cb.start = [](KrbImageCallback * _this, KrbImageInfo * info){
 		info->data = ((ImageCallback*)_this)->data->allocate(info->pixelformat, info->width, info->height, info->pitchBytes);
 		return true;
 	};
@@ -328,7 +329,7 @@ bool kr::image::ImageData::load(krb::File file, krb::Extension extension, Palett
 }
 bool kr::image::ImageData::save(krb::File file, krb::Extension extension, Palette * palette) noexcept
 {
-	krb_image_save_info_t info;
+	KrbImageSaveInfo info;
 	info.data = m_image;
 	info.width = m_width;
 	info.height = m_height;

@@ -10,13 +10,6 @@ namespace kr
 	class HttpHeader;
 	class AHttpHeader;
 
-	struct endian
-	{
-		static uint16_t reverse(uint16_t v) noexcept;
-		static uint32_t reverse(uint32_t v) noexcept;
-		static uint64_t reverse(uint64_t v) noexcept;
-	};
-
 	struct CHAHECONTROL
 	{
 		dword maxage;
@@ -94,52 +87,6 @@ namespace kr
 		Text extraHeaders;
 
 		HttpConnectionRequest() noexcept;
-	};
-
-	enum class WSOpcode :uint8_t
-	{
-		CONTINUE,     // 0: continuation frame
-		TEXT,         // 1: text frame
-		BINARY,       // 2: binary frame
-					  // 3~7: reserved.
-		CLOSE = 8,      // 8: connection close
-		PING,         // 9: ping
-		PONG,         // A: pong
-					// B~F: reserved.
-	};
-
-	struct WSFrame
-	{
-		WSOpcode opcode : 4;
-		bool rsv3 : 1; // Reserved.
-		bool rsv2 : 1; // Reserved.
-		bool rsv1 : 1; // Reserved.
-		bool fin : 1; // Final fragment
-
-		uint8_t length : 7;
-		bool mask : 1; // Mask data.
-					   // 0-125: Length
-					   // 126: After 2bytes Length
-					   // 127: After 8bytes Length
-
-		size_t getLengthExtend() noexcept;
-		size_t getMaskExtend() noexcept;
-		size_t getExtendSize() noexcept;
-		size_t getSize() noexcept;
-		uint64_t getDataLength() noexcept;
-		uint32_t getMask() noexcept;
-		void setMask(uint32_t value) noexcept;
-		void * getData() noexcept;
-		void setDataLengthAuto(uint64_t len) noexcept;
-		void setDataLength7(uint8_t len) noexcept;
-		void setDataLength16(uint16_t len);
-		void setDataLength64(uint64_t len);
-	};
-
-	struct WSFrameEx:WSFrame
-	{
-		uint64_t LengthEx;
-		uint32_t MaskEx;
 	};
 
 }

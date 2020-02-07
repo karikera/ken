@@ -11,26 +11,6 @@ EMPTY_SOURCE
 #include <KR3/util/unaligned.h>
 #include <KR3/net/socket.h>
 
-uint16_t kr::endian::reverse(uint16_t v) noexcept
-{
-	return kr::intrinsic<2>::rotl(v, 8);
-}
-uint32_t kr::endian::reverse(uint32_t v) noexcept
-{
-	return (v << 24) | ((v & 0xff00) << 8) | ((v & 0xff0000) >> 8) | (v >> 24);
-}
-uint64_t kr::endian::reverse(uint64_t v) noexcept
-{
-	return (v << 56) |
-		((v & 0xff00) << 40) |
-		((v & 0xff0000) << 24) |
-		((v & 0xff000000) << 8) |
-		((v >> 8) & 0xff000000) |
-		((v >> 24) & 0xff0000) |
-		((v >> 40) & 0xff00) |
-		(v >> 56);
-}
-
 kr::HttpResponseHeader::HttpResponseHeader() noexcept
 {
 	date = (time_t)0;
@@ -102,77 +82,6 @@ void kr::AHttpHeader::set(AText header) noexcept
 {
 	m_buffer = move(header);
 	HttpHeader::set(m_buffer);
-}
-
-size_t kr::WSFrame::getLengthExtend() noexcept
-{
-	if (length < 126) return 0;
-	if (length == 126) return 2;
-	if (length == 127) return 8;
-	_assert(!"Invalid length");
-	return 0;
-}
-size_t kr::WSFrame::getMaskExtend() noexcept
-{
-	return (mask ? 4 : 0);
-}
-size_t kr::WSFrame::getExtendSize() noexcept
-{
-	return getLengthExtend() + getMaskExtend();
-}
-size_t kr::WSFrame::getSize() noexcept
-{
-	return sizeof(WSFrame) + getExtendSize();
-}
-uint64_t kr::WSFrame::getDataLength() noexcept
-{
-	if (length < 126) return length;
-	if (length == 126) return endian::reverse(*(uint16_t*)(this + 1));
-	if (length == 127) return endian::reverse(*(uint64_t*)(this + 1));
-	_assert(!"Invalid length");
-	return 0;
-}
-uint32_t kr::WSFrame::getMask() noexcept
-{
-	return *(Unaligned<uint32_t>*)((char*)(this + 1) + getLengthExtend());
-}
-void kr::WSFrame::setMask(uint32_t value) noexcept
-{
-	mask = true;
-	*(Unaligned<uint32_t>*)((char*)(this + 1) + getLengthExtend()) = value;
-}
-void * kr::WSFrame::getData() noexcept
-{
-	return ((char*)(this + 1) + getExtendSize());
-}
-void kr::WSFrame::setDataLengthAuto(uint64_t len) noexcept
-{
-	if (len < 126)
-	{
-		setDataLength7((uint8_t)len);
-	}
-	else if (len < 65536)
-	{
-		setDataLength16((uint16_t)len);
-	}
-	else
-	{
-		setDataLength64(len);
-	}
-}
-void kr::WSFrame::setDataLength7(uint8_t len) noexcept
-{
-	length = len;
-}
-void kr::WSFrame::setDataLength16(uint16_t len)
-{
-	length = 126;
-	*(uint16_t*)(this + 1) = endian::reverse((uint16_t)len);
-}
-void kr::WSFrame::setDataLength64(uint64_t len)
-{
-	length = 127;
-	*(uint64_t*)(this + 1) = endian::reverse(len);
 }
 
 #endif

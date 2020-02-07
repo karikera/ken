@@ -33,13 +33,13 @@ namespace kr
 			using ToText = View<To>;
 			using FromText = View<From>;
 
-			Encoder(View<From> src) noexcept;
+			Encoder(FromText src) noexcept;
 			size_t $size() const noexcept;
 			size_t $copyTo(To * dest) const noexcept;
 			class Decoder : public Bufferable<Decoder, BufferInfo<From>>
 			{
 			public:
-				Decoder(View<To> src) noexcept;
+				Decoder(ToText src) noexcept;
 				size_t $size() const noexcept;
 				size_t $copyTo(From * dest) const noexcept;
 
@@ -60,7 +60,7 @@ namespace kr
 		};
 
 		template <typename Derived, typename To, typename From>
-		Encoder<Derived, To, From>::Encoder(View<From> src) noexcept
+		Encoder<Derived, To, From>::Encoder(FromText src) noexcept
 			:m_data(src), m_size(Derived::length(src))
 		{
 		}
@@ -75,7 +75,7 @@ namespace kr
 			return Derived::encode(dest, m_data);
 		}
 		template <typename Derived, typename To, typename From>
-		Encoder<Derived, To, From>::Decoder::Decoder(View<To> src) noexcept
+		Encoder<Derived, To, From>::Decoder::Decoder(ToText src) noexcept
 			:m_data(src), m_size(Derived::delength(src))
 		{
 		}

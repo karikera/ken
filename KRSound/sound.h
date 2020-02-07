@@ -113,8 +113,8 @@ namespace kr
 			bool dupPlay() noexcept;
 
 		protected:
-			void _create(const krb_wave_format_t* format, dword size) throws(ErrorCode);
-			void _create(const krb_wave_format_t* format, dword size, dword flags) throws(ErrorCode);
+			void _create(const KrbWaveFormat* format, dword size) throws(ErrorCode);
+			void _create(const KrbWaveFormat* format, dword size, dword flags) throws(ErrorCode);
 		};
 
 		class PrimarySound :public Sound

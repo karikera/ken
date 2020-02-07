@@ -126,6 +126,7 @@
     <ClInclude Include="common\error.h" />
     <ClInclude Include="common\io\pointable.h" />
     <ClInclude Include="common\text\writablemethod.h" />
+    <ClInclude Include="data\mixed.h" />
     <ClInclude Include="fs\asyncfile.h" />
     <ClInclude Include="fs\file.h" />
     <ClInclude Include="fs\installer.h" />
@@ -136,6 +137,7 @@
     <ClInclude Include="http\http.h" />
     <ClInclude Include="http\httpd.h" />
     <ClInclude Include="http\wsclient.h" />
+    <ClInclude Include="http\wscommon.h" />
     <ClInclude Include="http\wspage.h" />
     <ClInclude Include="js\arguments.h" />
     <ClInclude Include="js\cast.h" />
@@ -374,6 +376,7 @@
     <ClCompile Include="http\Http.cpp" />
     <ClCompile Include="http\httpd.cpp" />
     <ClCompile Include="http\wsclient.cpp" />
+    <ClCompile Include="http\wscommon.cpp" />
     <ClCompile Include="http\wspage.cpp" />
     <ClCompile Include="js\arguments.cpp" />
     <ClCompile Include="js\cast.cpp" />

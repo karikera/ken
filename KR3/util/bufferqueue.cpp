@@ -236,9 +236,9 @@ void BufferQueue::write(Buffer data) noexcept
 {
 	write(data.data(), data.size());
 }
-void BufferQueue::peek(void * dest, size_t size) noexcept
+void BufferQueue::peek(void * dest, size_t size) throws(EofException)
 {
-	_assert(size <= m_totalSize);
+	if (size > m_totalSize) throw EofException();
 	size_t offset = m_readed;
 	BufferBlock * block = m_first;
 	for (;;)
@@ -261,10 +261,10 @@ void BufferQueue::peek(void * dest, size_t size) noexcept
 		}
 	}
 }
-void BufferQueue::read(void * dest, size_t size) noexcept
+void BufferQueue::read(void * dest, size_t size) throws(EofException)
 {
-	_assert(size <= m_totalSize);
 	if (size == 0) return;
+	if (size > m_totalSize) throw EofException();
 	m_totalSize -= size;
 
 	for (;;)
@@ -299,9 +299,9 @@ void BufferQueue::read(void * dest, size_t size) noexcept
 		}
 	}
 }
-BufferQueue::ReadResult BufferQueue::read(size_t size) noexcept
+BufferQueue::ReadResult BufferQueue::read(size_t size) throws(EofException)
 {
-	_assert(size <= m_totalSize);
+	if (size > m_totalSize) throw EofException();
 
 	ReadResult result(this);
 	result.ended = true;
@@ -463,9 +463,9 @@ BufferQueue::ReadResult BufferQueue::readto(HashTester<void>& needle) noexcept
 	}
 	return result;
 }
-Buffer BufferQueue::read(size_t size, TBuffer* temp) noexcept
+Buffer BufferQueue::read(size_t size, TBuffer* temp) throws(EofException)
 {
-	_assert(size <= m_totalSize);
+	if (size > m_totalSize) throw EofException();
 	if (size == 0) return Buffer(nullptr, nullptr);
 
 	m_totalSize -= size;
@@ -529,12 +529,12 @@ Buffer BufferQueue::read(size_t size, TBuffer* temp) noexcept
 		}
 	}
 }
-Buffer BufferQueue::readwith(byte needle, TBuffer* temp) noexcept
+Buffer BufferQueue::readwith(byte needle, TBuffer* temp) throws(EofException)
 {
 	temp->clear();
 	auto iter = begin();
 	auto iter_end = end();
-	if (iter == iter_end) return nullptr;
+	if (iter == iter_end) throw EofException();
 
 	{
 		Buffer text = *iter;
@@ -562,27 +562,29 @@ Buffer BufferQueue::readwith(byte needle, TBuffer* temp) noexcept
 		}
 		*temp << text;
 	}
-	return nullptr;
+	throw EofException();
 }
-Buffer BufferQueue::readwith(HashTester<void>& needle, TBuffer* temp) noexcept
+Buffer BufferQueue::readwith(HashTester<void>& needle, TBuffer* temp) throws(EofException)
 {
 	size_t chr_size = needle.size();
 
-	temp->clear();
 	auto iter = begin();
 	auto iter_end = end();
 
-	if (iter == iter_end) return nullptr;
+	if (iter == iter_end) throw EofException();
 
 	{
 		Buffer text = *iter;
 		cptr finded = needle.puts(text);
 		if (finded != nullptr)
 		{
-			m_readed = (byte*)finded - (byte*)text.data();
+			size_t next_readed = (byte*)finded - m_first->buffer;
+			m_totalSize = m_totalSize + m_readed - next_readed;
+			m_readed = next_readed;
 			text.cut_self((byte*)finded - chr_size);
 			return text;
 		}
+		temp->clear();
 		*temp << text;
 		iter++;
 	}
@@ -610,7 +612,7 @@ Buffer BufferQueue::readwith(HashTester<void>& needle, TBuffer* temp) noexcept
 		}
 		*temp << text;
 	}
-	return *temp;
+	throw EofException();
 }
 bool BufferQueue::empty() noexcept
 {

@@ -212,7 +212,7 @@ void Sound::remove() noexcept
 Sound::Locked Sound::createLock(word channel, dword size) throws(ErrorCode)
 {
 	ptr buffer;
-	krb_wave_format_t format =
+	KrbWaveFormat format =
 	{
 		WAVE_FORMAT_PCM,
 		channel,
@@ -220,7 +220,7 @@ Sound::Locked Sound::createLock(word channel, dword size) throws(ErrorCode)
 		channel * secByte,
 		(WORD)(channel * sampleBytes),
 		sampleBit,
-		sizeof(krb_wave_format_t)
+		sizeof(KrbWaveFormat)
 	};
 	_create(&format, size);
 	dword lockSize;
@@ -277,14 +277,14 @@ double Sound::load(krb::Extension extension, krb::File file) noexcept
 	if (s_ds == nullptr)
 		return 0;
 
-	struct Callback :krb_sound_callback_t
+	struct Callback :KrbSoundCallback
 	{
 		Sound* sound;
 		double duration;
 	};
 	Callback cb;
 	cb.sound = this;
-	cb.start = [](krb_sound_callback_t * _this, krb_sound_info_t * _info)->short* {
+	cb.start = [](KrbSoundCallback * _this, KrbSoundInfo * _info)->short* {
 		Callback* cb = static_cast<Callback*>(_this);
 		cb->duration = _info->duration;
 		cb->sound->_create(&_info->format, _info->totalBytes);
@@ -354,13 +354,13 @@ bool Sound::dupPlay() noexcept
 	return true;
 }
 
-void Sound::_create(const krb_wave_format_t * format, dword size) throws(ErrorCode)
+void Sound::_create(const KrbWaveFormat * format, dword size) throws(ErrorCode)
 {
 	return _create(format, size, DSBCAPS_STATIC | DSBCAPS_GLOBALFOCUS);
 }
-void Sound::_create(const krb_wave_format_t * format, dword size, dword flags) throws(ErrorCode)
+void Sound::_create(const KrbWaveFormat* format, dword size, dword flags) throws(ErrorCode)
 {
-	static_assert(sizeof(krb_wave_format_t) == sizeof(WAVEFORMATEX), "format size unmatch");
+	static_assert(sizeof(KrbWaveFormat) == sizeof(WAVEFORMATEX), "format size unmatch");
 	DSBUFFERDESC dsbd;
 	dsbd.dwFlags = 0;
 	dsbd.dwReserved = 0;
@@ -391,7 +391,7 @@ void SoundStreamer::create(word channel, dword bufferSize) noexcept
 	m_lastWrite = 0;
 	{
 		m_bufferSize = bufferSize;
-		krb_wave_format_t format =
+		KrbWaveFormat format =
 		{
 			WAVE_FORMAT_PCM,
 			channel,
@@ -399,7 +399,7 @@ void SoundStreamer::create(word channel, dword bufferSize) noexcept
 			channel * secByte,
 			(word)(channel * sampleBytes),
 			sampleBit,
-			sizeof(krb_wave_format_t)
+			sizeof(KrbWaveFormat)
 		};
 		_create(&format, bufferSize, DSBCAPS_GLOBALFOCUS);
 		void* buffer;

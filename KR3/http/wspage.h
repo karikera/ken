@@ -1,12 +1,11 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KR3/util/serializer.h>
 #include "httpd.h"
+#include "wscommon.h"
 
 namespace kr
 {
-	using WSStream = Deserializer<Buffer>;
 	class WebSocketPage;
 
 	class WebSocketSession : public MTClient
@@ -14,11 +13,10 @@ namespace kr
 	public:
 		WebSocketSession(Socket * socket) noexcept;
 		void onRead() throws(...) override final;
-		virtual void onData(WSStream & data) = 0;
+		virtual void onData(Buffer data) = 0;
 
 	private:
-		WSFrameEx m_wsf;
-		bool m_frameReady;
+		WSFrameReader m_wsf;
 	};
 	class WebSocketPage :public Page
 	{

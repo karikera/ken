@@ -8,7 +8,7 @@ kr::krb::File::File(const fchar_t* path) noexcept
 }
 kr::krb::File::~File() noexcept
 {
-	krb_fclose(this);
+	KrbFile::close();
 }
 
 #ifdef _DEBUG

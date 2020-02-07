@@ -591,6 +591,10 @@ void MTClient::_callOnRead() noexcept
 		{
 			onRead();
 		}
+		catch (ThrowAbort&)
+		{
+			close();
+		}
 		catch (...)
 		{
 		}

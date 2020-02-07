@@ -28,3 +28,8 @@ T kr::Random::get(T from, T to) noexcept
 {
 	return get<T>(to - from) + from;
 }
+template <size_t size, typename T> 
+void kr::Random::fill(T(&value)[size]) noexcept
+{
+	return fill<size>((void*)value);
+}

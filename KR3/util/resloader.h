@@ -7,11 +7,11 @@
 
 namespace kr
 {
-	using WaveFormat = _krb_wave_format_t;
+	using WaveFormat = KrbWaveFormat;
 	namespace krb
 	{
-		using Extension = krb_extension_t;
-		class File:public krb_file_t
+		using Extension = KrbExtension;
+		class File:public KrbFile
 		{
 		public:
 			File(const fchar_t* path) noexcept;
@@ -20,21 +20,21 @@ namespace kr
 			template <typename Derived, typename Info>
 			inline File(InStream<Derived, void, Info>* stream) noexcept
 			{
-				static krb_file_vtable_t vtable = {
+				static KrbFileVFTable vftable = {
 					nullptr,
-					[](krb_file_t * _this, void* data, size_t size)->size_t{
+					[](KrbFile * _this, void* data, size_t size)->size_t{
 						return ((InStream<Derived, void, Info>*)(_this->param))->read(data, size);
 					},
 					nullptr,
 					nullptr,
-					[](krb_file_t * _this, uint64_t pos) {
+					[](KrbFile* _this, uint64_t pos) {
 						((InStream<Derived, void, Info>*)(_this->param))->skip(intactAuto(pos));
 					},
 					nullptr,
-					[](krb_file_t * _this) {}
+					[](KrbFile* _this) {}
 				};
 				this->param = stream;
-				this->vtable = &vtable;
+				this->vftable = &vftable;
 			}
 
 			template <typename Derived, typename Info>
@@ -45,14 +45,14 @@ namespace kr
 		};
 
 		template <typename T>
-		krb_extension_t makeExtension(View<T> extension)
+		KrbExtension makeExtension(View<T> extension)
 		{
 			uint32_t v = 0;
 			uint32_t offset = 0;
 			for (;;)
 			{
 				if (extension.empty()) break;
-				if (offset >= 32) return ExtensionInvalid;
+				if (offset >= 32) return KrbExtension::Invalid;
 				T chr = *extension++;
 				if (u'a' <= chr && chr <= u'z')
 				{
@@ -66,19 +66,19 @@ namespace kr
 				}
 				else
 				{
-					return ExtensionInvalid;
+					return KrbExtension::Invalid;
 				}
 				v |= (uint32_t)chr << offset;
 				offset += 8;
 			}
-			return (krb_extension_t)v;
+			return (KrbExtension)v;
 		}
 
 		template <typename T>
-		krb_extension_t makeExtensionFromPath(View<T> path)
+		KrbExtension makeExtensionFromPath(View<T> path)
 		{
 			View<T> ext = path_t<T>::extname(path);
-			if (ext.empty()) return ExtensionInvalid;
+			if (ext.empty()) return KrbExtension::Invalid;
 			return makeExtension(ext+1);
 		}
 

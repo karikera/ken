@@ -95,6 +95,9 @@ void Client::flush() noexcept
 }
 void Client::close() noexcept
 {
+	if (m_socket == nullptr) return;
+	m_event->deselect(m_socket);
+	m_event->reset();
 	delete m_socket;
 	m_socket = nullptr;
 }
@@ -120,33 +123,35 @@ void Client::processEvent() noexcept
 		}
 		else
 		{
-			try
+			for (;;)
 			{
-				for (;;)
 				{
+					auto buf = m_receive.prepare();
+					size_t readed = m_socket->$read(buf.data(), buf.size());
+					if (readed == 0) break;
+					m_receive.commit(readed);
+				}
+				{
+					try
 					{
-						auto buf = m_receive.prepare();
-						size_t readed = m_socket->$read(buf.data(), buf.size());
-						if (readed == 0) break;
-						m_receive.commit(readed);
+						onRead();
 					}
+					catch (ThrowAbort&)
 					{
-						try
-						{
-							onRead();
-						}
-						catch (...)
-						{
-						}
+						close();
+						break;
+					}
+					catch (EofException&)
+					{
+					}
+					catch (SocketException & err)
+					{
+						onError("read", err);
+					}
+					catch (...)
+					{
 					}
 				}
-			}
-			catch (EofException&)
-			{
-			}
-			catch (SocketException& err)
-			{
-				onError("read", err);
 			}
 		}
 	}
