@@ -8,7 +8,23 @@ using namespace kr;
 #ifdef WIN32
 
 #include <KR3/wl/windows.h>
+#include <KR3/wl/handle.h>
 
+CurrentApplicationPath::CurrentApplicationPath() noexcept
+{
+	m_module = win::Module::current();
+}
+
+template <typename CHR>
+size_t CurrentApplicationPath::$copyTo(CHR* dest) const noexcept
+{
+	return ((win::Module*)(m_module))->getFileName(dest, MAX_PATH);
+}
+template <typename CHR>
+size_t CurrentApplicationPath::$sizeAs() const noexcept
+{
+	return ((win::Module*)(m_module))->getFileNameLength<CHR>();
+}
 template <> bool CurrentDirectory::set<char>(const char * text) const noexcept
 {
 	return SetCurrentDirectoryA(text) != FALSE;
@@ -47,50 +63,42 @@ template <> size_t CurrentDirectory::$sizeAs<wchar_t>() const noexcept
 {
 	return GetCurrentDirectoryW(0, nullptr) - 1;
 }
+
+template size_t CurrentApplicationPath::$copyTo<char>(char*) const noexcept;
+template size_t CurrentApplicationPath::$sizeAs<char>() const noexcept;
+template size_t CurrentApplicationPath::$copyTo<char16_t>(char16_t*) const noexcept;
+template size_t CurrentApplicationPath::$sizeAs<char16_t>() const noexcept;
+
 #else
+
+CurrentApplicationPath::CurrentApplicationPath() noexcept
+{
+	char szTmp[32];
+	sprintf(szTmp, "/proc/%d/exe", getpid());
+	int bytes = MIN(readlink(szTmp, pBuf, len), len - 1);
+	if (bytes >= 0)
+		pBuf[bytes] = '\0';
+	return bytes;
+}
+
+template <typename CHR>
+bool CurrentApplicationPath::set(const CHR* text) const noexcept
+{
+}
+template <typename CHR>
+size_t CurrentApplicationPath::$copyTo(CHR* dest) const noexcept
+{
+}
+template <typename CHR>
+size_t CurrentApplicationPath::$sizeAs() const noexcept
+{
+}
 
 #error Need implement
 
 #endif
 
-#else
-
-namespace
-{
-	AText s_virtualCurrentPath;
-}
-
-template <> bool CurrentDirectory::set<char>(const char * text) const noexcept
-{
-	s_virtualCurrentPath = (Text)text;
-	return true;
-}
-template <> size_t CurrentDirectory::$copyTo<char>(char * dest) const noexcept
-{
-	s_virtualCurrentPath = (Text)dest;
-	return s_virtualCurrentPath.size();
-}
-template <> size_t CurrentDirectory::$sizeAs<char>() const noexcept
-{
-	return s_virtualCurrentPath.size();
-}
-
-template <> bool CurrentDirectory::set<char16>(const char16 * text) const noexcept
-{
-	s_virtualCurrentPath = toAnsi((Text16)text);
-	return true;
-}
-template <> size_t CurrentDirectory::$copyTo<char16>(char16 * dest) const noexcept
-{
-	return ansiToUtf16((Text)"").copyTo(dest);
-}
-template <> size_t CurrentDirectory::$sizeAs<char16>() const noexcept
-{
-	return ansiToUtf16(s_virtualCurrentPath).size();
-}
-
 #endif
-
 
 Path::Path() noexcept
 {

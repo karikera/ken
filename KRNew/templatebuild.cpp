@@ -6,12 +6,19 @@
 #include <KR3/util/wide.h>
 #include <KR3/text/slash.h>
 #include <KR3/parser/parser.h>
-#include <KR3/fs/file.h>
 #include <KR3/io/selfbufferedstream.h>
 #include <KR3/util/bufferqueue.h>
 #include <KR3/data/crypt.h>
-#include <KR3/wl/windows.h>
 #include <KR3/util/process.h>
+
+#ifdef WIN32
+#include <KR3/wl/windows.h>
+#endif
+
+
+#ifndef NO_USE_FILESYSTEM
+#include <KR3/fs/file.h>
+#endif
 
 using namespace kr;
 
@@ -61,9 +68,11 @@ inline void buildTest() noexcept
 	TSZ dest;
 	dest << currentDirectory;
 	dest << a.filter([](char chr) { return chr; });
-	
+
 	TSZ16 dest16;
+#ifdef WCHAR_IS_CHAR16
 	wide(dest16);
+#endif
 
 	Parser parser(&a);
 	{
@@ -78,13 +87,15 @@ inline void buildTest() noexcept
 	ori_text.reverseSplitIterable('0');
 	ori_text.reverseSplitIterable("0");
 
+#ifndef NO_USE_FILESYSTEM
 	File* file = File::open(u"test");
 	AText mid_text;
 	mid_text << file->stream<char>()->read(100);
 
 	Must<io::FIStream<char, false>> fiskeep = _new io::FIStream<char, false>(file);
-	io::FIStream<char, false> &fis = *fiskeep;
+	io::FIStream<char, false>& fis = *fiskeep;
 	fis.request(100);
+#endif
 
 	pcstr16 src = nullptr;
 	int line = 0;
@@ -95,8 +106,10 @@ inline void buildTest() noexcept
 
 	a.replace<Utf8ToUtf16>(&dest16, "asd", u"asd");
 
+#ifndef NO_USE_FILESYSTEM
 	TSZ16 moduleName;
-	moduleName << ModuleName<char16>() << nullterm;
+	moduleName << CurrentApplicationPath() << nullterm;
+#endif
 
 
 	AText b = (AText)shell(nullptr, nullptr);
@@ -138,7 +151,7 @@ template class kr::ReverseTextSplitIterator<char16>;
 template class kr::LoopIterator<char16>;
 
 template class kr::ToConvert<Charset::Utf8, char16>;
-template class kr::ToConvert<Charset::Default, char16>;
+template class kr::ToConvert<Charset::Ansi, char16>;
 
 template class kr::encoder::Encoder<kr::encoder::Uri, char, char>;
 template class kr::encoder::Encoder<kr::encoder::HtmlEntity, char, char>;

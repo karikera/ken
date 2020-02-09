@@ -205,25 +205,23 @@ namespace kr
 		using Super = HasCopyTo<Derived, AutoComponent, Parent>;
 	public:
 		using Super::Super;
-		using Super::template copyTo;
-		using Super::template sizeAs;
 		using Super::szable;
 
 		template <typename Component, class _Derived, class _Parent>
 		size_t writeTo(OutStream<_Derived, Component, StreamInfo<true, _Parent>>* os) const
 		{
-			size_t sz = sizeAs<Component>();
+			size_t sz = this->template sizeAs<Component>();
 			Component* dest = os->padding(sz + (szable ? 1 : 0));
-			copyTo<Component>(dest);
+			this->template copyTo<Component>(dest);
 			os->commit(sz);
 			return sz;
 		}
 		template <typename Component, class _Derived, class _Parent>
 		size_t writeTo(OutStream<_Derived, Component, StreamInfo<false, _Parent>>* os) const
 		{
-			size_t sz = sizeAs<Component>();
+			size_t sz = this->template sizeAs<Component>();
 			TmpArray<Component> temp(sz + (szable ? 1 : 0));
-			copyTo<Component>(temp.data());
+			this->template copyTo<Component>(temp.data());
 			os->write(temp.data(), sz);
 			return sz;
 		}

@@ -1,4 +1,11 @@
 #include "stdafx.h"
+
+#ifdef NO_USE_SOCKET
+
+EMPTY_SOURCE
+
+#else
+
 #include "httpd.h"
 
 #include <KR3/fs/file.h>
@@ -704,3 +711,5 @@ void MemoryPage::process(HttpClient * client)
 	client->flush();
 	client->close();
 }
+
+#endif

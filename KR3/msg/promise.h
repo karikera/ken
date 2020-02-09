@@ -154,7 +154,7 @@ namespace kr
 		friend class PromiseKatch;
 		template <typename T2>
 		friend class PromisePass;
-		template <typename T>
+		template <typename T2>
 		friend class DeferredPromise;
 	public:
 		using ResultType = T;

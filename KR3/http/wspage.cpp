@@ -1,4 +1,11 @@
 #include "stdafx.h"
+
+#ifdef NO_USE_SOCKET
+
+EMPTY_SOURCE
+
+#else
+
 #include "wspage.h"
 
 #include <KR3/data/crypt.h>
@@ -23,13 +30,12 @@ WebSocketSession::WebSocketSession(Socket * socket) noexcept
 #pragma warning(pop)
 void WebSocketSession::onRead() throws(...)
 {
-	TBuffer tbuf;
 	Buffer data;
 	for (;;)
 	{
 		try
 		{
-			data = m_wsf.readFrom(&m_receive, &tbuf);
+			data = m_wsf.readFrom(&m_receive);
 		}
 		catch (TooBigException&)
 		{
@@ -91,3 +97,5 @@ void WebSocketPage::_handShake(HttpClient * client)
 	});
 	client->flush();
 }
+
+#endif

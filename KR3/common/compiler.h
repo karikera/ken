@@ -62,7 +62,6 @@
 #include <signal.h>
 
 #define ATTR_NULL_TERMINATED	
-#define ATTR_NO_DISCARD	__attribute__((warn_unused_result))
 #define ATTR_NULLABLE		
 #define ATTR_NONULL			
 #define ATTR_INLINE			__attribute__((always_inline)) inline

@@ -171,7 +171,7 @@ namespace kr
 		}
 		void write(View<C> data) noexcept
 		{
-			BufferQueue::write(data.cast<void>());
+			BufferQueue::write(data.template cast<void>());
 		}
 		void peek(C* dest, size_t size) throws(EofException)
 		{
@@ -191,19 +191,19 @@ namespace kr
 		}
 		ReadResult readwith(View<C> needle) throws(EofException)
 		{
-			return BufferQueue::readwith(needle.cast<void>());
+			return BufferQueue::readwith(needle.template cast<void>());
 		}
 		View<C> read(size_t size, TmpArray<C>* temp) throws(EofException)
 		{
-			return BufferQueue::read(size, (TmpArray<void>*)temp).cast<C>();
+			return BufferQueue::read(size, (TmpArray<void>*)temp).template cast<C>();
 		}
 		View<C> readwith(C needle, TmpArray<C>* temp) throws(EofException)
 		{
-			return BufferQueue::readwith((byte)needle, (TmpArray<void>*)temp).cast<C>();
+			return BufferQueue::readwith((byte)needle, (TmpArray<void>*)temp).template cast<C>();
 		}
 		View<C> readwith(HashTester<C>& needle, TmpArray<C>* temp) throws(EofException)
 		{
-			return BufferQueue::readwith((HashTester<void>&)needle, (TmpArray<void>*)temp).cast<C>();
+			return BufferQueue::readwith((HashTester<void>&)needle, (TmpArray<void>*)temp).template cast<C>();
 		}
 		void readwith(byte needle, io::VOStream<void> out, size_t limit) throws(EofException)
 		{
@@ -211,11 +211,11 @@ namespace kr
 		}
 		void readwith(View<C> needle, io::VOStream<C> out, size_t limit) throws(EofException)
 		{
-			return BufferQueue::readwith(needle.cast<void>(), (io::VOStream<void>&)out, limit);
+			return BufferQueue::readwith(needle.template cast<void>(), (io::VOStream<void>&)out, limit);
 		}
 		View<C> getFirstBlock() noexcept
 		{
-			return BufferQueue::getFirstBlock().cast<C>();
+			return BufferQueue::getFirstBlock().template cast<C>();
 		}
 	};
 	class BufferQueuePointer:public InStream<BufferQueuePointer, void>

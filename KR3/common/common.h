@@ -105,10 +105,15 @@ namespace kr
 #define static_assert_with_type(cmp, ...) static_assert(::kr::_pri_::StaticAssertForType<cmp, __VA_ARGS__>::value, #cmp);
 
 #define unpackR(...)  (::kr::_pri_::_unpack(((__VA_ARGS__), 0) ...))
+#ifdef _MSC_VER
 #define unpack(...)  (void)((__VA_ARGS__), ...)
+#else
+#define unpack(...)  do { int __dummy__[] = {(__VA_ARGS__, 0) ... , 0}; } while(0, 0)
+#endif
 
 #define CHARSET_CONSTLIZE(charset, code) \
 switch (charset) { \
+case ::kr::Charset::None: {constexpr ::kr::Charset charset = ::kr::Charset::None; code; } break; \
 case ::kr::Charset::Ansi: {constexpr ::kr::Charset charset = ::kr::Charset::Ansi; code; } break; \
 case ::kr::Charset::Utf8: {constexpr ::kr::Charset charset = ::kr::Charset::Utf8; code; } break; \
 case ::kr::Charset::EucKr: {constexpr ::kr::Charset charset = ::kr::Charset::EucKr; code; } break; \

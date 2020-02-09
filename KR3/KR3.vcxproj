@@ -464,7 +464,6 @@
     <ClCompile Include="wl\resource.cpp" />
     <ClCompile Include="wl\threadhandle.cpp" />
     <ClCompile Include="wl\version.cpp" />
-    <ClCompile Include="wl\windows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

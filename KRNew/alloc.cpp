@@ -728,14 +728,25 @@ void kr::removeAllocDebugInfo(void* block) noexcept
 #else
 
 #ifndef _MSC_VER
-void* operator new(size_t sz)
+#ifdef __GNUG__
+void* operator new(size_t size)
 {
-	return krmalloc(size);
+	return _pri_::krmalloc(size);
+}
+void operator delete(void* p) noexcept
+{
+	_pri_::krfree(p);
+}
+#else
+void* operator new(size_t size)
+{
+	return _pri_::krmalloc(size);
 }
 void operator delete(void* p)
 {
-	krfree(p);
+	_pri_::krfree(p);
 }
+#endif
 #endif
 
 void kr::disableKrMemoryObserver(bool disabled) noexcept

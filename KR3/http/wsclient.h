@@ -13,24 +13,24 @@ namespace kr
 		WebSocketClient(Text16 url, View<Text> protocols = nullptr) throws(SocketException);
 
 		void connect(Text16 url, View<Text> protocols = nullptr) throws(SocketException);
-		void send(Buffer data) noexcept;
-		void sendText(Text data) noexcept;
+		void writeBinary(Buffer data) noexcept;
+		void writeText(Text data) noexcept;
 		using Client::makeProcedure;
+		using Client::flush;
 
 	protected:
 		void onError(Text name, int code) noexcept override;
-		void onConnect() noexcept override final;
-		void onConnectFail(int code) noexcept override final;
 		void onRead() throws(...) override final;
-		void onClose() noexcept override final;
-		virtual void onData(Buffer data) noexcept = 0;
+
+		virtual void onConnect() noexcept override;
+		virtual void onConnectFail(int code) noexcept override;
+		virtual void onClose() noexcept override;
+		virtual void onHandshaked() noexcept;
+		virtual void onText(Text data) noexcept;
+		virtual void onBinary(Buffer data) noexcept;
 
 	private:
 		struct Connecting
-		{
-			AText key;
-		};
-		struct HeadLine
 		{
 			AText key;
 		};
@@ -46,12 +46,12 @@ namespace kr
 			WSFrameReader wsf;
 		};
 
+		void _sendPong(Buffer buffer) noexcept;
 		void _sendRequest(Text16 url, View<Text> protocols) noexcept;
 		void onReadWith(Connecting& obj) throws(...);
-		void onReadWith(HeadLine& obj) throws(...);
 		void onReadWith(Headers& obj) throws(...);
 		void onReadWith(HandShaked& obj) throws(...);
 
-		Mixed<Connecting, HeadLine, Headers, HandShaked> m_state;
+		Mixed<Connecting, Headers, HandShaked> m_state;
 	};
 }

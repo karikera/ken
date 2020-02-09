@@ -96,6 +96,7 @@ namespace kr
 				return $sizeAs<C>();
 			}
 
+#ifndef NO_USE_FILESYSTEM
 			static TBuffer hash(File * file) noexcept
 			{
 				Hasher hasher;
@@ -103,6 +104,7 @@ namespace kr
 				delete file;
 				return (TBuffer)hasher;
 			}
+#endif
 		};
 
 		class Sha1Context

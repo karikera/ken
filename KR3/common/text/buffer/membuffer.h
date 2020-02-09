@@ -744,7 +744,7 @@ namespace kr
 			ComponentRef* end_find_re(Ref needle) noexcept
 			{
 				const Component* finded = end_find_r(needle);
-				if (finded.end() == nullptr) return (ComponentRef*)begin();
+				if (finded == nullptr) return (ComponentRef*)begin();
 				return (ComponentRef*)finded;
 			}
 

@@ -3,10 +3,16 @@
 #include "../main.h"
 #include "../meta/retype.h"
 
+#ifdef _MSC_VER
+
+#define WCHAR_IS_CHAR16
+
+static_assert(sizeof(wchar_t) == sizeof(char16_t), "wchar size unmatch");
+
 namespace kr
 {
 	using unicode_wchar_t = char_sz_t<sizeof(wchar_t)>;
-
+	
 	template <typename T>
 	inline meta::retype_t<T, wchar_t> wide(T v) noexcept
 	{
@@ -62,3 +68,7 @@ namespace kr
 
 	const wchar_t * szlize(Text16 text, TText16* buffer) noexcept;
 }
+
+#else
+
+#endif

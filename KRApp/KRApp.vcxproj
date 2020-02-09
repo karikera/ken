@@ -204,6 +204,13 @@
     <ClCompile Include="fbx\fbxdoc.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="dx\d3d11\assimp.inl" />
+    <None Include="dx\d3d11\collider.inl" />
+    <ClCompile Include="dx\d3d11\device.cpp" />
+    <ClCompile Include="dx\d3d11\skybox.cpp" />
+    <ClCompile Include="dx\d3d11\texture.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\K2D\K2D.vcxproj">
       <Project>{cc68c111-ca4b-42f6-b2a1-956420ce5d0f}</Project>
     </ProjectReference>
@@ -216,13 +223,6 @@
     <ProjectReference Include="..\KRWin\KRWin.vcxproj">
       <Project>{432cc3c8-34b1-405d-9675-36fdf25289c7}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="dx\d3d11\assimp.inl" />
-    <None Include="dx\d3d11\collider.inl" />
-    <ClCompile Include="dx\d3d11\device.cpp" />
-    <ClCompile Include="dx\d3d11\skybox.cpp" />
-    <ClCompile Include="dx\d3d11\texture.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

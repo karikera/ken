@@ -568,45 +568,47 @@ inline const kr::vec4a angmodv(const kr::vec4a & angles) noexcept
 }
 inline const kr::vec4a slerpv(const kr::vec4a& a, const kr::vec4a& b, const kr::vec4a & rate) noexcept
 {
+	using namespace kr;
+
 	_assert(rate.y == rate.x && rate.z == rate.x && rate.w == rate.x);
 
-	static const kr::vec4a OneMinusEpsilon = { 1.0f - 0.00001f, 1.0f - 0.00001f, 1.0f - 0.00001f, 1.0f - 0.00001f };
-	static const kr::vec4a SignMask2 = { 0x80000000,0x00000000,0x00000000,0x00000000 };
-	static const kr::vec4a MaskXY = { 0xFFFFFFFF,0xFFFFFFFF,0x00000000,0x00000000 };
+	static const vec4a OneMinusEpsilon = { 1.0f - 0.00001f, 1.0f - 0.00001f, 1.0f - 0.00001f, 1.0f - 0.00001f };
+	static const ivec4a SignMask2 = { (int)0x80000000,0x00000000,0x00000000,0x00000000 };
+	static const ivec4a MaskXY = { (int)0xFFFFFFFF,(int)0xFFFFFFFF,0x00000000,0x00000000 };
 
-	kr::vec4a CosOmega = dotV((kr::vec4a&)a, (kr::vec4a&)b);
+	vec4a CosOmega = dotV((vec4a&)a, (vec4a&)b);
 
-	const kr::vec4a Zero = kr::vec4a::makez();
-	kr::vec4a Control = CosOmega < Zero;
-	kr::vec4a Sign = XMVectorSelect(g_XMOne, g_XMNegativeOne, Control);
+	const vec4a Zero = vec4a::makez();
+	vec4a Control = CosOmega < Zero;
+	vec4a Sign = XMVectorSelect(g_XMOne, g_XMNegativeOne, Control);
 
 	CosOmega = CosOmega * Sign;
 
 	Control = CosOmega < OneMinusEpsilon;
 
-	kr::vec4a SinOmega = CosOmega * CosOmega;
+	vec4a SinOmega = CosOmega * CosOmega;
 	SinOmega = g_XMOne < SinOmega;
 	SinOmega = sqrtv(SinOmega);
 
-	kr::vec4a Omega = atan2v(SinOmega, CosOmega);
+	vec4a Omega = atan2v(SinOmega, CosOmega);
 
-	kr::vec4a V01 = rate.shuffle<1, 0, 3, 2>();
-	V01 = V01 & MaskXY;
-	V01 = V01 ^ SignMask2;
+	vec4a V01 = rate.shuffle<1, 0, 3, 2>();
+	V01 = V01 & (vec4a&)MaskXY;
+	V01 = V01 ^ (vec4a&)SignMask2;
 	V01 = g_XMIdentityR0 + V01;
 
-	kr::vec4a S0 = V01 * Omega;
+	vec4a S0 = V01 * Omega;
 	S0 = sinv(S0);
 	S0 = S0 / SinOmega;
 
 	S0 = XMVectorSelect(V01, S0, Control);
 
-	kr::vec4a S1 = S0.getYV();
+	vec4a S1 = S0.getYV();
 	S0 = S0.getXV();
 
 	S1 = S1 * Sign;
-	kr::vec4a Result = (kr::vec4a&)a * S0;
-	S1 = S1 * (kr::vec4a&)b;
+	vec4a Result = (vec4a&)a * S0;
+	S1 = S1 * (vec4a&)b;
 	Result = Result + S1;
 	return Result;
 }
@@ -723,10 +725,10 @@ ATTR_INLINE const kr::vec4a clampv(const kr::vec4a & a, const kr::vec4a & v, con
 	return minv(maxv(v, a), b);
 #else
 	return kr::vec4a(
-		tclamp(a.x, v.x, b.x),
-		tclamp(a.y, v.y, b.y),
-		tclamp(a.z, v.z, b.z),
-		tclamp(a.w, v.w, b.w)
+		kr::clampt(a.x, v.x, b.x),
+		kr::clampt(a.y, v.y, b.y),
+		kr::clampt(a.z, v.z, b.z),
+		kr::clampt(a.w, v.w, b.w)
 	);
 #endif
 }

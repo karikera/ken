@@ -1,4 +1,11 @@
 #include "stdafx.h"
+
+#ifdef NO_USE_SOCKET
+
+EMPTY_SOURCE
+
+#else
+
 #include "wsclient.h"
 #include "wscommon.h"
 
@@ -54,23 +61,25 @@ void WebSocketClient::connect(Text16 url, View<Text> protocols) throws(SocketExc
 	Client::connect(TSZ16() << parsed.host, parsed.port);
 	_sendRequest(url, protocols);
 }
-void WebSocketClient::send(Buffer data) noexcept
+void WebSocketClient::writeBinary(Buffer data) noexcept
 {
 	WSFrameEx frame;
 	memset(&frame, 0, sizeof(frame));
-	frame.setDataLengthAuto(data.size());
 	frame.opcode = WSOpcode::BINARY;
+	frame.fin = true;
+	frame.setDataLengthAuto(data.size());
 	write({ &frame, frame.getSize() });
-	m_receive.write(data);
+	write(data);
 }
-void WebSocketClient::sendText(Text data) noexcept
+void WebSocketClient::writeText(Text data) noexcept
 {
 	WSFrameEx frame;
 	memset(&frame, 0, sizeof(frame));
-	frame.setDataLengthAuto(data.size());
 	frame.opcode = WSOpcode::TEXT;
+	frame.fin = true;
+	frame.setDataLengthAuto(data.size());
 	write({ &frame, frame.getSize() });
-	m_receive.write(data.cast<void>());
+	write(data.cast<void>());
 }
 
 void WebSocketClient::onError(Text name, int code) noexcept
@@ -79,13 +88,14 @@ void WebSocketClient::onError(Text name, int code) noexcept
 }
 void WebSocketClient::onConnect() noexcept
 {
-	Connecting& conn = m_state.get<Connecting>();
-	_assert(conn.key != nullptr);
-	AText key = move(conn.key);
-	HeadLine& headline = m_state.reset<HeadLine>();
-	headline.key = move(key);
 }
 void WebSocketClient::onConnectFail(int code) noexcept
+{
+}
+void WebSocketClient::onHandshaked() noexcept
+{
+}
+void WebSocketClient::onClose() noexcept
 {
 }
 void WebSocketClient::onRead() throws(...)
@@ -97,7 +107,24 @@ void WebSocketClient::onRead() throws(...)
 		});
 	}
 }
+void WebSocketClient::onText(Text data) noexcept
+{
+}
+void WebSocketClient::onBinary(Buffer data) noexcept
+{
+}
 
+void WebSocketClient::_sendPong(Buffer buffer) noexcept
+{
+	WSFrameEx frame;
+	memset(&frame, 0, sizeof(frame));
+	frame.opcode = WSOpcode::PONG;
+	frame.fin = true;
+	frame.setDataLengthAuto(buffer.size());
+	write({ &frame, frame.getSize() });
+	write(buffer);
+	flush();
+}
 void WebSocketClient::_sendRequest(Text16 url, View<Text> protocols) noexcept
 {
 	Connecting& conn = m_state.reset<Connecting>();
@@ -114,8 +141,9 @@ void WebSocketClient::_sendRequest(Text16 url, View<Text> protocols) noexcept
 		"Connection: Upgrade\r\n"
 		"Origin: about:kenlib \r\n"
 		"Host: " << toUtf8(parsed.host) << "\r\n"
-		"Upgrade: WebSocket\r\n"
-		"Sec-WebSocket-Key: " << conn.key << "\r\n";
+		"Upgrade: websocket\r\n"
+		"Sec-WebSocket-Key: " << conn.key << "\r\n"
+		"User-Agent: KenLib/1.0" << "\r\n";
 
 
 	if (protocols != nullptr)
@@ -126,14 +154,24 @@ void WebSocketClient::_sendRequest(Text16 url, View<Text> protocols) noexcept
 	tsz << "Sec-WebSocket-Version: 13\r\n"
 		"\r\n";
 
+	tsz.clear();
+	tsz <<
+		"GET ws://echo.websocket.org/ HTTP/1.1\r\n"
+		"Host: echo.websocket.org\r\n"
+		"Connection: Upgrade\r\n"
+		"Pragma: no-cache\r\n"
+		"Cache-Control: no-cache\r\n"
+		"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36\r\n"
+		"Upgrade: websocket\r\n"
+		"Origin: file://\r\n"
+		"Sec-WebSocket-Version: 13\r\n"
+		"Accept-Encoding: gzip, deflate\r\n"
+		"Accept-Language: ko,en-US;q=0.9,en;q=0.8,ja;q=0.7,ko-KR;q=0.6\r\n"
+		"Sec-WebSocket-Key: " << conn.key << "\r\n\r\n";
 	write(tsz.cast<void>());
 	flush();
 }
 void WebSocketClient::onReadWith(Connecting& obj) throws(...)
-{
-	unreachable();
-}
-void WebSocketClient::onReadWith(HeadLine& obj) throws(...)
 {
 	TText tbuf;
 	auto* receive = m_receive.retype<char>();
@@ -167,16 +205,15 @@ void WebSocketClient::onReadWith(Headers& obj) throws(...)
 			if (!obj.upgraded)
 			{
 				onError("No upgrade header", ERROR_INVALID_SERVER_STATE);
-				close();
-				throw EofException();
+				throw ThrowAbort();
 			}
 			if (!obj.keyChecked)
 			{
 				onError("No Sec-WebSocket-Accept header", ERROR_INVALID_SERVER_STATE);
-				close();
-				throw EofException();
+				throw ThrowAbort();
 			}
 			m_state.reset<HandShaked>();
+			onHandshaked();
 			break;
 		}
 
@@ -187,18 +224,16 @@ void WebSocketClient::onReadWith(Headers& obj) throws(...)
 			if (buf != "Upgrade")
 			{
 				onError("Connection must be upgrade", ERROR_INVALID_SERVER_STATE);
-				close();
-				throw EofException();
+				throw ThrowAbort();
 			}
 			obj.upgraded = true;
 		}
 		else if (prop == "Upgrade")
 		{
-			if (!buf.equals_i("WebSocket"))
+			if (!buf.equals_i("websocket"))
 			{
-				onError("Upgrade must be WebSocket", ERROR_INVALID_SERVER_STATE);
-				close();
-				throw EofException();
+				onError("Upgrade must be websocket", ERROR_INVALID_SERVER_STATE);
+				throw ThrowAbort();
 			}
 			obj.upgradeToWebSocket = true;
 		}
@@ -207,8 +242,7 @@ void WebSocketClient::onReadWith(Headers& obj) throws(...)
 			if (!buf.equals(makeSecWebSocketAccept(obj.key)))
 			{
 				onError("Sec-WebSocket-Accept not matched", ERROR_INVALID_SERVER_STATE);
-				close();
-				throw EofException();
+				// throw ThrowAbort();
 			}
 			obj.keyChecked = true;
 		}
@@ -220,24 +254,34 @@ void WebSocketClient::onReadWith(Headers& obj) throws(...)
 }
 void WebSocketClient::onReadWith(HandShaked& obj) throws(...)
 {
-	TBuffer tbuf;
 	Buffer data;
 	for (;;)
 	{
 		try
 		{
-			data = obj.wsf.readFrom(&m_receive, &tbuf);
-			dout << "OPCODE: " << (int)obj.wsf.frame.opcode << endl;
+			data = obj.wsf.readFrom(&m_receive);
 		}
 		catch (TooBigException&)
 		{
 			onError("Too big data", ERROR_NOT_ENOUGH_MEMORY);
-			close();
-			throw;
+			throw ThrowAbort();
 		}
-		onData(data);
+		switch (obj.wsf.frame.opcode)
+		{
+		case WSOpcode::TEXT:
+			onText(data.cast<char>());
+			break;
+		case WSOpcode::BINARY:
+			onBinary(data);
+			break;
+		case WSOpcode::PING:
+			_sendPong(data);
+			break;
+		default:
+			dout << "OPCODE: " << (int)obj.wsf.frame.opcode << endl;
+			break;
+		}
 	}
 }
-void WebSocketClient::onClose() noexcept
-{
-}
+
+#endif

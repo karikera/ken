@@ -135,15 +135,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <OutliningLimit>2000</OutliningLimit>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
-    <Link>
-      <OutliningLimit>2000</OutliningLimit>
-    </Link>
-    <Lib>
-      <OutliningLimit>2000</OutliningLimit>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>

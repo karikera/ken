@@ -15,7 +15,7 @@ using namespace kr;
 using namespace win;
 
 Window * kr::win::g_mainWindow;
-Instance* kr::win::g_instance = Instance::getModule(nullptr);
+Instance* kr::win::g_instance = Instance::current();
 Cursor::Current Cursor::current;
 
 #pragma warning(disable:4800)
@@ -27,23 +27,6 @@ ivec2 win::getCursorPos() noexcept
 	return pt;
 }
 
-Library* Library::load(pcstr16 str) noexcept
-{
-	return (Library*)LoadLibraryW(wide(str));
-}
-Module * Library::getModule(pcstr16 str) noexcept
-{
-	return (Module*)GetModuleHandleW(wide(str));
-}
-void Library::operator delete(void * library) noexcept
-{
-	FreeLibrary((HMODULE)library);
-}
-const autovar<sizeof(ptr)> Library::get(pcstr str) noexcept
-{
-	FARPROC t = GetProcAddress(this, str);
-	return t;
-}
 template <> size_t ProcessAndModule::getName<char>(char* dest, size_t capacity) const noexcept
 {
 	return GetModuleBaseNameA(process, winmodule, dest, intact<DWORD>(capacity));

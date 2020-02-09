@@ -100,6 +100,7 @@ void Client::close() noexcept
 	m_event->reset();
 	delete m_socket;
 	m_socket = nullptr;
+	onClose();
 }
 void Client::processEvent() noexcept
 {
@@ -125,11 +126,17 @@ void Client::processEvent() noexcept
 		{
 			for (;;)
 			{
+				try
 				{
 					auto buf = m_receive.prepare();
 					size_t readed = m_socket->$read(buf.data(), buf.size());
 					if (readed == 0) break;
 					m_receive.commit(readed);
+				}
+				catch (SocketException & err)
+				{
+					onError("read", err);
+					break;
 				}
 				{
 					try
@@ -143,10 +150,6 @@ void Client::processEvent() noexcept
 					}
 					catch (EofException&)
 					{
-					}
-					catch (SocketException & err)
-					{
-						onError("read", err);
 					}
 					catch (...)
 					{
@@ -189,6 +192,7 @@ void Client::processEvent() noexcept
 	if (state.close)
 	{
 		// state.errClose
+		close();
 		onClose();
 	}
 }

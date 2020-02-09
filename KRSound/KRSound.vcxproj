@@ -185,9 +185,6 @@
     <ProjectReference Include="..\KR3\KR3.vcxproj">
       <Project>{f5212e7b-4791-4488-a23a-57af3023e7d3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KRNew\KRNew.vcxproj">
-      <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\KRTool\kcopy\kcopy.vcxproj">
       <Project>{748300f4-632c-4dfb-a64c-e70ea0cf53dc}</Project>
     </ProjectReference>

@@ -143,13 +143,14 @@ void HttpRequest::setRequestHeader(const char * line) noexcept
 {
 #ifdef __EMSCRIPTEN__
 	Text txline = (Text)line;
-	Text txnext = txline.find(':');
+	const char* txnext = txline.find(':');
 	if (txnext == nullptr) return;
 	txnext++;
-	if (txnext.startsWith(' ')) txnext++;
+	if (txnext == txline.end()) return;
+	if (*txnext == ' ') txnext++;
 	size_t idx = m_obj->requestHeaders.size();
 	m_obj->requestHeaderIndexes.push(idx);
-	m_obj->requestHeaderIndexes.push(idx + (txnext - txline));
+	m_obj->requestHeaderIndexes.push(idx + (txnext - txline.data()));
 	m_obj->requestHeaders << txline;
 #else
 	m_headers = curl_slist_append(m_headers, line);
@@ -179,7 +180,7 @@ Promise<AText>* HttpRequest::fetchAsText(const char * url) noexcept
 		obj->postdata = nullptr;
 		obj->requestHeaders = nullptr;
 		obj->requestHeaderIndexes = nullptr;
-		PromiseManager::getInstance()->process();
+		EventPump::getInstance()->processOnce();
 	};
 	m_obj->attr.onerror = [](emscripten_fetch_t *fetch) {
 		auto * obj = (FetchObject*)fetch->userData;

@@ -161,7 +161,7 @@ namespace kr
 
 				size_t size = 0;
 				datas.value_loop([&](const auto & data) {
-					size += data.sizeAs<Component>();
+					size += data.template sizeAs<Component>();
 				});
 				if (hasNullTerm) size++;
 				InternalComponent * dest = (InternalComponent*)padding(size);

@@ -37,7 +37,7 @@ namespace kr
 			template <size_t ... dstOrders, size_t ... srcOrders> struct _order_util<numbers<srcOrders ...>, numbers<dstOrders ...> >
 			{
 				template <typename TD, typename TS>
-				static void copy(_Out_ TD * dest, _In_ const TS * src) noexcept
+				static void copy(TD * dest, const TS * src) noexcept
 				{
 					unpack(dest[dstOrders] = (TD)src[srcOrders]);
 				}

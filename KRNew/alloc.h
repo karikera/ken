@@ -266,8 +266,15 @@ namespace kr
 #define kr_alloc(sz, ...)			((::kr::autoptr)reline_new(::kr::alloc<__VA_ARGS__>::allocate(sz)))
 
 #ifndef _MSC_VER
+
+#ifdef __GNUG__
+void* operator new(size_t sz);
+void operator delete(void* p) noexcept;
+#else
 void* operator new(size_t sz);
 void operator delete(void* p);
+#endif
+
 #endif
 
 #endif

@@ -1,5 +1,11 @@
 #include "stdafx.h"
 
+#ifdef NO_USE_SOCKET
+
+EMPTY_SOURCE
+
+#else
+
 #include "fslpolicy.h"
 
 
@@ -32,3 +38,5 @@ MTClient* FSLPolicyServer::onAccept(Socket * socket) noexcept
 void FSLPolicyServer::onError(Text func, int code) noexcept
 {
 }
+
+#endif

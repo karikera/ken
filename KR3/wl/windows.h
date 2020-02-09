@@ -11,20 +11,5 @@
 #include "../util/wide.h"
 #include "../util/path.h"
 
-namespace kr
-{
-
-	template <typename C>
-	class ModuleName:public HasOnlyCopyTo<ModuleName<C>, C, HasOnlyCopyToInfo<Path::MAX_LEN, true> >
-	{
-	private:
-		void* const m_module;
-
-	public:
-		ModuleName(const C* name = nullptr) noexcept;
-		size_t $copyTo(C* dest) const noexcept;
-	};
-
-}
 
 #endif

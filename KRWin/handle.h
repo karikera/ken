@@ -10,7 +10,6 @@
 #include <KR3/wl/threadhandle.h>
 #include <KR3/util/uts.h>
 
-
 namespace kr
 {
 	typedef LRESULT(CT_STDCALL * WndProc)(win::Window * pWnd, uint Msg, WPARAM wParam, LPARAM lParam);
@@ -63,14 +62,6 @@ namespace kr
 			template <typename T> size_t getNameLength() const noexcept;
 		};
 
-		class Library:public Handle<HINSTANCE__>
-		{
-		public:
-			static Library* load(pcstr16 str) noexcept;
-			static Module * getModule(pcstr16 str) noexcept;
-			void operator delete(void * library) noexcept;
-			const autovar<sizeof(ptr)> get(pcstr str) noexcept;
-		};
 		class Iconable:public Handle<HICON__>
 		{
 		public:

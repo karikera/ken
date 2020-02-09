@@ -4,6 +4,23 @@
 
 namespace kr
 {
+
+#ifndef NO_USE_FILESYSTEM
+
+	class CurrentApplicationPath final : public Bufferable<CurrentApplicationPath, BufferInfo<AutoComponent, method::CopyTo, true, true>>
+	{
+	public:
+		CurrentApplicationPath() noexcept;
+
+		template <typename CHR>
+		size_t $copyTo(CHR* dest) const noexcept;
+		template <typename CHR>
+		size_t $sizeAs() const noexcept;
+
+	private:
+		void* m_module;
+	};
+
 	class CurrentDirectory final : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, method::CopyTo, true, true>>
 	{
 	public:
@@ -18,6 +35,8 @@ namespace kr
 	};
 
 	static constexpr const CurrentDirectory currentDirectory = CurrentDirectory();
+
+#endif
 
 	class Path
 	{
@@ -412,6 +431,7 @@ namespace kr
 			return dest;
 		}
 
+#ifndef NO_USE_FILESYSTEM
 		// "dirname/../../basename.ext" -> "/absolute/path/basename.ext"
 		static TSZ resolve(Text path, C seper = sep) noexcept
 		{
@@ -426,6 +446,7 @@ namespace kr
 			joinEx(&dest, paths, true, seper);
 			return dest;
 		}
+#endif
 	};
 
 #ifdef WIN32

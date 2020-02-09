@@ -4,7 +4,12 @@
 #error is not windows system
 #endif
 
-#include "../main.h"
+#include <KR3/main.h>
+#include <KR3/util/path.h>
+
+#include "windows.h"
+
+typedef struct HINSTANCE__* HINSTANCE;
 
 namespace kr
 {
@@ -33,7 +38,25 @@ namespace kr
 		{
 			_pri_::closeHandle(v);
 		}
+
 	};;
+
+	namespace win
+	{
+		class Library :public Handle<HINSTANCE__>
+		{
+		public:
+			static Library* load(pcstr16 str) noexcept;
+			static Module* byName(pcstr16 str) noexcept;
+			static Module* current() noexcept;
+			void operator delete(void* library) noexcept;
+			const autovar<sizeof(ptr)> get(pcstr str) noexcept;
+			template <typename T> size_t getFileName(T* dest, size_t capacity) const noexcept;
+			template <typename T> size_t getFileNameLength() const noexcept;
+
+			KR_WRITABLE_METHOD(Library, name, true, (m_this->getFileName<C>(dest, Path::MAX_LEN)), (m_this->getFileNameLength<C>()));
+		};
+	}
 
 	class ihv_t final
 	{

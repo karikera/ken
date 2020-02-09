@@ -1,4 +1,11 @@
 #include "stdafx.h"
+
+#ifdef NO_USE_SOCKET
+
+EMPTY_SOURCE
+
+#else
+
 #include "http.h"
 
 #include <KR3/wl/windows.h>
@@ -258,3 +265,5 @@ size_t kr::HttpConnection::$read(char * dest, size_t size)
 //	}
 //	return 0;
 //}
+
+#endif

@@ -271,7 +271,10 @@ void Application::create(int width, int height) noexcept
 			//wnd->killTimer(1);
 			break;
 
-		case WM_DESTROY: PostQuitMessage(0); break;
+		case WM_DESTROY: 
+			s_main->m_pump->cancel(&s_drawInterval);
+			PostQuitMessage(0);
+			break;
 		case WM_SIZE: {
 			Application * app = ((Application*)wnd->getLongPtr(GWLP_USERDATA));
 			app->m_width = LOWORD(lParam);

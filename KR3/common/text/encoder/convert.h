@@ -396,9 +396,9 @@ EXTERN_CHARSET(kr::Charset::Utf8, kr::char32);
 EXTERN_CHARSET(kr::Charset::Ansi, kr::char16);
 EXTERN_CHARSET(kr::Charset::Ansi, kr::char32);
 
-bool kr::meml<kr::Charset::Ansi>::isDbcs(char chr) noexcept;
-bool kr::meml<kr::Charset::EucKr>::isDbcs(char chr) noexcept;
-bool kr::meml<kr::Charset::Utf8>::isDbcs(char chr) noexcept;
+template <> bool kr::meml<kr::Charset::Ansi>::isDbcs(char chr) noexcept;
+template <> bool kr::meml<kr::Charset::EucKr>::isDbcs(char chr) noexcept;
+template <> bool kr::meml<kr::Charset::Utf8>::isDbcs(char chr) noexcept;
 
 #undef EXTERN_CHARSET
 

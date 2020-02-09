@@ -1025,9 +1025,6 @@
     <ClCompile Include="js\propertyid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wl\windows.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="util\stackgc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
