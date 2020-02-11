@@ -7,31 +7,40 @@ namespace kr
 
 #ifndef NO_USE_FILESYSTEM
 
-	class CurrentApplicationPath final : public Bufferable<CurrentApplicationPath, BufferInfo<AutoComponent, method::CopyTo, true, true>>
-	{
-	public:
-		CurrentApplicationPath() noexcept;
-
-		template <typename CHR>
-		size_t $copyTo(CHR* dest) const noexcept;
-		template <typename CHR>
-		size_t $sizeAs() const noexcept;
-
-	private:
-		void* m_module;
-	};
-
 	class CurrentDirectory final : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, method::CopyTo, true, true>>
 	{
 	public:
 		static constexpr size_t PREPARE = 260;
 
 		template <typename CHR>
-		bool set(const CHR * text) const noexcept;
+		bool set(const CHR* text) const noexcept;
 		template <typename CHR>
-		size_t $copyTo(CHR * dest) const noexcept;
+		size_t $copyTo(CHR* dest) const noexcept;
 		template <typename CHR>
 		size_t $sizeAs() const noexcept;
+	};
+
+
+	class CurrentApplicationPath final : public Bufferable<CurrentApplicationPath, BufferInfo<AutoComponent, method::WriteTo, true, true>>
+	{
+	public:
+		CurrentApplicationPath() noexcept;
+
+		template <typename _Derived, typename C, typename _Info>
+		void $writeTo(OutStream<_Derived, C, _Info>* os) const throws(...)
+		{
+			using OS = OutStream<_Derived, C, _Info>;
+			WriteLock<OS, CurrentDirectory::PREPARE> lock;
+			C* dest = lock.lock(os);
+			size_t size = copyTo(dest);
+			lock.unlock(os, size);
+		}
+
+		template <typename CHR>
+		size_t copyTo(CHR* dest) const noexcept;
+
+	private:
+		void* m_module;
 	};
 
 	static constexpr const CurrentDirectory currentDirectory = CurrentDirectory();

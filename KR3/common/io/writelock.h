@@ -109,6 +109,8 @@ namespace kr
 		using Super = _pri_::WriteLockImpl<DATA, DATA::accessable, typename DATA::InternalComponent, size, nullterm>;
 	public:
 		using Super::Super;
+		using Super::lock;
+		using Super::unlock;
 	};;
 
 }

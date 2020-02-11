@@ -111,7 +111,6 @@ inline void buildTest() noexcept
 	moduleName << CurrentApplicationPath() << nullterm;
 #endif
 
-
 	AText b = (AText)shell(nullptr, nullptr);
 }
 

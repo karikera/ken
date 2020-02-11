@@ -16,14 +16,9 @@ CurrentApplicationPath::CurrentApplicationPath() noexcept
 }
 
 template <typename CHR>
-size_t CurrentApplicationPath::$copyTo(CHR* dest) const noexcept
+size_t CurrentApplicationPath::copyTo(CHR* dest) const noexcept
 {
 	return ((win::Module*)(m_module))->getFileName(dest, MAX_PATH);
-}
-template <typename CHR>
-size_t CurrentApplicationPath::$sizeAs() const noexcept
-{
-	return ((win::Module*)(m_module))->getFileNameLength<CHR>();
 }
 template <> bool CurrentDirectory::set<char>(const char * text) const noexcept
 {
@@ -64,10 +59,8 @@ template <> size_t CurrentDirectory::$sizeAs<wchar_t>() const noexcept
 	return GetCurrentDirectoryW(0, nullptr) - 1;
 }
 
-template size_t CurrentApplicationPath::$copyTo<char>(char*) const noexcept;
-template size_t CurrentApplicationPath::$sizeAs<char>() const noexcept;
-template size_t CurrentApplicationPath::$copyTo<char16_t>(char16_t*) const noexcept;
-template size_t CurrentApplicationPath::$sizeAs<char16_t>() const noexcept;
+template size_t CurrentApplicationPath::copyTo<char>(char*) const noexcept;
+template size_t CurrentApplicationPath::copyTo<char16_t>(char16_t*) const noexcept;
 
 #else
 

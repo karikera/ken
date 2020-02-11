@@ -35,18 +35,9 @@ template <> size_t Library::getFileName<char>(char* dest, size_t capacity) const
 {
 	return GetModuleFileNameA(const_cast<Library*>(this), dest, (DWORD)mint(capacity, MAX_PATH));
 }
-template <> size_t Library::getFileNameLength<char>() const noexcept
-{
-	return GetModuleFileNameA(const_cast<Library*>(this), nullptr, 0);
-}
-
 template <> size_t Library::getFileName<char16_t>(char16_t* dest, size_t capacity) const noexcept
 {
 	return GetModuleFileNameW(const_cast<Library*>(this), wide(dest), (DWORD)mint(capacity, MAX_PATH));
-}
-template <> size_t Library::getFileNameLength<char16_t>() const noexcept
-{
-	return GetModuleFileNameW(const_cast<Library*>(this), nullptr, 0);
 }
 
 void kr::_pri_::closeHandle(void * handle) noexcept

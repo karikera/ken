@@ -51,10 +51,33 @@ namespace kr
 			static Module* current() noexcept;
 			void operator delete(void* library) noexcept;
 			const autovar<sizeof(ptr)> get(pcstr str) noexcept;
-			template <typename T> size_t getFileName(T* dest, size_t capacity) const noexcept;
-			template <typename T> size_t getFileNameLength() const noexcept;
 
-			KR_WRITABLE_METHOD(Library, name, true, (m_this->getFileName<C>(dest, Path::MAX_LEN)), (m_this->getFileNameLength<C>()));
+			template <typename T> size_t getFileName(T* dest, size_t capacity) const noexcept;
+			
+			struct FileName:public Bufferable<FileName, BufferInfo<AutoComponent, method::WriteTo, true, true>>
+			{
+			private:
+				const Library* m_this;
+
+			public:
+				FileName(const Library* _this) noexcept
+					:m_this(_this)
+				{
+				}
+				template <typename _Derived, typename C, typename _Info>
+				void $writeTo(OutStream<_Derived, C, _Info>* os) const throws(...)
+				{
+					using OS = OutStream<_Derived, C, _Info>;
+					WriteLock<OS, CurrentDirectory::PREPARE> lock;
+					C* dest = lock.lock(os);
+					size_t size = m_this->getFileName(dest, CurrentDirectory::PREPARE);
+					lock.unlock(os, size);
+				}
+			};
+			inline FileName fileName() const noexcept
+			{
+				return FileName(this);
+			}
 		};
 	}
 
