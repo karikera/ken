@@ -8,15 +8,16 @@
 #include <memory.h>
 #include <cmath>
 
-#include "../main.h"
+#include <KR3/main.h>
 #include "coord/vector.h"
+#include "coord/quaternion.h"
+#include "coord/matrix.h"
+#include "coord/const.h"
+
 #include "coord/vector_data.inl"
 #include "coord/vector_method.inl"
 #include "coord/vector.inl"
 
-#include "coord/quaternion.h"
-
-#include "coord/matrix.h"
 #include "coord/matrix_data.inl"
 #include "coord/matrix_method.inl"
 

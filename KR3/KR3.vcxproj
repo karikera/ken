@@ -157,6 +157,7 @@
     <ClInclude Include="js\type.h" />
     <ClInclude Include="js\undefined.h" />
     <ClInclude Include="js\value.h" />
+    <ClInclude Include="math\coord\const.h" />
     <ClInclude Include="msg\cascader.h" />
     <ClInclude Include="msg\eventdispatcher.h" />
     <ClInclude Include="msg\minidb.h" />
@@ -478,6 +479,7 @@
     <None Include="common\math.inl" />
     <None Include="common\memlib.inl" />
     <None Include="common\random.inl" />
+    <None Include="math\coord\quaternion.inl" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="util\coroutine_x64.asm">

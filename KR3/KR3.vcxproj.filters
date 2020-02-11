@@ -684,6 +684,9 @@
     <ClInclude Include="http\wscommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="math\coord\const.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\autovar\autoptr.cpp">
@@ -1070,6 +1073,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="cpp.hint" />
+    <None Include="math\coord\quaternion.inl">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="util\coroutine_x64.asm">
