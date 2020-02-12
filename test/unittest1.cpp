@@ -29,7 +29,7 @@ namespace test
 	public:
 		TEST_METHOD(parameter)
 		{
-			kr::Text param_tx = "test\"\"test \"test\"test \"test\"\"test\" \"test\\\"test\"";
+			kr::Text param_tx = "test\"\"test  \"test\"test \"test\"\"test\" \"test\\\"test\"";
 			char* param = (char*)param_tx.data();
 
 			Assert::AreEqual<Text>(readArgument(&param_tx), "testtest");

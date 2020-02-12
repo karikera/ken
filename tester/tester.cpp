@@ -388,6 +388,7 @@ public:
 
 int main()
 {
+
 	MainWindow wnd;
 	main_loop(&wnd);
 	return 0;

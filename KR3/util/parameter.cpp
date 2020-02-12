@@ -378,7 +378,10 @@ inline TmpArray<C> _readArgument(View<C>* line) noexcept
 				}
 			}
 			break;
-		case ' ': str++; goto _fin;
+		case ' ': 
+			str++;
+			while (*str == ' ') str++;
+			goto _fin;
 		default:
 			out << chr;
 			break;
@@ -431,7 +434,10 @@ inline TmpArray<C> _readArgument(C** pstr) noexcept
 				}
 			}
 			break;
-		case ' ': str++; goto _fin;
+		case ' ': 
+			str++; 
+			while (*str == ' ') str++;
+			goto _fin;
 		default:
 			out << chr;
 			break;
