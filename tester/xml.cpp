@@ -5,6 +5,7 @@
 
 #include <KR3/fs/file.h>
 #include <KR3/parser/parser.h>
+#include <KR3/meta/function.h>
 
 namespace kr
 {

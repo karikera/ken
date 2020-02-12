@@ -8,12 +8,22 @@ namespace kr
 {
 	class WebSocketPage;
 
-	class WebSocketSession : public MTClient
+	class WebSocketSession : private WSSender<MTClient>
 	{
+		friend WebSocketPage;
+		using Super = WSSender<MTClient>;
 	public:
 		WebSocketSession(Socket * socket) noexcept;
+		using Super::writeBinary;
+		using Super::writeText;
+		using Super::flush;
+
+	protected:
+		void onError(Text name, int code) noexcept override;
 		void onRead() throws(...) override final;
-		virtual void onData(Buffer data) = 0;
+
+		virtual void onText(Text data) throws(...);
+		virtual void onBinary(Buffer data) throws(...);
 
 	private:
 		WSFrameReader m_wsf;

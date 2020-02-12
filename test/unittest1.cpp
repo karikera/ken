@@ -9,17 +9,40 @@
 #include <KR3/fs/installer.h>
 #include <KR3/fs/file.h>
 #include <KR3/data/idmap.h>
+#include <KR3/util/parameter.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 using namespace kr;
 using namespace meta;
 
+template <> 
+std::wstring Microsoft::VisualStudio::CppUnitTestFramework::ToString(const Text& q) noexcept
+{
+	return (std::wstring)((TText16)(AnsiToUtf16)q).cast<wchar_t>();
+}
+
 namespace test
 {		
 	TEST_CLASS(UnitTest1)
 	{
 	public:
+		TEST_METHOD(parameter)
+		{
+			kr::Text param_tx = "test\"\"test \"test\"test \"test\"\"test\" \"test\\\"test\"";
+			char* param = (char*)param_tx.data();
+
+			Assert::AreEqual<Text>(readArgument(&param_tx), "testtest");
+			Assert::AreEqual<Text>(readArgument(&param_tx), "testtest");
+			Assert::AreEqual<Text>(readArgument(&param_tx), "test\"test");
+			Assert::AreEqual<Text>(readArgument(&param_tx), "test\"test");
+
+			Assert::AreEqual<Text>("testtest", readArgument(&param));
+			Assert::AreEqual<Text>("testtest", readArgument(&param));
+			Assert::AreEqual<Text>("test\"test", readArgument(&param));
+			Assert::AreEqual<Text>("test\"test", readArgument(&param));
+		}
+
 		TEST_METHOD(textEquals)
 		{
 			using memw = memt<sizeof(wchar_t)>;

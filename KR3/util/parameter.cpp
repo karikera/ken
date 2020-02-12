@@ -335,48 +335,129 @@ View<Component> ParameterT<Component>::_checkShortCut(Component shortCut) throws
 }
 
 template <typename C>
-inline View<C> _readArgument(View<C>& line) noexcept
+inline TmpArray<C> _readArgument(View<C>* line) noexcept
 {
-	if (line.empty()) return line;
-	if (*line == '"')
+	TmpArray<C> out;
+	out.reserve(256);
+
+	C chr;
+	const C* str = line->begin();
+	const C* end = line->end();
+	for (;; str++)
 	{
-		line++;
-		View<C> out = line.readwith_e('"');
-		line.skipspace();
-		return out;
+	_out_quot:;
+		if (str == end) break;
+
+		chr = *str;
+		switch (chr)
+		{
+		case '\"':
+			str++;
+			for (;; str++)
+			{
+				if (str == end) goto _fin;
+				chr = *str;
+				switch (chr)
+				{
+				case '"':
+					if (str[-1] == '\\')
+					{
+						out.back() = '"';
+						continue;
+					}
+					str++;
+					if (*str == '"')
+					{
+						out << '"';
+						continue;
+					}
+					goto _out_quot;
+				default:
+					out << chr;
+					break;
+				}
+			}
+			break;
+		case ' ': str++; goto _fin;
+		default:
+			out << chr;
+			break;
+		}
 	}
-	else
-	{
-		View<C> out = line.readwith_e(' ');
-		line.skipspace();
-		return out;
-	}
+
+_fin:
+	line->setBegin(str);
+	return out;
 }
 template <typename C>
-inline View<C> _unwrapQuot(C* text) noexcept
+inline TmpArray<C> _readArgument(C** pstr) noexcept
 {
-	if (*text == '\"') text++;
-	C* textend = memt<sizeof(C)>::find(text, (C)'\0') - 1;
-	if (*textend == '\"') *textend-- = '\0';
-	return View<C>(text, textend + 1);
+	TmpArray<C> out;
+	out.reserve(256);
+
+	C chr;
+	C* str = *pstr;
+	for (;; str++)
+	{
+	_out_quot:;
+		chr = *str;
+		switch (chr)
+		{
+		case '\0': goto _fin;
+		case '\"':
+			str++;
+			for (;; str++)
+			{
+				chr = *str;
+				switch (chr)
+				{
+				case '\0': goto _fin;
+				case '"':
+					if (str[-1] == '\\')
+					{
+						out.back() = '"';
+						continue;
+					}
+					str++;
+					if (*str == '"')
+					{
+						out << '"';
+						continue;
+					}
+					goto _out_quot;
+				default:
+					out << chr;
+					break;
+				}
+			}
+			break;
+		case ' ': str++; goto _fin;
+		default:
+			out << chr;
+			break;
+		}
+	}
+_fin:
+	*pstr = str;
+	return out;
 }
 
-Text kr::readArgument(Text& line) noexcept
+TText kr::readArgument(Text* line) noexcept
 {
 	return _readArgument(line);
 }
-Text16 kr::readArgument(Text16& line) noexcept
+TText16 kr::readArgument(Text16* line) noexcept
 {
 	return _readArgument(line);
 }
 
-Text kr::unwrapQuot(char* text) noexcept
+TText kr::readArgument(char** text) noexcept
 {
-	return _unwrapQuot(text);
+	return _readArgument(text);
 }
-Text16 kr::unwrapQuot(char16* text) noexcept
+TText16 kr::readArgument(char16** text) noexcept
 {
-	return _unwrapQuot(text);
+	return _readArgument(text);
 }
 
 

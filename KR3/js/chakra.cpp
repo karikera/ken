@@ -375,12 +375,6 @@ namespace kr
 				}
 
 				JsRuntime::gc();
-
-				{
-					JsScope scope;
-					int nref = getRef((JsValue)saved);
-					_assert(nref == refcount);
-				}
 			}
 		};
 	}

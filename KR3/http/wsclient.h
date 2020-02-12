@@ -6,17 +6,18 @@
 
 namespace kr
 {
-	class WebSocketClient: private Client
+	class WebSocketClient: private WSSender<Client>
 	{
+		using Super = WSSender<Client>;
 	public:
 		WebSocketClient() noexcept;
 		WebSocketClient(Text16 url, View<Text> protocols = nullptr) throws(SocketException);
 
 		void connect(Text16 url, View<Text> protocols = nullptr) throws(SocketException);
-		void writeBinary(Buffer data) noexcept;
-		void writeText(Text data) noexcept;
-		using Client::makeProcedure;
-		using Client::flush;
+		using Super::writeBinary;
+		using Super::writeText;
+		using Super::makeProcedure;
+		using Super::flush;
 
 	protected:
 		void onError(Text name, int code) noexcept override;
@@ -46,7 +47,6 @@ namespace kr
 			WSFrameReader wsf;
 		};
 
-		void _sendPong(Buffer buffer) noexcept;
 		void _sendRequest(Text16 url, View<Text> protocols) noexcept;
 		void onReadWith(Connecting& obj) throws(...);
 		void onReadWith(Headers& obj) throws(...);

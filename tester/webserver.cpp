@@ -18,7 +18,7 @@ public:
 		: WebSocketSession(args)
 	{
 	}
-	void onData(WSStream & stream) override
+	void onBinary(Buffer buffer) override
 	{
 	}
 	void onError(Text funcname, int error) noexcept override

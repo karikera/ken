@@ -61,26 +61,6 @@ void WebSocketClient::connect(Text16 url, View<Text> protocols) throws(SocketExc
 	Client::connect(TSZ16() << parsed.host, parsed.port);
 	_sendRequest(url, protocols);
 }
-void WebSocketClient::writeBinary(Buffer data) noexcept
-{
-	WSFrameEx frame;
-	memset(&frame, 0, sizeof(frame));
-	frame.opcode = WSOpcode::BINARY;
-	frame.fin = true;
-	frame.setDataLengthAuto(data.size());
-	write({ &frame, frame.getSize() });
-	write(data);
-}
-void WebSocketClient::writeText(Text data) noexcept
-{
-	WSFrameEx frame;
-	memset(&frame, 0, sizeof(frame));
-	frame.opcode = WSOpcode::TEXT;
-	frame.fin = true;
-	frame.setDataLengthAuto(data.size());
-	write({ &frame, frame.getSize() });
-	write(data.cast<void>());
-}
 
 void WebSocketClient::onError(Text name, int code) noexcept
 {
@@ -114,17 +94,6 @@ void WebSocketClient::onBinary(Buffer data) noexcept
 {
 }
 
-void WebSocketClient::_sendPong(Buffer buffer) noexcept
-{
-	WSFrameEx frame;
-	memset(&frame, 0, sizeof(frame));
-	frame.opcode = WSOpcode::PONG;
-	frame.fin = true;
-	frame.setDataLengthAuto(buffer.size());
-	write({ &frame, frame.getSize() });
-	write(buffer);
-	flush();
-}
 void WebSocketClient::_sendRequest(Text16 url, View<Text> protocols) noexcept
 {
 	Connecting& conn = m_state.reset<Connecting>();
@@ -268,14 +237,14 @@ void WebSocketClient::onReadWith(HandShaked& obj) throws(...)
 		}
 		switch (obj.wsf.frame.opcode)
 		{
-		case WSOpcode::TEXT:
-			onText(data.cast<char>());
-			break;
 		case WSOpcode::BINARY:
 			onBinary(data);
 			break;
+		case WSOpcode::TEXT:
+			onText(data.cast<char>());
+			break;
 		case WSOpcode::PING:
-			_sendPong(data);
+			sendPong(data);
 			break;
 		default:
 			dout << "OPCODE: " << (int)obj.wsf.frame.opcode << endl;

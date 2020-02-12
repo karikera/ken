@@ -83,5 +83,46 @@ namespace kr
 	};
 
 	using WSStream = Deserializer<Buffer>;
+
+	template <class Parent> class WSSender:public Parent
+	{
+	public:
+		using Parent::Parent;
+		using Parent::write;
+		using Parent::flush;
+
+		void writeBinary(Buffer data) noexcept
+		{
+			WSFrameEx frame;
+			memset(&frame, 0, sizeof(frame));
+			frame.opcode = WSOpcode::BINARY;
+			frame.fin = true;
+			frame.setDataLengthAuto(data.size());
+
+			write({ &frame, frame.getSize() });
+			write(data);
+		}
+		void writeText(Text data) noexcept
+		{
+			WSFrameEx frame;
+			memset(&frame, 0, sizeof(frame));
+			frame.opcode = WSOpcode::TEXT;
+			frame.fin = true;
+			frame.setDataLengthAuto(data.size());
+			write({ &frame, frame.getSize() });
+			write(data.cast<void>());
+		}
+		void sendPong(Buffer buffer) noexcept
+		{
+			WSFrameEx frame;
+			memset(&frame, 0, sizeof(frame));
+			frame.opcode = WSOpcode::PONG;
+			frame.fin = true;
+			frame.setDataLengthAuto(buffer.size());
+			write({ &frame, frame.getSize() });
+			write(buffer);
+			flush();
+		}
+	};
 }
 

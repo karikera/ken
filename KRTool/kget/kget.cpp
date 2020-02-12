@@ -20,8 +20,8 @@ int CT_CDECL wmain(int argn, char16** args)
 
 	setlocale(LC_ALL, nullptr);
 
-	Text16 src = unwrapQuot(args[1]);
-	Text16 dest = unwrapQuot(args[2]);
+	Text16 src = (Text16)args[1];
+	Text16 dest = (Text16)args[2];
 	fetchAsFile(src, dest)->then([] {
 		PostQuitMessage(0);
 	});

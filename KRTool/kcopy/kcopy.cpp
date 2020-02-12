@@ -18,8 +18,8 @@ int CT_CDECL wmain(int argn, char16 ** args)
 	}
 	setlocale(LC_ALL, nullptr);
 
-	Text16 src = unwrapQuot(args[1]);
-	Text16 dest = unwrapQuot(args[2]);
+	Text16 src = (Text16)args[1];
+	Text16 dest = (Text16)args[2];
 	
 	int error;
 
@@ -27,7 +27,7 @@ int CT_CDECL wmain(int argn, char16 ** args)
 	{
 		if (argn >= 4)
 		{
-			Text16 regexp = unwrapQuot(args[3]);
+			Text16 regexp = (Text16)args[3];
 			Installer installer(dest, src, regexp);
 			installer.all();
 			if (installer.m_errorCount != 0) error = GetLastError();

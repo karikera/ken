@@ -24,7 +24,7 @@ static bool connectionIs(Text list, Text type) noexcept
 #pragma warning(push)
 #pragma warning(disable:26495)
 WebSocketSession::WebSocketSession(Socket * socket) noexcept
-	:MTClient(socket)
+	:Super(socket)
 {
 }
 #pragma warning(pop)
@@ -43,8 +43,34 @@ void WebSocketSession::onRead() throws(...)
 			close();
 			throw;
 		}
-		onData(data);
+		switch (m_wsf.frame.opcode)
+		{
+		case WSOpcode::BINARY:
+			onBinary(data);
+			break;
+		case WSOpcode::TEXT:
+			onText(data.cast<char>());
+			break;
+		case WSOpcode::PING:
+			sendPong(data);
+			break;
+		default:
+			dout << "OPCODE: " << (int)m_wsf.frame.opcode << endl;
+			break;
+		}
+		
 	}
+}
+
+void WebSocketSession::onError(Text name, int code) noexcept
+{
+	dout << "[WebSocket Error] " << name << " (Code: " << code << ')' << endl;
+}
+void WebSocketSession::onText(Text data) throws(...)
+{
+}
+void WebSocketSession::onBinary(Buffer data) throws(...)
+{
 }
 
 WebSocketPage::WebSocketPage() noexcept
