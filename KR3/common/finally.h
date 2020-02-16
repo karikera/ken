@@ -15,7 +15,7 @@ namespace kr
 		};
 		template <typename LAMBDA> 
 		inline FinallyClass<LAMBDA>::FinallyClass(LAMBDA&& lambda) noexcept
-			:m_lambda(move(lambda))
+			:m_lambda(forward<LAMBDA>(lambda))
 		{
 		}
 		template <typename LAMBDA> 

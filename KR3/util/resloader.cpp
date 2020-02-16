@@ -4,7 +4,7 @@
 
 kr::krb::File::File(const fchar_t* path) noexcept
 {
-	krb_fopen_std_file(this, path, _TF("rb"));
+	krb_fopen(this, path, _TF("rb"));
 }
 kr::krb::File::~File() noexcept
 {

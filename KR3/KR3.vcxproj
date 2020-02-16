@@ -195,6 +195,7 @@
     <ClInclude Include="text\template.h" />
     <ClInclude Include="util\bitmap.h" />
     <ClInclude Include="util\bufferqueue.h" />
+    <ClInclude Include="util\compress.h" />
     <ClInclude Include="util\dump.h" />
     <ClInclude Include="http\fetch.h" />
     <ClInclude Include="util\hashtester.h" />
@@ -425,6 +426,7 @@
     <ClCompile Include="text\filter.cpp" />
     <ClCompile Include="util\bitmap.cpp" />
     <ClCompile Include="util\bufferqueue.cpp" />
+    <ClCompile Include="util\compress.cpp" />
     <ClCompile Include="util\dump.cpp" />
     <ClCompile Include="util\envvar.cpp" />
     <ClCompile Include="http\fetch.cpp" />

@@ -5,6 +5,8 @@
 #include <KR3/net/socket.h>
 #include <KR3/data/map.h>
 
+#define KR_USER_AGENT "KenLib/1.0"
+
 namespace kr
 {
 	class HttpHeader;

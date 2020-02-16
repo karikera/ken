@@ -29,6 +29,12 @@
   <ItemGroup>
     <CustomBuild Include="script.bat">
       <FileType>Document</FileType>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ThirdDir)zlib\$(PlatformShortName)\lib\zlib$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\ken-res-loader$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libpng16$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbis$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbisfile$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\jpeg$(d).dll;$(ThirdDir)curl\lib\$(PlatformShortName)\libcurl_debug.dll;$(MYSQL_C_DIR)\lib\libmariadb.dll;$(ThirdDir)fftw-3.3.5-dll-$(PlatformShortName)\libfftw3f-3.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libEGL.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libGLESv2.dll;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|Win32'">$(ThirdDir)zlib\$(PlatformShortName)\lib\zlib$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\ken-res-loader$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libpng16$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbis$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbisfile$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\jpeg$(d).dll;$(ThirdDir)curl\lib\$(PlatformShortName)\libcurl_debug.dll;$(MYSQL_C_DIR)\lib\libmariadb.dll;$(ThirdDir)fftw-3.3.5-dll-$(PlatformShortName)\libfftw3f-3.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libEGL.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libGLESv2.dll;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ThirdDir)zlib\$(PlatformShortName)\lib\zlib$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\ken-res-loader$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libpng16$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbis$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbisfile$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\jpeg$(d).dll;$(ThirdDir)curl\lib\$(PlatformShortName)\libcurl_debug.dll;$(MYSQL_C_DIR)\lib\libmariadb.dll;$(ThirdDir)fftw-3.3.5-dll-$(PlatformShortName)\libfftw3f-3.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libEGL.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libGLESv2.dll;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ThirdDir)zlib\$(PlatformShortName)\lib\zlib$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\ken-res-loader$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libpng16$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbis$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbisfile$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\jpeg$(d).dll;$(ThirdDir)curl\lib\$(PlatformShortName)\libcurl_debug.dll;$(MYSQL_C_DIR)\lib\libmariadb.dll;$(ThirdDir)fftw-3.3.5-dll-$(PlatformShortName)\libfftw3f-3.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libEGL.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libGLESv2.dll;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|x64'">$(ThirdDir)zlib\$(PlatformShortName)\lib\zlib$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\ken-res-loader$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libpng16$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbis$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbisfile$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\jpeg$(d).dll;$(ThirdDir)curl\lib\$(PlatformShortName)\libcurl_debug.dll;$(MYSQL_C_DIR)\lib\libmariadb.dll;$(ThirdDir)fftw-3.3.5-dll-$(PlatformShortName)\libfftw3f-3.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libEGL.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libGLESv2.dll;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ThirdDir)zlib\$(PlatformShortName)\lib\zlib$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\ken-res-loader$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libpng16$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbis$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\libvorbisfile$(d).dll;$(ThirdDir)ken-res-loader\lib\$(PlatformShortName)\jpeg$(d).dll;$(ThirdDir)curl\lib\$(PlatformShortName)\libcurl_debug.dll;$(MYSQL_C_DIR)\lib\libmariadb.dll;$(ThirdDir)fftw-3.3.5-dll-$(PlatformShortName)\libfftw3f-3.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libEGL.dll;$(ThirdDir)angle\lib\$(PlatformShortName)\$(Configuration)\libGLESv2.dll;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -76,31 +82,37 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\KRLibrary.props" />
     <Import Project="..\..\KR.props" />
+    <Import Project="vars.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\KRLibrary.props" />
     <Import Project="..\..\KR.props" />
+    <Import Project="vars.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\KRLibrary.props" />
     <Import Project="..\..\KR.props" />
+    <Import Project="vars.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\KRLibrary.props" />
     <Import Project="..\..\KR.props" />
+    <Import Project="vars.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\KRLibrary.props" />
     <Import Project="..\..\KR.props" />
+    <Import Project="vars.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\KRLibrary.props" />
     <Import Project="..\..\KR.props" />
+    <Import Project="vars.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />

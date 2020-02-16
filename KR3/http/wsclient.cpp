@@ -8,6 +8,7 @@ EMPTY_SOURCE
 
 #include "wsclient.h"
 #include "wscommon.h"
+#include "header.h"
 
 #include <KR3/data/crypt.h>
 
@@ -112,7 +113,7 @@ void WebSocketClient::_sendRequest(Text16 url, View<Text> protocols) noexcept
 		"Host: " << toUtf8(parsed.host) << "\r\n"
 		"Upgrade: websocket\r\n"
 		"Sec-WebSocket-Key: " << conn.key << "\r\n"
-		"User-Agent: KenLib/1.0" << "\r\n";
+		"User-Agent: " KR_USER_AGENT << "\r\n";
 
 
 	if (protocols != nullptr)
@@ -122,21 +123,6 @@ void WebSocketClient::_sendRequest(Text16 url, View<Text> protocols) noexcept
 
 	tsz << "Sec-WebSocket-Version: 13\r\n"
 		"\r\n";
-
-	tsz.clear();
-	tsz <<
-		"GET ws://echo.websocket.org/ HTTP/1.1\r\n"
-		"Host: echo.websocket.org\r\n"
-		"Connection: Upgrade\r\n"
-		"Pragma: no-cache\r\n"
-		"Cache-Control: no-cache\r\n"
-		"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36\r\n"
-		"Upgrade: websocket\r\n"
-		"Origin: file://\r\n"
-		"Sec-WebSocket-Version: 13\r\n"
-		"Accept-Encoding: gzip, deflate\r\n"
-		"Accept-Language: ko,en-US;q=0.9,en;q=0.8,ja;q=0.7,ko-KR;q=0.6\r\n"
-		"Sec-WebSocket-Key: " << conn.key << "\r\n\r\n";
 	write(tsz.cast<void>());
 	flush();
 }
@@ -211,7 +197,7 @@ void WebSocketClient::onReadWith(Headers& obj) throws(...)
 			if (!buf.equals(makeSecWebSocketAccept(obj.key)))
 			{
 				onError("Sec-WebSocket-Accept not matched", ERROR_INVALID_SERVER_STATE);
-				// throw ThrowAbort();
+				throw ThrowAbort();
 			}
 			obj.keyChecked = true;
 		}

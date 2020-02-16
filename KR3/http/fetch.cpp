@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "fetch.h"
+#include "header.h"
 #define CURL_STATICLIB
 
 #include "curl/curl.h"
@@ -116,7 +117,7 @@ HttpRequest::HttpRequest() noexcept
 		curl_global_init(CURL_GLOBAL_ALL);
 	}
 
-	m_headers = nullptr;
+	m_headers = curl_slist_append(nullptr, "User-Agent: " KR_USER_AGENT);
 	m_curl = curl_easy_init();
 	if (!m_curl) notEnoughMemory();
 #endif

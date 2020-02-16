@@ -5,7 +5,7 @@
 
 namespace kr
 {
-	using filetime_t = unsigned long long;
+	using filetime_t = uint64_t;
 
 	namespace _pri_
 	{
