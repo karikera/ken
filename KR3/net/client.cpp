@@ -8,6 +8,39 @@
 
 using namespace kr;
 
+Client::Lock::Lock(Client* client) noexcept
+	:m_client(client)
+{
+}
+Client::Lock::~Lock() noexcept
+{
+}
+
+void Client::Lock::write(Buffer buffer) noexcept
+{
+	m_client->write(buffer);
+}
+void Client::Lock::flush() noexcept
+{
+	m_client->flush();
+}
+Client::Lock::operator bool() noexcept
+{
+	return m_client != nullptr;
+}
+bool Client::Lock::operator !() noexcept
+{
+	return m_client == nullptr;
+}
+bool Client::Lock::operator ==(nullptr_t) noexcept
+{
+	return m_client == nullptr;
+}
+bool Client::Lock::operator !=(nullptr_t) noexcept
+{
+	return m_client != nullptr;
+}
+
 Client::Client() noexcept
 {
 	m_socket = nullptr;
@@ -36,6 +69,14 @@ void Client::connect(pcstr16 host, word port) throws(SocketException)
 	m_event->select(m_socket, FNetworkEvent(true, true, true, true, false));
 	m_socket->connectAsync(Socket::findIp(host), port);
 }
+void Client::connectSync(pcstr16 host, word port) throws(SocketException)
+{
+	close();
+
+	m_socket = Socket::create();
+	m_socket->connect(Socket::findIp(host), port);
+	m_event->select(m_socket, FNetworkEvent(true, true, false, true, false));
+}
 Ipv4Address Client::getIpAddress() noexcept
 {
 	return m_socket->getIpAddress();
@@ -58,6 +99,10 @@ void Client::moveNetwork(Client * watcher) noexcept
 	watcher->m_socket = nullptr;
 	m_writebuf = move(watcher->m_writebuf);
 	m_receive = move(watcher->m_receive);
+}
+Client::Lock Client::lock() noexcept
+{
+	return this;
 }
 void Client::write(Buffer buff) noexcept
 {
@@ -166,6 +211,7 @@ void Client::processEvent() noexcept
 		}
 		else
 		{
+			onWriteBegin();
 			try
 			{
 				try
@@ -187,6 +233,7 @@ void Client::processEvent() noexcept
 			{
 				onError("write", err);
 			}
+			onWriteEnd();
 		}
 	}
 	if (state.close)
@@ -206,7 +253,23 @@ EventProcedure Client::makeProcedure() noexcept
 	proc.param = this;
 	return proc;
 }
+
+void Client::onError(Text name, int code) noexcept
+{
+}
+void Client::onConnect() noexcept
+{
+}
 void Client::onConnectFail(int code) noexcept
+{
+}
+void Client::onClose() noexcept
+{
+}
+void Client::onWriteBegin() noexcept
+{
+}
+void Client::onWriteEnd() noexcept
 {
 }
 

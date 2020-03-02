@@ -154,7 +154,7 @@ namespace kr
 		void operator ()(Text name, LAMBDA && lambda)
 		{
 			if (name != m_name) return;
-			m_parser->fields(lambda);
+			m_parser->fields(forward<LAMBDA>(lambda));
 			throw JsonFieldDone();
 		}
 	};
@@ -373,7 +373,10 @@ namespace kr
 		{
 			try
 			{
-				lambda(JsonArray(parser, idx++));
+				{
+					JsonArray array(parser, idx++);
+					lambda(array);
+				}
 				parser->skipValue();
 			}
 			catch (JsonFieldDone&)

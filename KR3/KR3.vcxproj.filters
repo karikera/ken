@@ -690,6 +690,12 @@
     <ClInclude Include="util\compress.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="data\strstore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\pdb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\autovar\autoptr.cpp">
@@ -1041,6 +1047,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\compress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\pdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

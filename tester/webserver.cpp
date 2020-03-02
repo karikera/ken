@@ -14,12 +14,15 @@ using namespace kr;
 class MyClient : public WebSocketSession
 {
 public:
-	MyClient(Socket * args) noexcept
-		: WebSocketSession(args)
+	MyClient(HttpClient * client) noexcept
+		: WebSocketSession(client)
 	{
 	}
-	void onBinary(Buffer buffer) override
+	void onText(Text buffer) override
 	{
+		cout << buffer << endl;
+		writeText(buffer);
+		flush();
 	}
 	void onError(Text funcname, int error) noexcept override
 	{
@@ -29,22 +32,36 @@ public:
 class MyPage :public WebSocketPage
 {
 public:
-	WebSocketSession * onAccept(Socket * args) override
+	WebSocketSession * onAccept(HttpClient * client) override
 	{
-		return new MyClient(args);
+		return new MyClient(client);
 	}
 };
+
+
+EventPump* pump = EventPump::getInstance();
 
 void webServerMain() noexcept
 {
 	Initializer<Socket> _init;
 	HttpServer g_server(u".");
 
-	currentDirectory.set(L"D:\\Projects\\git\\k-square");
-	g_server.open(80);
-	g_server.attachPage("/test", new MyPage);
-	ThreadHandle::getCurrent()->terminate();
 
+	currentDirectory.set(L"D:\\Downloads\\ME\\complex\\ken\\tester");
+	g_server.open(80);
+	g_server.onPage("/test2", [](HttpClient* client) {
+		pump->post([client = (Keep<HttpClient>)client]{
+			client->sendText("<script>const socket = new WebSocket('ws://localhost/test');"
+				"socket.onopen=()=>{console.log('onopen'); socket.send('test');};"
+				"socket.onclose=()=>{console.log('onclose');};"
+				"socket.onmessage=(ev)=>{console.log('onmessage: '+ev.data);};"
+				"</script>");
+			});
+		});
+	g_server.attachPage("/test", new MyPage);
+
+
+	pump->messageLoop();
 }
 
 #endif

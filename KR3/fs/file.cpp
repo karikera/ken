@@ -39,13 +39,17 @@ template<typename CHR> File* File::openT(const CHR * str) throws(Error)
 {
 	return _createFile(str, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 }
-template<typename CHR> File* File::openAndWriteT(const CHR * str) throws(Error)
+template<typename CHR> File* File::openWriteT(const CHR * str) throws(Error)
 {
 	return _createFile(str, GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 }
-template<typename CHR> File* File::createAndReadT(const CHR * str) throws(Error)
+template<typename CHR> File* File::createRWT(const CHR * str) throws(Error)
 {
 	return _createFile(str, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
+}
+template<typename CHR> File* File::openRWT(const CHR* str) throws(Error)
+{
+	return _createFile(str, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 }
 
 void File::operator delete(ptr p) noexcept
@@ -208,31 +212,19 @@ bool File::createFullDirectory(Text16 str) noexcept
 	createDirectory(temp.c_str());
 	return true;
 }
-bool kr::File::removeFullDirectory(Text16 path) noexcept
+bool kr::File::removeFullDirectory(pcstr16 path) noexcept
 {
-	char16 szDir[MAX_PATH + 1];  // +1 for the double null terminate
 	SHFILEOPSTRUCTW fos = { 0 };
-
-	size_t len = path.copyTo(szDir);
-	szDir[len] = '\0';
-	szDir[len + 1] = '\0'; // double null terminate for SHFileOperation
-
-	// delete the folder and everything inside
 	fos.wFunc = FO_DELETE;
-	fos.pFrom = wide(szDir);
-	fos.fFlags = FOF_NO_UI; // FOF_NO_UI;
+	fos.pFrom = wide(path);
+	fos.fFlags = FOF_NO_UI;
 	return SHFileOperationW(&fos);
 }
-bool kr::File::removeShell(Text16 path) noexcept
+bool kr::File::removeShell(pcstr16 path) noexcept
 {
-	char16 szDir[MAX_PATH + 1];
-	size_t len = path.copyTo(szDir);
-	szDir[len] = '\0';
-	szDir[len + 1] = '\0';
-
 	SHFILEOPSTRUCTW fos = { 0 };
 	fos.wFunc = FO_DELETE;
-	fos.pFrom = wide(szDir);
+	fos.pFrom = wide(path);
 	fos.fFlags = FOF_NOCONFIRMATION | FOF_NOCONFIRMMKDIR; // FOF_NO_UI;
 	return SHFileOperationW(&fos);
 }
@@ -677,12 +669,14 @@ pcstr16 kr::DirectoryScanner::getRelativeSzName(Text16 path) noexcept
 }
 
 template File* File::openT<char>(const char * str);
-template File* File::openAndWriteT<char>(const char * str);
-template File* File::createAndReadT<char>(const char * str);
+template File* File::openWriteT<char>(const char * str);
+template File* File::createRWT<char>(const char * str);
+template File* File::openRWT<char>(const char* str);
 template File* File::createT<char>(const char * str);
 template File* File::openT<char16>(const char16 * str);
-template File* File::openAndWriteT<char16>(const char16 * str);
-template File* File::createAndReadT<char16>(const char16 * str);
+template File* File::openWriteT<char16>(const char16 * str);
+template File* File::createRWT<char16>(const char16 * str);
+template File* File::openRWT<char16>(const char16* str);
 template File* File::createT<char16>(const char16 * str);
 
 #endif

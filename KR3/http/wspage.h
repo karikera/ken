@@ -13,7 +13,7 @@ namespace kr
 		friend WebSocketPage;
 		using Super = WSSender<MTClient>;
 	public:
-		WebSocketSession(Socket * socket) noexcept;
+		WebSocketSession(HttpClient * client) noexcept;
 		using Super::writeBinary;
 		using Super::writeText;
 		using Super::flush;
@@ -34,7 +34,7 @@ namespace kr
 	public:
 		WebSocketPage() noexcept;
 		void process(HttpClient * client) override;
-		virtual WebSocketSession* onAccept(Socket * args) = 0;
+		virtual WebSocketSession* onAccept(HttpClient* args) = 0;
 		
 	private:
 		void _handShake(HttpClient * client);

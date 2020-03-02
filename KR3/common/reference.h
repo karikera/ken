@@ -197,9 +197,18 @@ namespace kr
 	template <typename C, bool isCRTP = false> class Node;
 	template <class ITERABLE, class PARENT> class TIterable;
 
+	template <typename TI, typename TV, bool referencedInput = false>
+	class Map;
+
+	// net
+	class Client;
+	class Server;
+	class MTClient;
+	class MTServer;
+
 	template <class DATA, size_t size = (size_t)-1> class ReadLock;
 	template <class DATA, size_t size = (size_t)-1, bool nullterm = false> class WriteLock;
-
+	
 	namespace _pri_
 	{
 		template <class Derived, typename C, typename Info>

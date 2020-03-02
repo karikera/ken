@@ -5,7 +5,24 @@
 
 namespace kr
 {
-	class Process : public InStream<Process, char>
+	class Process;
+
+	class StdStream:public InStream<StdStream, char>
+	{
+		friend Process;
+	public:
+		StdStream() noexcept;
+		StdStream(StdStream&& _move) noexcept;
+		~StdStream() noexcept;
+		size_t $read(char* dest, size_t sz) throws(EofException);
+		void close() noexcept;
+
+	private:
+#ifdef WIN32
+		void* m_stream_read;
+#endif
+	};
+	class Process
 	{
 	public:
 		enum Shell_t { Shell };
@@ -13,17 +30,16 @@ namespace kr
 		Process(Process&& _move) noexcept;
 		Process(Shell_t, Text16 command) noexcept;
 		Process(pstr16 command) noexcept;
-		Process(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr) noexcept;
+		Process(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr, StdStream* out = nullptr, StdStream* err = nullptr) noexcept;
 		~Process() noexcept;
 
 		void close() noexcept;
 #ifdef WIN32
-		void cmd(pstr16 parameter, pcstr16 curdir = nullptr) throws(Error);
+		void cmd(pstr16 parameter, pcstr16 curdir = nullptr, StdStream* out = nullptr, StdStream* err = nullptr) throws(Error);
 #endif
-		void shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
-		void exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr) throws(Error);
+		void shell(Text16 command, pcstr16 curdir = nullptr, StdStream* out = nullptr, StdStream* err = nullptr) throws(Error);
+		void exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr, StdStream* out = nullptr, StdStream* err = nullptr) throws(Error);
 		void exec(pstr16 commandLine) throws(Error);
-		size_t $read(char * dest, size_t sz) throws(EofException);
 		void wait() noexcept;
 		bool wait(int millis) noexcept;
 #ifdef WIN32
@@ -52,7 +68,6 @@ namespace kr
 	private:
 #ifdef WIN32
 		void* m_process;
-		void* m_stdout_read;
 #endif
 
 	};
@@ -71,8 +86,35 @@ namespace kr
 		dword m_id;
 	};
 
-	StreamBuffer<char, Process> shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
-	StreamBuffer<char, Process> exec(pcstr16 file, pstr16 parameter, pcstr16 curdir = nullptr) noexcept;
-	StreamBuffer<char, Process> exec(Text16 command) noexcept;
-	StreamBuffer<char, Process> exec(pstr16 command) noexcept;
+
+	class ProcessStream :public InStream<ProcessStream, char>
+	{
+	public:
+		Process process;
+		StdStream stream;
+
+		ProcessStream() noexcept;
+		ProcessStream(ProcessStream&& _move) noexcept;
+		~ProcessStream() noexcept;
+
+		size_t $read(char* dest, size_t sz) throws(EofException);
+		void close() noexcept;
+#ifdef WIN32
+		void cmd(pstr16 parameter, pcstr16 curdir = nullptr) throws(Error);
+#endif
+		void shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
+		void exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir = nullptr) throws(Error);
+		void exec(pstr16 commandLine) throws(Error);
+	};
+
+	StreamBuffer<char, ProcessStream> shell(Text16 command, pcstr16 curdir = nullptr) throws(Error);
+	void shellPiped(Text16 command, pcstr16 curdir = nullptr) throws(Error);
+	StreamBuffer<char, ProcessStream> exec(pcstr16 file, pstr16 parameter, pcstr16 curdir = nullptr) noexcept;
+	StreamBuffer<char, ProcessStream> exec(Text16 command) noexcept;
+	StreamBuffer<char, ProcessStream> exec(pstr16 command) noexcept;
+	StreamBuffer<char, ProcessStream> exec(pstr16 path, EventHandle* canceler) throws(ThrowAbort, Error);
+	void execPiped(pstr16 path) throws(ThrowAbort, Error);
+	void execOpen(pcstr16 path) noexcept;
+	int execNoOutput(pstr16 pszstr) noexcept;
+	int execDetached(pstr16 pszstr) noexcept;
 }

@@ -9,17 +9,45 @@
 #include <shellapi.h>
 #include <TlHelp32.h>
 
+#pragma warning(disable:4703)
+
 using namespace kr;
+
+StdStream::StdStream() noexcept
+{
+	m_stream_read = nullptr;
+}
+StdStream::StdStream(StdStream&& _move) noexcept
+{
+	m_stream_read = _move.m_stream_read;
+	_move.m_stream_read = nullptr;
+}
+StdStream::~StdStream() noexcept
+{
+	close();
+}
+size_t StdStream::$read(char* dest, size_t sz) throws(EofException)
+{
+	DWORD willRead = sz > (DWORD)-1 ? (DWORD)-1 : (DWORD)sz;
+	DWORD readed;
+	if (!ReadFile(m_stream_read, dest, willRead, &readed, nullptr))
+	{
+		throw EofException();
+	}
+	return readed;
+}
+void StdStream::close() noexcept
+{
+	CloseHandle(m_stream_read);
+	m_stream_read = nullptr;
+}
 
 Process::Process() noexcept
 {
-	m_stdout_read = nullptr;
 	m_process = nullptr;
 }
 Process::Process(Process&& _move) noexcept
 {
-	m_stdout_read = _move.m_stdout_read;
-	_move.m_stdout_read = nullptr;
 	m_process = _move.m_process;
 	_move.m_process = nullptr;
 }
@@ -32,7 +60,7 @@ Process::Process(pstr16 command) noexcept
 {
 	exec(command);
 }
-Process::Process(pcstr16 fileName, pstr16 parameter, pcstr16 curdir) noexcept
+Process::Process(pcstr16 fileName, pstr16 parameter, pcstr16 curdir, StdStream* out, StdStream* err) noexcept
 	: Process()
 {
 	exec(fileName, parameter, curdir);
@@ -44,12 +72,10 @@ Process::~Process() noexcept
 
 void Process::close() noexcept
 {
-	CloseHandle(m_stdout_read);
 	CloseHandle(m_process);
-	m_stdout_read = nullptr;
 	m_process = nullptr;
 }
-void Process::cmd(pstr16 parameter, pcstr16 curdir) throws(Error)
+void Process::cmd(pstr16 parameter, pcstr16 curdir, StdStream* out, StdStream* err) throws(Error)
 {
 	static AText16 s_comspec;
 	staticCode
@@ -58,39 +84,60 @@ void Process::cmd(pstr16 parameter, pcstr16 curdir) throws(Error)
 		s_comspec.c_str();
 	};
 
-	exec(s_comspec.data(), parameter, curdir);
+	exec(s_comspec.data(), parameter, curdir, out, err);
 }
-void Process::shell(Text16 command, pcstr16 curdir) throws(Error)
+void Process::shell(Text16 command, pcstr16 curdir, StdStream* out, StdStream* err) throws(Error)
 {
-	return cmd(TSZ16() << u"/c " << command, curdir);
+	return cmd(TSZ16() << u"/c " << command, curdir, out, err);
 }
-void Process::exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir) throws(Error)
+void Process::exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir, StdStream* out, StdStream* err) throws(Error)
 {
-	_assert(m_stdout_read == nullptr);
+	_assert(out == nullptr || out->m_stream_read == nullptr);
+	_assert(err == nullptr || err->m_stream_read == nullptr);
 
 	SECURITY_ATTRIBUTES saAttr; 
 	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
 	saAttr.bInheritHandle = true; 
 	saAttr.lpSecurityDescriptor = nullptr; 
    
-	HANDLE stdout_write;
-	BOOL resCreatePipe = CreatePipe(&m_stdout_read, &stdout_write, &saAttr, 0);
-	_assert(resCreatePipe);
-
-	BOOL resSetHandleInformation = SetHandleInformation(m_stdout_read, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
-	_assert(resSetHandleInformation);
-
 	STARTUPINFO si = { 0 };
 	PROCESS_INFORMATION pi;
 	si.cb = sizeof(si);
-	si.hStdError = si.hStdOutput = stdout_write;
-	si.dwFlags = STARTF_USESTDHANDLES;
+
+	HANDLE stdout_write;
+	HANDLE stderr_write;
+
+	if (out != nullptr)
+	{
+		BOOL resCreatePipe = CreatePipe(&out->m_stream_read, &stdout_write, &saAttr, 0);
+		_assert(resCreatePipe);
+
+		BOOL resSetHandleInformation = SetHandleInformation(out->m_stream_read, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+		_assert(resSetHandleInformation);
+		si.hStdError = si.hStdOutput = stdout_write;
+		si.dwFlags = STARTF_USESTDHANDLES;
+	}
+	if (err != nullptr)
+	{
+		BOOL resCreatePipe = CreatePipe(&err->m_stream_read, &stderr_write, &saAttr, 0);
+		_assert(resCreatePipe);
+
+		BOOL resSetHandleInformation = SetHandleInformation(err->m_stream_read, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+		_assert(resSetHandleInformation);
+		si.hStdError = stderr_write;
+	}
 	if (!CreateProcessW(wide(fileName), wide(parameter), nullptr, nullptr, true, CREATE_NO_WINDOW, nullptr, wide(curdir), &si, &pi))
 	{
 		throw Error();
 	}
-
-	CloseHandle(stdout_write);
+	if (out != nullptr)
+	{
+		CloseHandle(stdout_write);
+	}
+	if (err != nullptr)
+	{
+		CloseHandle(stderr_write);
+	}
 	CloseHandle(pi.hThread);
 
 	m_process = pi.hProcess;
@@ -98,16 +145,6 @@ void Process::exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir) throws(Er
 void Process::exec(pstr16 commandLine) throws(Error)
 {
 	exec(nullptr, commandLine, nullptr);
-}
-size_t Process::$read(char * dest, size_t sz) throws(EofException)
-{
-	DWORD willRead = sz > (DWORD)-1 ? (DWORD)-1 : (DWORD)sz;
-	DWORD readed;
-	if (!ReadFile(m_stdout_read, dest, willRead, &readed, nullptr))
-	{
-		throw EofException();
-	}
-	return readed;
 }
 void Process::wait() noexcept
 {
@@ -137,58 +174,6 @@ int Process::getExitCode() noexcept
 void * Process::getCloseEventHandle() noexcept
 {
 	return m_process;
-}
-
-void kr::Process::executeOpen(kr::pcstr16 path) noexcept
-{
-	ShellExecuteW(nullptr, L"open", wide(path), L"", L"", SW_SHOW);
-}
-AText kr::Process::call(pstr16 path) throws(ThrowAbort, Error)
-{
-	Process process;
-	process.exec(path);
-	return process.readAll();
-}
-AText kr::Process::call(pstr16 path, EventHandle * canceler) throws(ThrowAbort, Error)
-{
-	Process process;
-	process.exec(path);
-	if (!process.waitWith(canceler)) throw ThrowAbort();
-	return process.readAll();
-}
-int kr::Process::execute(pstr16 pszstr) noexcept
-{
-	DWORD exitCode;
-	PROCESS_INFORMATION procinfo;
-	STARTUPINFOW si = { 0 };
-	si.cb = sizeof(si);
-
-	if (!CreateProcessW(nullptr, wide(pszstr), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &procinfo))
-	{
-		return GetLastError();
-	}
-
-	WaitForSingleObject(procinfo.hProcess, INFINITE);
-	GetExitCodeProcess(procinfo.hProcess, &exitCode);
-	CloseHandle(procinfo.hThread);
-	CloseHandle(procinfo.hProcess);
-	return exitCode;
-}
-int kr::Process::detachedExecute(pstr16 pszstr) noexcept
-{
-	PROCESS_INFORMATION procinfo;
-	STARTUPINFOW si;
-	memset(&si, 0, sizeof(si));
-	si.cb = sizeof(si);
-
-	if (!CreateProcessW(nullptr, wide(pszstr), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &procinfo))
-	{
-		return GetLastError();
-	}
-
-	CloseHandle(procinfo.hThread);
-	CloseHandle(procinfo.hProcess);
-	return 0;
 }
 
 #else
@@ -309,29 +294,128 @@ dword ProcessId::value() noexcept
 	return m_id;
 }
 
-StreamBuffer<char, Process> kr::shell(Text16 command, pcstr16 curdir) throws(Error)
+ProcessStream::ProcessStream() noexcept
 {
-	Process process;
-	process.shell(command, curdir);
-	process.wait();
-	return StreamBuffer<char, Process>(move(process));
 }
-StreamBuffer<char, Process> kr::exec(pcstr16 file, pstr16 parameter, pcstr16 curdir) noexcept
+ProcessStream::ProcessStream(ProcessStream&& _move) noexcept
+	:process(move(_move.process)), stream(move(_move.stream))
 {
-	Process process;
-	process.exec(file, parameter, curdir);
-	process.wait();
-	return StreamBuffer<char, Process>(move(process));
+
 }
-StreamBuffer<char, Process> kr::exec(Text16 command) noexcept
+ProcessStream::~ProcessStream() noexcept
 {
-	Process process;
-	process.exec(TSZ16() << command);
-	return StreamBuffer<char, Process>(move(process));
 }
-StreamBuffer<char, Process> kr::exec(pstr16 command) noexcept
+
+size_t ProcessStream::$read(char* dest, size_t sz) throws(EofException)
 {
-	Process process;
-	process.exec(command);
-	return StreamBuffer<char, Process>(move(process));
+	return stream.$read(dest, sz);
+}
+void ProcessStream::close() noexcept
+{
+	process.close();
+	stream.close();
+}
+#ifdef WIN32
+void ProcessStream::cmd(pstr16 parameter, pcstr16 curdir) throws(Error)
+{
+	process.cmd(parameter, curdir, &stream);
+}
+#endif
+void ProcessStream::shell(Text16 command, pcstr16 curdir) throws(Error)
+{
+	process.shell(command, curdir, &stream);
+}
+void ProcessStream::exec(pcstr16 fileName, pstr16 parameter, pcstr16 curdir) throws(Error)
+{
+	process.exec(fileName, parameter, curdir, &stream);
+}
+void ProcessStream::exec(pstr16 commandLine) throws(Error)
+{
+	process.exec(nullptr, commandLine, nullptr, &stream);
+}
+
+StreamBuffer<char, ProcessStream> kr::shell(Text16 command, pcstr16 curdir) throws(Error)
+{
+	ProcessStream ps;
+	ps.shell(command, curdir);
+	ps.process.wait();
+	return StreamBuffer<char, ProcessStream>(move(ps));
+}
+void kr::shellPiped(Text16 command, pcstr16 curdir) throws(Error)
+{
+	ProcessStream ps;
+	ps.shell(command, curdir);
+	passThrough(&cout, &ps.stream);
+	ps.process.wait();
+}
+StreamBuffer<char, ProcessStream> kr::exec(pcstr16 file, pstr16 parameter, pcstr16 curdir) noexcept
+{
+	ProcessStream ps;
+	ps.exec(file, parameter, curdir);
+	ps.process.wait();
+	return StreamBuffer<char, ProcessStream>(move(ps));
+}
+StreamBuffer<char, ProcessStream> kr::exec(Text16 command) noexcept
+{
+	ProcessStream ps;
+	ps.exec(TSZ16() << command);
+	return StreamBuffer<char, ProcessStream>(move(ps));
+}
+StreamBuffer<char, ProcessStream> kr::exec(pstr16 command) noexcept
+{
+	ProcessStream ps;
+	ps.exec(command);
+	return StreamBuffer<char, ProcessStream>(move(ps));
+}
+StreamBuffer<char, ProcessStream> kr::exec(pstr16 path, EventHandle* canceler) throws(ThrowAbort, Error)
+{
+	ProcessStream ps;
+	ps.exec(path);
+	if (!ps.process.waitWith(canceler)) throw ThrowAbort();
+	return StreamBuffer<char, ProcessStream>(move(ps));
+}
+void kr::execPiped(pstr16 path) throws(ThrowAbort, Error)
+{
+	ProcessStream proc;
+	proc.exec(path);
+	passThrough(&cout, &proc.stream);
+	proc.process.wait();
+}
+void kr::execOpen(pcstr16 path) noexcept
+{
+	ShellExecuteW(nullptr, L"open", wide(path), L"", L"", SW_SHOW);
+}
+int kr::execNoOutput(pstr16 pszstr) noexcept
+{
+	DWORD exitCode;
+	PROCESS_INFORMATION procinfo;
+	STARTUPINFOW si = { 0 };
+	si.cb = sizeof(si);
+
+	if (!CreateProcessW(nullptr, wide(pszstr), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &procinfo))
+	{
+		return GetLastError();
+	}
+
+	WaitForSingleObject(procinfo.hProcess, INFINITE);
+	GetExitCodeProcess(procinfo.hProcess, &exitCode);
+	CloseHandle(procinfo.hThread);
+	CloseHandle(procinfo.hProcess);
+	return exitCode;
+}
+int kr::execDetached(pstr16 pszstr) noexcept
+{
+	PROCESS_INFORMATION procinfo;
+	STARTUPINFOW si;
+	memset(&si, 0, sizeof(si));
+	si.cb = sizeof(si);
+
+	if (!CreateProcessW(nullptr, wide(pszstr), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &procinfo))
+	{
+		return GetLastError();
+	}
+
+	CloseHandle(procinfo.hThread);
+	CloseHandle(procinfo.hProcess);
+	return 0;
 }

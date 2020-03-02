@@ -7,10 +7,10 @@ namespace kr
 	namespace io
 	{
 		template <typename Base, bool autoClose, size_t BUFFER_SIZE>
-		class BufferedIStream 
-			:public FilterIStream<BufferedIStream<Base, autoClose, BUFFER_SIZE>, Base, autoClose>
+		class BufferedIStream
+			:public FilterIStream < BufferedIStream<Base, autoClose, BUFFER_SIZE>, Base, autoClose, typename Base::Component>
 		{
-			CLASS_HEADER(BufferedIStream, FilterIStream<BufferedIStream<Base, autoClose, BUFFER_SIZE>, Base, autoClose>);
+			CLASS_HEADER(BufferedIStream, FilterIStream<BufferedIStream<Base, autoClose, BUFFER_SIZE>, Base, autoClose, typename Base::Component>);
 		public:
 			INHERIT_COMPONENT();
 

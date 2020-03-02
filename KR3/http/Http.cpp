@@ -90,7 +90,7 @@ kr::HttpConnection::~HttpConnection() noexcept
 {
 	delete m_socket.base();
 }
-kr::HttpStatus kr::HttpConnection::open(Text url, const HttpConnectionRequest * request, AHttpHeader * response) // SocketException
+kr::HttpStatus kr::HttpConnection::open(Text url, const HttpConnectionRequest * request, HeaderStore* response) // SocketException
 {
 	close();
 
@@ -155,7 +155,15 @@ kr::HttpStatus kr::HttpConnection::open(Text url, const HttpConnectionRequest * 
 			statusCode = (HttpStatus)httpCode.to_uint();
 		}
 
-		response->set(m_socket.readwith("\r\n\r\n"));
+		for (;;)
+		{
+			Text line = m_socket.readwith("\r\n");
+			if (line.empty()) break;
+			Text name = line.readwith(':');
+			if (name == nullptr) continue;
+			line.readIf(' ');
+			response->set(name, line);
+		}
 	}
 	catch (EofException&)
 	{

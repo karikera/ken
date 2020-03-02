@@ -99,20 +99,11 @@ namespace test
 			}
 		}
 
-		TEST_METHOD(shellDir)
+		TEST_METHOD(shellEcho)
 		{
 			{
-				AText dest;
-				Process process(Process::Shell, u"echo for test");
-				io::BufferedIStream<Process> is(&process);
-				dest << is.readAll();
-				Assert::AreEqual(dest.c_str(), "for test\r\n");
-			}
-
-			{
-				Process process(Process::Shell, u"dir");
-				io::BufferedIStream<Process> is(&process);
-				cout << is.readAll();
+				AText dest = shell(u"echo for test");
+				Assert::AreEqual<Text>("for test\r\n", dest);
 			}
 		}
 

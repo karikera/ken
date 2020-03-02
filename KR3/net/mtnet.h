@@ -13,12 +13,34 @@ namespace kr
 {
 	struct Operation;
 	class MTClient;
-
+	
 	class MTClient:public AtomicReferencable<MTClient>
 	{
 	public:
+		class Lock
+		{
+			friend MTClient;
+		public:
+			~Lock() noexcept;
+
+			void write(Buffer buffer) noexcept;
+			void writes(View<Buffer> buffers) noexcept;
+			void flush() noexcept;
+			void closeClient() noexcept;
+
+			operator bool() noexcept;
+			bool operator !() noexcept;
+			bool operator ==(nullptr_t) noexcept;
+			bool operator !=(nullptr_t) noexcept;
+
+		protected:
+			Lock(MTClient* client) noexcept;
+
+			MTClient* const m_client;
+		};
 		MTClient() noexcept;
 		MTClient(Socket * socket) noexcept;
+		MTClient(MTClient* client) noexcept;
 		virtual ~MTClient() noexcept;
 
 		void reset(Socket * socket) noexcept;
@@ -26,13 +48,7 @@ namespace kr
 		void connect(Ipv4Address v4addr, int port) throws(SocketException);
 		void connect(pcstr16 host, int port) throws(SocketException);
 		void requestReceive() noexcept;
-		void flush() noexcept;
-		void write(Buffer data) noexcept;
-		void writes(View<Buffer> datas) noexcept;
-		void writeLock() noexcept;
-		void writeWithoutLock(Buffer data) noexcept;
-		void writeUnlock() noexcept;
-		void close() noexcept;
+		Lock lock() noexcept;
 		bool isClosed() noexcept;
 
 		void readSetBuffer(BufferQueue receiver) noexcept;
@@ -46,34 +62,42 @@ namespace kr
 		virtual void onSendDone() noexcept;
 		virtual void onClose() noexcept;
 
-		void switchClient(MTClient * client) noexcept;
 		template <typename T, typename ... ARGS>
 		T* switchClient(ARGS && ... args) noexcept;
-
+		
 	protected:
+		bool _writeLock() noexcept;
 		BufferQueue m_receive;
 
 	private:
-		void _close() noexcept;
+		void _destroy() noexcept;
 		void _callOnRead() noexcept;
+		void _write_wl(Buffer buffer) noexcept;
+		void _flush_wl() noexcept;
+		void _close_wl() noexcept;
 
 		Socket * m_socket;
 		CriticalSection m_cs;
-		CriticalSection m_csRead; // for m_receive buffer
 		MTClient * m_switchClient;
 		BufferQueue m_writeQueue;
 		Operation * m_flushOperation;
 		Operation * m_receiveOperation;
 		enum class RState :byte
 		{
-			Closed,
+			Processing,
 			Receiving,
-			Preparing,
+			Closed,
+		};
+		enum class SState :byte
+		{
+			Idle,
+			Flushing,
+			Processing,
 		};
 		RState m_receiving;
-		bool m_flushing;
+		SState m_flushing;
 		bool m_starting;
-		atomic<bool> m_closing;
+		bool m_closing;
 		
 	};
 
@@ -83,26 +107,20 @@ namespace kr
 		MTServer() throws(FunctionError);
 		~MTServer() noexcept;
 		void open(int port) throws(SocketException);
+		static void init(uint threadCount) noexcept;
+		static void init() noexcept;
+		static bool isInited() noexcept;
 
 		virtual MTClient* onAccept(Socket * socket) noexcept = 0;
 		virtual void onError(Text message, int errcode) noexcept = 0;
 
 		static int CT_STDCALL iocpWorker(void*) noexcept;
-
+				
 	private:
-		Socket * getClientSocket() noexcept;
-		void requestAccept() noexcept;
-		void acceptCommit(size_t size) noexcept;
-
-	protected:
-		BufferQueue m_receive;
-
-	private:
+		struct AcceptOperation;
 		AText m_htmlPath;
 		Socket * m_serverSocket;
-		Socket * m_clientSocket;
-		Operation * m_acceptOperation;
-		bool m_closed;
+		Array<AcceptOperation> m_acceptOperations;
 	};
 }
 

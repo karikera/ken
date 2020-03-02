@@ -325,11 +325,12 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 			return mktime(&t);
 		}
 	}
-	static time_t ReadRFC1123(Text str) throws(InvalidSourceException)
+	static constexpr size_t lengthWebDate = 29;
+	static time_t readWebDate(Text str) throws(InvalidSourceException)
 	{
 		//"wkd, DD MMM YYYY hh:mm:ss GMT"
 
-		if(str.size() != 29) throw InvalidSourceException();
+		if(str.size() != lengthWebDate) throw InvalidSourceException();
 		if(str[3] != ',') throw InvalidSourceException();
 		if(str[4] != ' ') throw InvalidSourceException();
 		if(str[7] != ' ') throw InvalidSourceException();
@@ -430,7 +431,7 @@ template <typename C> struct UnixTimeStamp::TimeMethods
 			}
 			else
 			{
-				return ReadRFC1123(str);
+				return readWebDate(str);
 			}
 
 #ifndef NDEBUG

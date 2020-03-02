@@ -718,7 +718,7 @@ File * Main::createFile(Text16 text) throws(Error)
 			switch (iter.first->second)
 			{
 			case FileState::Writed:
-				file = File::openAndWrite(ttext << u".new");
+				file = File::openWrite(ttext << u".new");
 				file->movePointerToEnd(0);
 				break;
 			case FileState::Skipped:

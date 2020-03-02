@@ -148,6 +148,16 @@ namespace kr
 			{
 				return cut_self(mint(begin() + _len, end()));
 			}
+			InternalComponent popGet() throws(EofException)
+			{
+				size_t osize = size();
+				if (osize == 0)
+					throw EofException();
+				osize--;
+				InternalComponent out = (begin())[osize];
+				_resize(osize);
+				return out;
+			}
 
 			template <typename T>
 			T &readBackAs() throws(EofException)

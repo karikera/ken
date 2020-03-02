@@ -13,7 +13,7 @@ namespace kr
 		Unzipper(const fchar_t* path) noexcept;
 		bool extractTo(Text16 path) noexcept;
 
-		bool (*filter)(Unzipper* unzipper, Text filename);
+		pcstr16 (*filter)(Unzipper* unzipper, Text filename, Text16 destpath);
 
 	private:
 		const fchar_t* const m_path;

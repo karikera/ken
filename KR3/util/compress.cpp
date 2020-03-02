@@ -39,8 +39,8 @@ void kr::extractEntryTo(pcstr16 dest, KrbCompressEntry* entry) noexcept
 Unzipper::Unzipper(const fchar_t* path) noexcept
 	:m_path(path)
 {
-	filter = [](Unzipper*, Text){
-		return true;
+	filter = [](Unzipper*, Text, Text16 dest){
+		return dest.data();
 	};
 }
 bool Unzipper::extractTo(Text16 path) noexcept
@@ -60,12 +60,14 @@ bool Unzipper::extractTo(Text16 path) noexcept
 		Unzipper* cb = static_cast<Unzipper*>(_this);
 
 		Text filename(entry->filename, entry->filenameLength);
-		if (cb->filter(cb, filename))
+		cb->m_dir << (Utf8ToUtf16)(Text)entry->filename;
+		cb->m_dir.c_str();
+		pcstr16 dest = cb->filter(cb, filename, cb->m_dir);
+		if (dest != nullptr)
 		{
-			cb->m_dir << (Utf8ToUtf16)(Text)entry->filename;
-			extractEntryTo(cb->m_dir.c_str(), entry);
-			cb->m_dir.resize(cb->m_dirEnd);
+			extractEntryTo(dest, entry);
 		}
+		cb->m_dir.resize(cb->m_dirEnd);
 	};
 	return krb_load_compress(krb_make_extension_from_path(m_path), this, &file);
 }

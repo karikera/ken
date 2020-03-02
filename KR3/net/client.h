@@ -23,6 +23,25 @@ namespace kr
 	public:
 		using Init = Socket::Init;
 
+		class Lock
+		{
+			friend Client;
+		public:
+			~Lock() noexcept;
+
+			void write(Buffer buffer) noexcept;
+			void flush() noexcept;
+
+			operator bool() noexcept;
+			bool operator !() noexcept;
+			bool operator ==(nullptr_t) noexcept;
+			bool operator !=(nullptr_t) noexcept;
+
+		private:
+			Lock(Client * client) noexcept;
+			Client* m_client;
+		};
+
 		Client() noexcept;
 		Client(Socket* socket) noexcept;
 		Client(pcstr16 host, int port) throws(SocketException);
@@ -30,12 +49,19 @@ namespace kr
 		Client(const Client&) = delete;
 		Client& operator =(const Client&) = delete;
 		void connect(pcstr16 host, word port) throws(SocketException);
+		void connectSync(pcstr16 host, word port) throws(SocketException);
 		Ipv4Address getIpAddress() noexcept;
 		void setSocket(Socket * socket) noexcept;
 		Socket * getSocket() noexcept;
 		SocketEventHandle * getSocketEvent() noexcept;
 		BufferQueue* getWriteQueue() noexcept;
+
 		void moveNetwork(Client * watcher) noexcept;
+
+		// for compatibility with MTClient
+		// Actually, It does not lock
+		Lock lock() noexcept;
+
 		void write(Buffer buff) noexcept;
 		Promise<void>* download(Progressor * progressor, AText16 filename, size_t size) noexcept;
 		void flush() noexcept;
@@ -43,11 +69,13 @@ namespace kr
 		void processEvent() noexcept;
 		EventProcedure makeProcedure() noexcept;
 
-		virtual void onError(Text name, int code) noexcept = 0;
-		virtual void onConnect() noexcept = 0;
+		virtual void onError(Text name, int code) noexcept;
+		virtual void onConnect() noexcept;
 		virtual void onConnectFail(int code) noexcept;
 		virtual void onRead() throws(...) = 0;
-		virtual void onClose() noexcept = 0;
+		virtual void onClose() noexcept;
+		virtual void onWriteBegin() noexcept;
+		virtual void onWriteEnd() noexcept;
 
 		template <typename T>
 		T serializeRead()  // EofException

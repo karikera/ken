@@ -215,13 +215,14 @@ void WebSocketClient::onReadWith(HandShaked& obj) throws(...)
 		try
 		{
 			data = obj.wsf.readFrom(&m_receive);
+			_assert(obj.wsf.opcode != WSOpcode::CONTINUE);
 		}
 		catch (TooBigException&)
 		{
 			onError("Too big data", ERROR_NOT_ENOUGH_MEMORY);
 			throw ThrowAbort();
 		}
-		switch (obj.wsf.frame.opcode)
+		switch (obj.wsf.opcode)
 		{
 		case WSOpcode::BINARY:
 			onBinary(data);

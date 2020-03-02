@@ -11,7 +11,9 @@ EMPTY_SOURCE
 #include <KR3/fs/file.h>
 #include <KR3/initializer.h>
 #include <KR3/mt/thread.h>
+#include <KR3/msg/pool.h>
 #include <KR3/wl/windows.h>
+#include <KRTool/mimetypes/gen/mime.h>
 
 using namespace kr;
 
@@ -72,13 +74,13 @@ void MultipartFormData::readHeader(HttpClient* client) throws(ThrowRetry, HttpSt
 {
 	if (m_boundary != nullptr) return;
 	
-	auto& headers = client->getHeader();
+	auto* headers = client->requestHeaders();
 
-	Text contentLength = headers["Content-Length"];
+	Text contentLength = headers->get("Content-Length");
 	if (contentLength == nullptr) throw HttpStatus::MethodNotAllowed;
 	m_contentSize = contentLength.to_uintp();
 
-	Text contentType = headers["Content-Type"];
+	Text contentType = headers->get("Content-Type");
 	if (contentType == nullptr) throw HttpStatus::MethodNotAllowed;
 	if (contentType.readwith(';') != "multipart/form-data") throw HttpStatus::MethodNotAllowed;
 
@@ -134,7 +136,12 @@ void MultipartFormData::read(HttpClient* client, BufferQueue* receive) throws(Th
 			break;
 		}
 		case State::Data:
-			m_state = State::Header;
+			//BufferQueue::ReadResult res = receive->readto(boundary);
+			//size_t junksize = res.totalSize + boundary.size();
+			//m_contentSize -= junksize;
+			//receive->skip(junksize);
+			//if (!res.ended) throw ThrowRetry();
+			//m_state = State::Header;
 			break;
 		}
 	}
@@ -144,21 +151,71 @@ Text MultipartFormData::get(Text name) noexcept
 	return "";
 }
 
+HttpClient::Lock::Lock(HttpClient* client) noexcept
+	:Super(client)
+{
+}
+HttpClient::Lock::~Lock() noexcept
+{
+}
+void HttpClient::Lock::write(Text buffer) noexcept
+{
+	Super::write(buffer.cast<void>());
+}
+void HttpClient::Lock::writes(View<Text> buffers) noexcept
+{
+	for (Text buf : buffers)
+	{
+		write(buf);
+	}
+}
+void HttpClient::Lock::writeHeader(HeaderStore* header) noexcept
+{
+	HttpClient* client = static_cast<HttpClient*>(m_client);
+	if (client->m_headerSended) return;
+	client->m_headerSended = true;
+
+	Manual<HeaderStore> tempstore;
+
+	if (header == nullptr)
+	{
+		tempstore.create();
+		header = tempstore;
+	}
+	UnixTimeStamp now = UnixTimeStamp::now();
+	header->setIfNotSetted("Date", TSZ() << now.getInfo());
+	header->inherit(client->server->defaultHeaders());
+
+	write(header->getStatusLine());
+	for (auto pair : *header)
+	{
+		write(pair.first);
+		write(": ");
+		write(pair.second);
+		write("\r\n");
+	}
+	write("\r\n");
+
+	if (header == tempstore.address())
+	{
+		tempstore.remove();
+	}
+}
+
 HttpClient::HttpClient(HttpServer* server, Socket* socket) noexcept
-	:MTClient(socket)
+	:MTClient(socket), server(server),
+	m_headerParsed(false),
+	m_headerSended(false)
 {
 	m_state = State::ReadHeader;
-	m_server = server;
 
 	CsLock __lock = doutLock;
 	clientCount++;
 	dout << "HTTP Client Count: " << clientCount << endl;
-
-	m_headerParsed = false;
 }
 HttpClient::~HttpClient() noexcept
 {
-	m_header.clear();
+	m_requestHeaders.clear();
 
 	CsLock __lock = doutLock;
 	clientCount--;
@@ -194,18 +251,22 @@ void HttpClient::onRead() throws(...)
 				m_uriRequest = headline.readwith(' ');
 				Text url = m_uriRequest;
 				if (url.empty()) throw HttpStatus::BadRequest;
-				if (url.front() != '/') throw HttpStatus::BadRequest;
+				if (*url != '/') throw HttpStatus::BadRequest;
 				url++;
 				const char* query = url.find('?');
 				if (query != nullptr)
 				{
-					url = url.cut(query);
+					m_query = url.subarr(query);
+					m_path = url.cut(query);
 					query++;
 				}
-				m_path = url;
-				m_query = url.subarr(query);
+				else
+				{
+					m_query = Text(url.end(), url.end());
+					m_path = url;
+				}
 
-				m_server->findPage(m_path, &m_fp);
+				server->findPage(m_path, &m_fp);
 				if (m_fp.page)
 				{
 					m_state = State::ProcessPage;
@@ -221,12 +282,12 @@ void HttpClient::onRead() throws(...)
 			}
 			catch (NotEnoughSpaceException&)
 			{
-				m_fp.page = m_server->getErrorPage(HttpStatus::BadRequest);
+				m_fp.page = server->getErrorPage(HttpStatus::BadRequest);
 				m_state = State::ProcessErrorPage;
 			}
 			catch (HttpStatus status)
 			{
-				m_fp.page = m_server->getErrorPage(status);
+				m_fp.page = server->getErrorPage(status);
 				m_state = State::ProcessPage;
 			}
 			break;
@@ -243,17 +304,17 @@ void HttpClient::onRead() throws(...)
 			}
 			catch (NotEnoughSpaceException&)
 			{
-				m_fp.page = m_server->getErrorPage(HttpStatus::BadRequest);
+				m_fp.page = server->getErrorPage(HttpStatus::BadRequest);
 				m_state = State::ProcessErrorPage;
 			}
 			catch (HttpStatus code)
 			{
-				m_fp.page = m_server->getErrorPage(code);
+				m_fp.page = server->getErrorPage(code);
 				m_state = State::ProcessErrorPage;
 			}
 			catch (...)
 			{
-				m_fp.page = m_server->getErrorPage(HttpStatus::InternalServerError);
+				m_fp.page = server->getErrorPage(HttpStatus::InternalServerError);
 				m_state = State::ProcessErrorPage;
 			}
 			break;
@@ -265,17 +326,15 @@ void HttpClient::onRead() throws(...)
 			}
 			catch (...)
 			{
-				close();
+				lock().closeClient();
 			}
 			return;
 		case State::SendFile:
 		{
-			writeHeader({
-				"HTTP/1.0 200 OK\r\n"
-				"MIME-Version: 1.0\r\n"
-				"Content-Type: ", m_server->getMIMEType(m_fp.path), "\r\n"
-				"Content-Length: ", TSZ() << m_fp.file->size(), "\r\n"
-				});
+			HeaderStore header;
+			inheritFileHeader(&header);
+			lock().writeHeader(&header);
+
 			m_state = State::IgnoreReceive;
 			onSendDone();
 			return;
@@ -293,47 +352,52 @@ void HttpClient::onSendDone() noexcept
 		{
 			TmpArray<char> buffer(8192);
 			buffer.resize(m_fp.file->$read(buffer.begin(), buffer.size()));
-			write(buffer);
-			flush();
+
+			if (Lock _lock = lock())
+			{
+				_lock.write(buffer);
+				_lock.flush();
+			}
 		}
 		catch (EofException&)
 		{
 			m_fp.file = nullptr;
-			close();
+			lock().closeClient();
 		}
 	}
-	void writeHeader(View<Text> headers) noexcept;
-	void writeHeader(View<Text> headers) noexcept;
 }
-void HttpClient::write(Text data) noexcept
+void HttpClient::inheritFileHeader(HeaderStore* header) noexcept
 {
-	MTClient::write(data.cast<void>());
+	header->setIfNotSetted("Content-Type", server->getMIMEType(m_fp.path));
+	header->setIfNotSetted("Content-Length", TSZ() << m_fp.file->size());
 }
-void HttpClient::writes(View<Text> data) noexcept
+HttpClient::Lock HttpClient::lock() noexcept
 {
-	MTClient::writes((View<Buffer>&)data);
+	return _writeLock() ? this : nullptr;
 }
-void HttpClient::writeWithoutLock(Text data) noexcept
+void HttpClient::sendText(Text text) noexcept
 {
-	MTClient::writeWithoutLock(data.cast<void>());
-}
-void HttpClient::writeHeader(View<Text> headers) noexcept
-{
-	writeLock();
-	writeWithoutLock("HTTP/1.0 200 OK\r\n");
-	for (Text line : headers)
+	if (Lock _lock = lock())
 	{
-		writeWithoutLock(line);
+		_lock.writeHeader();
+		_lock.write(text);
+		_lock.flush();
+		_lock.closeClient();
 	}
-	writeWithoutLock(m_server->getDefaultHeader());
-	writeUnlock();
 }
-void HttpClient::writeHeader() noexcept
+void HttpClient::sendFile(AText path) noexcept
 {
-	writeLock();
-	writeWithoutLock("HTTP/1.0 200 OK\r\n"_tx);
-	writeWithoutLock(m_server->getDefaultHeader());
-	writeUnlock();
+	sendFile(move(path), File::open(TSZ16() << (Utf8ToUtf16)path));
+}
+void HttpClient::sendFile(AText path, File* file) noexcept
+{
+	m_fp.page = nullptr;
+	m_fp.path = path;
+	m_fp.file = move(file);
+
+	threadingVoid([this] {
+		onSendDone();
+		});
 }
 void HttpClient::onError(Text funcname, int code) noexcept
 {
@@ -354,7 +418,7 @@ Text HttpClient::getQuery() noexcept
 }
 AText HttpClient::getPostData() throws(ThrowRetry, HttpStatus)
 {
-	Text value = getHeader("Content-Length");
+	Text value = requestHeaders()->get("Content-Length");
 	if (value == nullptr) return nullptr;
 
 	size_t size = m_receive.size();
@@ -376,22 +440,17 @@ MultipartFormData& HttpClient::getMultipartFormData() throws(ThrowRetry, NotEnou
 	return m_multipart;
 }
 
-Text HttpClient::getHeader(Text name) throws(ThrowRetry, NotEnoughSpaceException)
-{
-	return getHeader()[name];
-}
-HttpHeader& HttpClient::getHeader() throws(ThrowRetry, NotEnoughSpaceException)
+HeaderView* HttpClient::requestHeaders() noexcept
 {
 	if (!m_headerParsed)
 	{
 		HashTester<void> needle = "\r\n\r\n"_tx.cast<void>();
 		m_receive.readto(needle).readAllTo((ABuffer*)&m_headerBuffers, HEADER_LENGTH_LIMIT);
 		m_receive.skip(needle.size());
-		m_header.set(m_headerBuffers);
+		m_requestHeaders.setAll(m_headerBuffers);
 		m_headerParsed = true;
 	}
-
-	return m_header;
+	return &m_requestHeaders;
 }
 
 void HttpClient::_readHeadLine() throws(ThrowRetry, NotEnoughSpaceException)
@@ -406,12 +465,19 @@ HttpServer::HttpServer(AText16 htmlRoot) throws(FunctionError)
 {
 	if (m_htmlRoot.endsWith_y(u"\\/")) m_htmlRoot.pop();
 
-	m_mime["html"] = "text/html";
-	m_mime["js"] = "text/javascript";
+	gen::initMimeMap(&m_mime);
+
+	m_headers.set("Server", KR_HTTP_SERVER_NAME);
+	// m_headers.set("Transfer-Encoding", "identity");
+	m_headers.set("MIME-Version", "1.0");
+	m_headers.set("Content-Type", "text/html; charset=utf-8");
+	m_headers.set("Connection", "close");
+	// Allow: GET, HEAD, PUT // 405(Method Not Allowed)
+	// WWW-Authenticate: Newauth realm="apps", type=1, title = "Login to \"apps\"", Basic realm = "simple" // 401(Unauthorized)
+
 	m_error[HttpStatus::NotModified] =  _new StaticPage("HTTP/1.0 304 Not Modified\r\n\r\n");
 	m_error[HttpStatus::NotImplemented] =  _new StaticPage("HTTP/1.0 501 Not Implemented\r\nContent-Type: text/plain\r\n\r\nNot implemented");
 	m_error[HttpStatus::NotFound] = _new StaticPage("HTTP/1.0 404 Not Found\r\nContent-Type: text/plain\r\n\r\nNot Found");
-	m_headers = "\r\n";
 }
 HttpServer::~HttpServer() noexcept
 {
@@ -429,34 +495,9 @@ HttpServer::~HttpServer() noexcept
 	}
 }
 
-void HttpServer::setDefaultHeader(pcstr16 filename) noexcept
+HeaderStore* HttpServer::defaultHeaders() noexcept
 {
-	m_headers = File::openAsArray<char>(filename);
-	if (m_headers.size() < 4)
-	{
-		m_headers = "\r\n\r\n";
-	}
-	else
-	{
-		if (m_headers.subarr(m_headers.size() - 2, 2) == "\r\n")
-		{
-			if (m_headers.subarr(m_headers.size() - 4, 2) == "\r\n")
-			{
-			}
-			else
-			{
-				m_headers << "\r\n";
-			}
-		}
-		else
-		{
-			m_headers << "\r\n\r\n";
-		}
-	}
-}
-Text HttpServer::getDefaultHeader() noexcept
-{
-	return m_headers;
+	return &m_headers;
 }
 void HttpServer::setErrorPage(HttpStatus exception, pcstr16 filename) noexcept
 {
@@ -476,14 +517,14 @@ void HttpServer::setMIMEType(Text type, Text mime) noexcept
 }
 Text HttpServer::getMIMEType(Text fileName) noexcept
 {
-	pcstr ext = fileName.find_r('.');
-	if (ext == nullptr)
+	Text ext = path.extname(fileName);
+	if (ext.empty())
 	{
 		return "application/octet-stream";
 	}
 	else
 	{
-		auto iter2 = m_mime.find(fileName.subarr(ext + 1));
+		auto iter2 = m_mime.find(ext+1);
 		if (iter2 == m_mime.end())
 		{
 			return "application/octet-stream";
@@ -586,9 +627,10 @@ StaticPage::StaticPage(Text text) noexcept
 }
 void StaticPage::process(HttpClient * client)
 {
-	client->write(m_contents);
-	client->flush();
-	client->close();
+	HttpClient::Lock _lock = client->lock();
+	_lock.write(m_contents);
+	_lock.flush();
+	_lock.closeClient();
 }
 
 kr::TemplatePage::TemplatePage(pcstr16 filename) noexcept
@@ -658,16 +700,17 @@ void kr::TemplatePage::process(HttpClient * client)
 	Array<Text> variables(m_keys.size());
 	// TODO: set variables
 	debug();
+	HttpClient::Lock _lock = client->lock();
 	size_t n = m_splitContents.size()-1;
 	size_t i = 0;
 	for (;i<n;i++)
 	{
-		client->write(m_splitContents[i]);
-		client->write(variables[i]);
+		_lock.write(m_splitContents[i]);
+		_lock.write(variables[i]);
 	}
-	client->write(m_splitContents[i]);
-	client->flush();
-	client->close();
+	_lock.write(m_splitContents[i]);
+	_lock.flush();
+	_lock.closeClient();
 }
 
 MemoryPage::MemoryPage() noexcept
@@ -707,9 +750,10 @@ MemoryPage & MemoryPage::operator =(MemoryPage&& _move) noexcept
 }
 void MemoryPage::process(HttpClient * client)
 {
-	client->write(m_contents);
-	client->flush();
-	client->close();
+	HttpClient::Lock _lock = client->lock();
+	_lock.write(m_contents);
+	_lock.flush();
+	_lock.closeClient();
 }
 
 #endif

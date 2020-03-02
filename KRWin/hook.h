@@ -211,6 +211,7 @@ namespace kr
 			void mov(Register dest, AddressPointerRule address, Register src, int32_t offset = 0) noexcept;
 			void lea(Register dest, Register src, int32_t offset = 0) noexcept;
 			void operex(Operator oper, Register dest, int32_t chr) noexcept;
+			void cmp(Register dest, int32_t chr) noexcept;
 			void sub(Register dest, int32_t chr) noexcept;
 			void add(Register dest, int32_t chr) noexcept;
 			void test(Register dest, Register src) noexcept;

@@ -23,7 +23,7 @@ enum class OperationType
 
 struct kr::Operation : WSAOVERLAPPED
 {
-	void * owner;
+	void* owner;
 	OperationType type;
 
 	Operation(void * _owner, OperationType _type) noexcept
@@ -41,10 +41,10 @@ struct kr::Operation : WSAOVERLAPPED
 	}
 };
 
-
 namespace
 {
 	class IOCP;
+	constexpr size_t FLUSH_LIMIT = 8192;
 
 	AtomicKeeper<Operation, 128> overlapes;
 	GUID acceptExGuid = WSAID_ACCEPTEX;
@@ -59,16 +59,25 @@ namespace
 
 	public:
 		IOCP() noexcept;
+		void init(DWORD threadCount) noexcept;
+		bool isInited() noexcept;
 
 		Socket* createSocket(ULONG_PTR attachment) throws(FunctionError);
 		void close() noexcept;
-		static IOCP * getInstance() noexcept;
+
+
+		// 초기화 순서가 바보같이, 나중에 된다
+		static IOCP* getInstance() noexcept;
 	};
 
 	IOCP::IOCP() noexcept
 	{
-		m_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
-		dword threadCount = getCPUCount() * 2;
+		m_iocp = nullptr;
+	}
+	void IOCP::init(DWORD threadCount) noexcept
+	{
+		_assert(m_iocp == nullptr);
+		m_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, threadCount);
 		m_threads.resize(threadCount);
 
 		ondebug(uint number = 1);
@@ -78,6 +87,10 @@ namespace
 			thread = ThreadHandle::createRaw<void>(&MTServer::iocpWorker, nullptr, &id);
 			ondebug(id.setName(TSZ() << "MTNet " << decf(number++, 2)));
 		}
+	}
+	bool IOCP::isInited() noexcept
+	{
+		return m_iocp != nullptr;
 	}
 
 	void IOCP::close() noexcept
@@ -92,14 +105,9 @@ namespace
 			m_iocp = nullptr;
 		}
 	}
-	IOCP * IOCP::getInstance() noexcept
-	{
-		static IOCP iocp;
-		return &iocp;
-	}
 	Socket* IOCP::createSocket(ULONG_PTR attachment) throws(FunctionError)
 	{
-		if (m_iocp == nullptr) throw FunctionError("", ERROR_NOT_READY);
+		_assert(m_iocp != nullptr); // need to call MTServer::init();
 		SOCKET socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
 		if (socket == INVALID_SOCKET)
 		{
@@ -117,6 +125,12 @@ namespace
 			throw FunctionError("CreateIoCompletionPort", errcode);
 		}
 		return (Socket*)socket;
+	}
+
+	IOCP* IOCP::getInstance() noexcept
+	{
+		static IOCP iocp;
+		return &iocp;
 	}
 
 	int getSocketFunction(Socket * socket, GUID * guid, void * lpfn) noexcept
@@ -139,12 +153,107 @@ namespace
 		return S_OK;
 	}
 }
+
+struct MTServer::AcceptOperation : Operation
+{
+	Socket* m_clientSocket;
+	BufferQueue m_receive;
+
+	AcceptOperation(MTServer* server) noexcept;
+	AcceptOperation(AcceptOperation&& _move) noexcept;
+	~AcceptOperation() noexcept;
+
+	void request() noexcept;
+	void acceptCommit(size_t size) noexcept;
+};
+
+MTServer::AcceptOperation::AcceptOperation(MTServer* server) noexcept
+	:Operation(server, OperationType::Accept)
+{
+}
+MTServer::AcceptOperation::AcceptOperation(AcceptOperation&& _move) noexcept
+	:Operation(owner, OperationType::Accept)
+{
+	m_clientSocket = _move.m_clientSocket;
+	_move.m_clientSocket = nullptr;
+	m_receive = move(_move.m_receive);
+}
+MTServer::AcceptOperation::~AcceptOperation() noexcept
+{
+	delete m_clientSocket;
+}
+void MTServer::AcceptOperation::request() noexcept
+{
+	MTServer* server = (MTServer*)owner;
+	IOCP* iocp = IOCP::getInstance();
+	Socket* clientSocket;
+	try
+	{
+		clientSocket = iocp->createSocket(2);
+	}
+	catch (FunctionError & err)
+	{
+		server->onError((Text)err.getFunctionName(), err);
+		return;
+	}
+	m_clientSocket = clientSocket;
+
+	LPFN_ACCEPTEX acceptEx;
+	int err = getSocketFunction(server->m_serverSocket, &acceptExGuid, &acceptEx);
+	if (err)
+	{
+		delete clientSocket;
+		server->onError("WSAIoctl", err);
+		return;
+	}
+
+	reset();
+	DWORD addressSize = sizeof(SOCKADDR_STORAGE) + 16;
+
+	auto buf = m_receive.prepare();
+	int ret = acceptEx((SOCKET)server->m_serverSocket, (SOCKET)clientSocket,
+		buf.data(),
+		intact<DWORD>(buf.size() - (2 * addressSize)),
+		addressSize, addressSize,
+		nullptr,
+		this);
+
+	if (ret == SOCKET_ERROR)
+	{
+		int err = WSAGetLastError();
+		if (err != WSA_IO_PENDING)
+		{
+			delete clientSocket;
+			server->onError("AcceptEx", err);
+			return;
+		}
+	}
+}
+void MTServer::AcceptOperation::acceptCommit(size_t size) noexcept
+{
+	MTServer* server = (MTServer*)owner;
+	m_clientSocket->setOption(SO_UPDATE_ACCEPT_CONTEXT, server->m_serverSocket);
+
+	MTClient* client = server->onAccept(m_clientSocket);
+
+	if (size)
+	{
+		m_receive.commit(size);
+		client->readSetBuffer(move(m_receive));
+	}
+	else
+	{
+		client->requestReceive();
+	}
+	request();
+}
+
+
 int CT_STDCALL MTServer::iocpWorker(void*) noexcept
 {
 	DWORD transfered;
 	ULONG_PTR attachment;
 	Operation * state;
-	IOCP * iocp = IOCP::getInstance();
 	union
 	{
 		void * owner;
@@ -152,6 +261,7 @@ int CT_STDCALL MTServer::iocpWorker(void*) noexcept
 		MTServer * server;
 	};
 
+	IOCP * iocp = IOCP::getInstance();
 
 	for (;;)
 	{
@@ -159,6 +269,8 @@ int CT_STDCALL MTServer::iocpWorker(void*) noexcept
 			&attachment,
 			(LPOVERLAPPED *)&state,
 			INFINITE);
+		// res == false : socket is deleted
+
 		if (attachment == 0) break;
 		if (state == nullptr) break;
 
@@ -168,23 +280,15 @@ int CT_STDCALL MTServer::iocpWorker(void*) noexcept
 		switch (operType)
 		{
 		case OperationType::Read:
-			if (res == 1 && transfered == 0)
-			{
-				client->close();
-			}
-			client->readCommit(res ? transfered : 0);
+			client->readCommit(transfered);
 			break;
 
 		case OperationType::Write:
-			client->writeCommit(res ? transfered : 0);
+			client->writeCommit(transfered);
 			break;
 
 		case OperationType::Accept:
-			if (!res)
-			{
-				break;
-			}
-			server->acceptCommit(transfered);
+			static_cast<AcceptOperation*>(state)->acceptCommit(transfered);
 			break;
 
 		case OperationType::Connect:
@@ -196,6 +300,55 @@ int CT_STDCALL MTServer::iocpWorker(void*) noexcept
 	return 0;
 }
 
+MTClient::Lock::Lock(MTClient* client) noexcept
+	:m_client(client)
+{
+}
+MTClient::Lock::~Lock() noexcept
+{
+	if (m_client == nullptr) return;
+	if (m_client->m_writeQueue.size() >= FLUSH_LIMIT)
+	{
+		m_client->_flush_wl();
+	}
+	m_client->m_cs.leave();
+}
+
+void MTClient::Lock::write(Buffer buffer) noexcept
+{
+	m_client->_write_wl(buffer);
+}
+void MTClient::Lock::writes(View<Buffer> buffers) noexcept
+{
+	for (Buffer buf : buffers)
+	{
+		m_client->_write_wl(buf);
+	}
+}
+void MTClient::Lock::flush() noexcept
+{
+	m_client->_flush_wl();
+}
+void MTClient::Lock::closeClient() noexcept
+{
+	m_client->_close_wl();
+}
+MTClient::Lock::operator bool() noexcept
+{
+	return m_client != nullptr;
+}
+bool MTClient::Lock::operator !() noexcept
+{
+	return m_client == nullptr;
+}
+bool MTClient::Lock::operator ==(nullptr_t) noexcept
+{
+	return m_client == nullptr;
+}
+bool MTClient::Lock::operator !=(nullptr_t) noexcept
+{
+	return m_client != nullptr;
+}
 
 MTClient::MTClient(Socket * socket) noexcept
 	:m_socket(socket)
@@ -205,8 +358,62 @@ MTClient::MTClient(Socket * socket) noexcept
 	m_flushOperation = overlapes.alloc(this, OperationType::Write);
 	m_receiveOperation = overlapes.alloc(this, OperationType::Read);
 	m_closing = false;
-	m_flushing = false;
-	m_receiving = RState::Preparing;
+	m_flushing = SState::Idle;
+	m_receiving = RState::Processing;
+}
+MTClient::MTClient(MTClient* client) noexcept
+	:m_socket(client->m_socket)
+{
+	client->m_socket = nullptr;
+
+	AddRef();
+	m_switchClient = nullptr;
+	m_closing = false;
+
+	{
+		CsLock __lock(client->m_cs);
+		_assert(client->m_switchClient == nullptr);
+		client->m_closing = true;
+		client->m_switchClient = this;
+		AddRef();
+		m_receiving = client->m_receiving;
+		m_flushing = client->m_flushing;
+		m_writeQueue = move(client->m_writeQueue);
+
+		if (m_flushing != SState::Flushing)
+		{
+			if (m_flushing == SState::Processing) m_flushing = SState::Idle;
+			m_flushOperation = client->m_flushOperation;
+			m_flushOperation->owner = this;
+			client->m_flushOperation = nullptr;
+		}
+		else
+		{
+			m_flushOperation = nullptr;
+		}
+		if (m_receiving != RState::Receiving)
+		{
+			m_receiveOperation = client->m_receiveOperation;
+			m_receiveOperation->owner = this;
+			client->m_receiveOperation = nullptr;
+		}
+		else
+		{
+			m_receiveOperation = nullptr;
+		}
+	}
+	if (m_flushing != SState::Flushing && m_receiving != RState::Receiving)
+	{
+		Release();
+		client->m_switchClient = nullptr;
+		if (client->m_flushing != SState::Processing && client->m_receiving != RState::Processing)
+		{
+			client->m_flushing = SState::Idle;
+			client->m_receiving = RState::Closed;
+			client->_destroy();
+		}
+	}
+	if (m_receiving == RState::Processing) requestReceive(); // previous clients will cancel requestReceive on Receiving
 }
 MTClient::MTClient() noexcept
 	:MTClient(IOCP::getInstance()->createSocket(3))
@@ -215,22 +422,18 @@ MTClient::MTClient() noexcept
 MTClient::~MTClient() noexcept
 {
 	_assert(!m_socket);
-	_assert(!m_flushing);
+	_assert(m_flushing == SState::Idle);
 	_assert(m_receiving == RState::Closed);
 	_assert(!m_switchClient);
 }
 void MTClient::reset(Socket * socket) noexcept
 {
-	if (m_socket)
-	{
-		delete m_socket;
-		m_socket = nullptr;
-	}
+	delete m_socket;
 	m_receive.clear();
 
-	_assert(!m_flushing);
+	_assert(m_flushing == SState::Idle);
 	_assert(!m_closing);
-	_assert(m_receiving == RState::Preparing);
+	_assert(m_receiving == RState::Processing);
 	m_socket = socket;
 }
 Socket * MTClient::getSocket() noexcept
@@ -250,7 +453,6 @@ void MTClient::connect(Ipv4Address v4addr, int port) throws(SocketException)
 	memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
 	
 	Operation * connectOperation = overlapes.alloc(this, OperationType::Connect);
-	connectOperation->owner = m_socket;
 	connectEx((SOCKET)socket, (sockaddr*)&addr, sizeof(addr), nullptr, 0, nullptr, connectOperation);
 }
 void MTClient::connect(pcstr16 host, int port) throws(SocketException)
@@ -262,15 +464,21 @@ void MTClient::requestReceive() noexcept
 {
 	{
 		CsLock __lock(m_cs);
-		CsLock __lock2(m_csRead);
-		_assert(m_receiving == RState::Preparing);
+		_assert(m_flushing != SState::Processing);
+		_assert(m_receiving == RState::Processing);
 		if (m_switchClient)
 		{
-			m_switchClient->readSetBuffer(move(m_receive));
+			m_receiveOperation->owner = m_switchClient;
+			m_switchClient->m_receiveOperation = m_receiveOperation;
+			m_receiveOperation = nullptr;
 
-			if (!m_flushing)
+			m_switchClient->m_receive = move(m_receive);
+			m_switchClient->requestReceive();
+
+			m_receiving = RState::Closed;
+			if (m_flushing == SState::Idle)
 			{
-				m_receiving = RState::Closed;
+				m_switchClient->Release();
 				m_switchClient = nullptr;
 				goto __delete;
 			}
@@ -279,11 +487,8 @@ void MTClient::requestReceive() noexcept
 
 		if (m_closing)
 		{
-			if (!m_flushing)
-			{
-				m_receiving = RState::Closed;
-				goto __delete;
-			}
+			m_receiving = RState::Closed;
+			if (m_flushing == SState::Idle) goto __delete;
 			return;
 		}
 
@@ -293,13 +498,11 @@ void MTClient::requestReceive() noexcept
 		buf.len = intact<ULONG>(buffer.size());
 		if (buf.len == 0)
 		{
+			m_closing = true;
 			m_receiving = RState::Closed;
 			onError("buffer prepare", ERROR_NOT_ENOUGH_MEMORY);
-			close();
-			if (!m_flushing)
-			{
-				goto __delete;
-			}
+
+			if (m_flushing == SState::Idle) goto __delete;
 			return;
 		}
 
@@ -314,110 +517,24 @@ void MTClient::requestReceive() noexcept
 			int err = WSAGetLastError();
 			if (err != WSA_IO_PENDING)
 			{
+				m_closing = true;
 				m_receiving = RState::Closed;
-				close();
 				onError("WSARecv", err);
-				if (!m_flushing)
-				{
-					goto __delete;
-				}
+
+				if (m_flushing == SState::Idle) goto __delete;
 				return;
 			}
 		}
 		return;
 	}
+	return;
 __delete:
-	_close();
+	_destroy();
 }
-void MTClient::flush() noexcept
-{
-	CsLock __lock(m_cs);
-	if (m_flushing) return;
-	if (m_closing) return;
-	if (m_writeQueue.empty()) return;
 
-	TmpArray<WSABUF> wsabufs(0_sz, m_writeQueue.bufferCount());
-
-	for (Buffer buf : m_writeQueue)
-	{
-		WSABUF * wsabuf = wsabufs.prepare(1);
-		wsabuf->buf = (char*)buf.data();
-		wsabuf->len = intact<DWORD>(buf.size());
-	}
-
-	m_flushing = true;
-
-	DWORD writed;
-	m_flushOperation->reset();
-	int ret = WSASend((SOCKET)m_socket, wsabufs.data(), intact<DWORD>(wsabufs.size()), &writed, 0, m_flushOperation, nullptr);
-	_assert(ret == SOCKET_ERROR);
-	
-	int err = WSAGetLastError();
-	if (ERROR_IO_PENDING != err)
-	{
-		if (err != WSAECONNABORTED)
-		{
-			onError("WSASend", err);
-		}
-		close();
-		return;
-	}
-}
-void MTClient::write(Buffer data) noexcept
+MTClient::Lock MTClient::lock() noexcept
 {
-	writeLock();
-	writeWithoutLock(data);
-	writeUnlock();
-}
-void MTClient::writes(View<Buffer> datas) noexcept
-{
-	CsLock __lock(m_cs);
-	if (m_switchClient)
-	{
-		for (Buffer data : datas)
-		{
-			m_switchClient->write(data);
-		}
-		return;
-	}
-	if (!m_closing)
-	{
-		for (Buffer data : datas)
-		{
-			m_writeQueue.write(data.data(), data.size());
-		}
-
-		if (m_writeQueue.size() >= 8192)
-		{
-			flush();
-		}
-	}
-}
-void MTClient::writeLock() noexcept
-{
-	m_cs.enter();
-}
-void MTClient::writeWithoutLock(Buffer data) noexcept
-{
-	if (m_switchClient)
-	{
-		m_switchClient->write(data);
-		return;
-	}
-	if (m_closing) return;
-	m_writeQueue.write(data.data(), data.size());
-}
-void MTClient::writeUnlock() noexcept
-{
-	if (m_writeQueue.size() >= 8192)
-	{
-		flush();
-	}
-	m_cs.leave();
-}
-void MTClient::close() noexcept
-{
-	m_closing = true;
+	return _writeLock() ? this : nullptr;
 }
 bool MTClient::isClosed() noexcept
 {
@@ -426,7 +543,6 @@ bool MTClient::isClosed() noexcept
 void MTClient::readSetBuffer(BufferQueue receiver) noexcept
 {
 	{
-		CsLock __lock(m_csRead);
 		if (!m_closing)
 		{
 			m_receive = move(receiver);
@@ -436,79 +552,88 @@ void MTClient::readSetBuffer(BufferQueue receiver) noexcept
 
 	{
 		CsLock __lock(m_cs);
+		_assert(m_flushing != SState::Processing);
 		_assert(m_starting);
 		m_starting = false;
 		if (m_closing)
 		{
 			m_receiving = RState::Closed;
-			if (!m_flushing)
-			{
-				goto __delete;
-			}
+			if (m_flushing == SState::Idle) goto __delete;
 			return;
 		}
 		requestReceive();
 		return;
 	}
 __delete:
-	_close();
+	_destroy();
 }
 void MTClient::readCommit(size_t size) noexcept
 {
 	{
 		CsLock __lock(m_cs);
+		_assert(m_flushing != SState::Processing);
 		_assert(m_receiving == RState::Receiving);
-		m_receiving = RState::Preparing;
+		m_receiving = RState::Processing;
 
 		if (m_switchClient)
 		{
-			m_switchClient->readSetBuffer(move(m_receive));
-			m_receiving = RState::Closed;
+			m_receiveOperation->owner = m_switchClient;
+			m_switchClient->m_receiveOperation = m_receiveOperation;
+			m_receiveOperation = nullptr;
 
-			if (!m_flushing)
+			m_switchClient->m_receive = move(m_receive);
+			m_switchClient->readCommit(size);
+
+			m_receiving = RState::Closed;
+			if (m_flushing == SState::Idle)
 			{
+				m_switchClient->Release();
 				m_switchClient = nullptr;
-				close();
 				goto __delete;
 			}
 			return;
 		}
-
 		if (m_closing)
 		{
 			m_receiving = RState::Closed;
-			if (!m_flushing)
-			{
-				goto __delete;
-			}
+			if (m_flushing == SState::Idle) goto __delete;
+			return;
+		}
+		if (size == 0)
+		{
+			m_receiving = RState::Closed;
+			m_closing = true;
+			if (m_flushing == SState::Idle) goto __delete;
 			return;
 		}
 	}
-	{
-		CsLock __lock2(m_csRead);
-		m_receive.commit(size);
-		_callOnRead();
-		requestReceive();
-		return;
-	}
+	m_receive.commit(size);
+	_callOnRead();
+	requestReceive();
+	return;
 __delete:
-	_close();
+	_destroy();
 }
 void MTClient::writeCommit(size_t size) noexcept
 {
 	{
 		CsLock __lock(m_cs);
-		_assert(m_flushing);
-		m_flushing = false;
+		_assert(m_flushing == SState::Flushing);
 
 		if (m_switchClient)
 		{
+			m_flushOperation->owner = m_switchClient;
+			m_switchClient->m_flushOperation = m_flushOperation;
+			m_flushOperation = nullptr;
+
 			m_switchClient->writeCommit(size);
 
 			if (m_receiving == RState::Closed)
 			{
+				m_switchClient->Release();
 				m_switchClient = nullptr;
-				_close();
+				m_flushing = SState::Idle;
+				goto __delete;
 			}
 			return;
 		}
@@ -518,32 +643,36 @@ void MTClient::writeCommit(size_t size) noexcept
 
 		if (m_writeQueue.empty())
 		{
+			m_flushing = SState::Processing;
 			onSendDone();
+			m_flushing = SState::Idle;
 			if (m_closing)
 			{
 				switch (m_receiving)
 				{
 				case RState::Closed: goto __delete;
-				case RState::Preparing: break;
+				case RState::Processing: break;
 				case RState::Receiving:
-					CancelIo(m_socket);
-					// CancelIoEx(m_socket, m_receiveOperation);
+					CancelIoEx(m_socket, m_receiveOperation);
 					break;
 				}
 			}
 		}
 		else
 		{
-			flush();
+			m_flushing = SState::Idle;
+			if (!m_closing)
+			{
+				_flush_wl();
+			}
 		}
 		return;
 	}
 __delete:
-	_close();
+	_destroy();
 }
 void MTClient::callOnRead() noexcept
 {
-	CsLock __lock(m_csRead);
 	_callOnRead();
 }
 void MTClient::onConnect() noexcept
@@ -555,32 +684,24 @@ void MTClient::onSendDone() noexcept
 void MTClient::onClose() noexcept
 {
 }
-void MTClient::switchClient(MTClient * client) noexcept
-{
-	m_socket = nullptr;
 
-	CsLock __lock(m_cs);
-	m_switchClient = client;
-	m_switchClient->m_flushing = true;
-	client->m_writeQueue = move(m_writeQueue);
-	if (m_receiving == RState::Receiving)
-	{
-		CancelIo(m_socket);
-		// CancelIoEx(m_socket, m_receiveOperation);
-	}
+bool MTClient::_writeLock() noexcept
+{
+	m_cs.enter();
+	return m_switchClient == nullptr && !m_closing;
 }
 
-void MTClient::_close() noexcept
+void MTClient::_destroy() noexcept
 {
 	_assert(m_closing);
 	if (m_socket)
 	{
-		onClose();
 		delete m_socket;
 		m_socket = nullptr;
+		onClose();
 	}
-	overlapes.free(m_receiveOperation);
-	overlapes.free(m_flushOperation);
+	if (m_receiveOperation) overlapes.free(m_receiveOperation);
+	if (m_flushOperation) overlapes.free(m_flushOperation);
 	Release();
 }
 void MTClient::_callOnRead() noexcept
@@ -593,30 +714,90 @@ void MTClient::_callOnRead() noexcept
 		}
 		catch (ThrowAbort&)
 		{
-			close();
+			lock().closeClient();
 		}
 		catch (...)
 		{
 		}
 	}
 }
+void MTClient::_write_wl(Buffer buffer) noexcept
+{
+	m_writeQueue.write(buffer.data(), buffer.size());
+}
+void MTClient::_flush_wl() noexcept
+{
+	if (m_flushing == SState::Flushing) return;
+	if (m_writeQueue.empty()) return;
+	m_flushing = SState::Flushing;
 
+	TmpArray<WSABUF> wsabufs(0_sz, m_writeQueue.bufferCount());
+
+	for (Buffer buf : m_writeQueue)
+	{
+		WSABUF* wsabuf = wsabufs.prepare(1);
+		wsabuf->buf = (char*)buf.data();
+		wsabuf->len = intact<DWORD>(buf.size());
+	}
+
+	DWORD writed;
+	m_flushOperation->reset();
+	int ret = WSASend((SOCKET)m_socket, wsabufs.data(), intact<DWORD>(wsabufs.size()), &writed, 0, m_flushOperation, nullptr);
+	_assert(ret == SOCKET_ERROR);
+
+	int err = WSAGetLastError();
+	if (ERROR_IO_PENDING != err)
+	{
+		if (err != WSAECONNABORTED)
+		{
+			onError("WSASend", err);
+		}
+		_close_wl();
+		return;
+	}
+}
+void MTClient::_close_wl() noexcept
+{
+	_assert(!m_closing);
+	m_closing = true;
+	if (m_flushing == SState::Idle && m_receiving == RState::Receiving)
+	{
+		CancelIoEx(m_socket, m_receiveOperation);
+	}
+}
+
+
+void MTServer::init(uint threadCount) noexcept
+{
+	IOCP* iocp = IOCP::getInstance();
+	if (iocp->isInited()) return;
+	iocp->init(threadCount);
+}
+void MTServer::init() noexcept
+{
+	IOCP* iocp = IOCP::getInstance();
+	if (iocp->isInited()) return;
+	iocp->init(getCPUCount()*2);
+}
+bool MTServer::isInited() noexcept
+{
+	IOCP* iocp = IOCP::getInstance();
+	return iocp->isInited();
+}
 MTServer::MTServer() throws(FunctionError)
 {
-	m_clientSocket = nullptr;
-	m_serverSocket = IOCP::getInstance()->createSocket(1);
-	m_acceptOperation = overlapes.alloc(this, OperationType::Accept);
+	init();
+	IOCP* iocp = IOCP::getInstance();
+
+	m_serverSocket = iocp->createSocket(1);
 }
 MTServer::~MTServer() noexcept
 {
-	delete m_acceptOperation;
-	delete m_clientSocket;
+	m_acceptOperations = nullptr;
 	delete m_serverSocket;
 }
 void MTServer::open(int port) throws(SocketException)
 {
-	IOCP * iocp = IOCP::getInstance();
-
 	addrinfo hints = { 0 };
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = AF_INET;
@@ -635,6 +816,8 @@ void MTServer::open(int port) throws(SocketException)
 		throw SocketException(err);
 	}
 
+	m_acceptOperations.initResize(8, this);
+
 	ret = listen((SOCKET)m_serverSocket, SOMAXCONN);
 	if (ret == SOCKET_ERROR)
 	{
@@ -645,74 +828,10 @@ void MTServer::open(int port) throws(SocketException)
 
 	freeaddrinfo(addrlocal);
 	
-	requestAccept();
-}
-Socket * MTServer::getClientSocket() noexcept
-{
-	return m_clientSocket;
-}
-void MTServer::requestAccept() noexcept
-{
-	Socket * clientSocket;
-	try
+	for (AcceptOperation& accept : m_acceptOperations)
 	{
-		IOCP * iocp = IOCP::getInstance();
-		clientSocket = iocp->createSocket(2);
+		accept.request();
 	}
-	catch (FunctionError & err)
-	{
-		onError((Text)err.getFunctionName(), err);
-		return;
-	}
-	m_clientSocket = clientSocket;
-
-	LPFN_ACCEPTEX acceptEx;
-	int err = getSocketFunction(m_serverSocket, &acceptExGuid, &acceptEx);
-	if (err)
-	{
-		delete clientSocket;
-		onError("WSAIoctl", err);
-		return;
-	}
-
-	m_acceptOperation->reset();
-	DWORD addressSize = sizeof(SOCKADDR_STORAGE) + 16;
-
-	auto buf = m_receive.prepare();
-	int ret = acceptEx((SOCKET)m_serverSocket, (SOCKET)clientSocket,
-		buf.data(),
-		intact<DWORD>(buf.size() - (2 * addressSize)),
-		addressSize, addressSize,
-		nullptr,
-		m_acceptOperation);
-
-	if (ret == SOCKET_ERROR)
-	{
-		int err = WSAGetLastError();
-		if (err != WSA_IO_PENDING)
-		{
-			delete clientSocket;
-			onError("AcceptEx", err);
-			return;
-		}
-	}
-}
-void MTServer::acceptCommit(size_t size) noexcept
-{
-	m_clientSocket->setOption(SO_UPDATE_ACCEPT_CONTEXT, m_serverSocket);
-
-	MTClient * client = onAccept(m_clientSocket);
-
-	if (size)
-	{
-		m_receive.commit(size);
-		client->readSetBuffer(move(m_receive));
-	}
-	else
-	{
-		client->requestReceive();
-	}
-	requestAccept();
 }
 
 #else

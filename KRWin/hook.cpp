@@ -448,6 +448,10 @@ void CodeWriter::operex(Operator oper, Register dest, int32_t chr) noexcept
 		else write((int8_t)chr);
 	}
 }
+void CodeWriter::cmp(Register dest, int32_t chr) noexcept
+{
+	operex(Operator::CMP, dest, chr);
+}
 void CodeWriter::sub(Register dest, int32_t chr) noexcept
 {
 	operex(Operator::SUB, dest, chr);

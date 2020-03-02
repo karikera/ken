@@ -133,12 +133,13 @@ Buffer WSFrameReader::readFrom(BufferQueue* receive) throws(EofException, ThrowA
 		{
 		case WSOpcode::CONTINUE: break;
 		case WSOpcode::CLOSE:
+			opcode = frame.opcode;
 			throw ThrowAbort();
-		case WSOpcode::PING: break;
-		case WSOpcode::PONG: break;
+		case WSOpcode::PING:
+		case WSOpcode::PONG:
 		case WSOpcode::BINARY:
-			break;
 		case WSOpcode::TEXT:
+			opcode = frame.opcode;
 			break;
 		}
 		m_state = State::Data;

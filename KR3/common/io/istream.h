@@ -408,7 +408,7 @@ namespace kr
 			{
 				return readto_pe(buffer()->find_L(lambda));
 			}
-			inline Ref skipspace()
+			inline Ref skipspace() noexcept
 			{
 				return readto_ny(Ref::WHITE_SPACE);
 			}

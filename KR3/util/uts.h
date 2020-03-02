@@ -25,7 +25,7 @@ namespace kr
 		template <class _Derived, typename C, class _Info>
 		void writeTo(OutStream<_Derived, C, _Info> *str) const throws(NotEnoughSpaceException)
 		{
-			// RFC1123 "wkd, DD MMM YYYY hh:mm:ss GMT"
+			// Web Standard "wkd, DD MMM YYYY hh:mm:ss GMT"
 			*str << _pri_::DATETEXT<C>::wkday[tm_wday] << (C)',' << (C)' '
 				<< decf(tm_mday, 2) << (C)' '
 				<< _pri_::DATETEXT<C>::month[tm_mon] << (C)' '
@@ -71,6 +71,9 @@ namespace kr
 		bool operator != (UnixTimeStamp uts) const noexcept;
 
 		TimeInformation getInfo() const noexcept;
+		template <typename C>
+		void copyTo(C* dest) const noexcept;
+		size_t size() const noexcept;
 
 		static struct TIMEZONE
 		{

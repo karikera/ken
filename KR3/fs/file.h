@@ -33,18 +33,22 @@ namespace kr
 		template <typename CHR>
 		static File* openT(const CHR * str) throws(Error);
 		template <typename CHR>
-		static File* openAndWriteT(const CHR * str) throws(Error);
+		static File* openWriteT(const CHR * str) throws(Error);
 		template <typename CHR>
-		static File* createAndReadT(const CHR * str) throws(Error);
+		static File* createRWT(const CHR * str) throws(Error);
+		template <typename CHR>
+		static File* openRWT(const CHR * str) throws(Error);
 
 		static File* create(const char * str) throws(Error) { return createT(str); }
 		static File* create(const char16 * str) throws(Error) { return createT(str); }
 		static File* open(const char * str) throws(Error) { return openT(str); }
 		static File* open(const char16 * str) throws(Error) { return openT(str); }
-		static File* openAndWrite(const char * str) throws(Error) { return openAndWriteT(str); }
-		static File* openAndWrite(const char16 * str) throws(Error) { return openAndWriteT(str); }
-		static File* createAndRead(const char * str) throws(Error) { return createAndReadT(str); }
-		static File* createAndRead(const char16 * str) throws(Error) { return createAndReadT(str); }
+		static File* openWrite(const char * str) throws(Error) { return openWriteT(str); }
+		static File* openWrite(const char16 * str) throws(Error) { return openWriteT(str); }
+		static File* createRW(const char * str) throws(Error) { return createRWT(str); }
+		static File* createRW(const char16 * str) throws(Error) { return createRWT(str); }
+		static File* openRW(const char* str) throws(Error) { return openRWT(str); }
+		static File* openRW(const char16* str) throws(Error) { return openRWT(str); }
 		static void operator delete(ptr p) noexcept;
 
 		//DefineWritablePropertySZ(File, name, GetName, CPUTF16);
@@ -61,8 +65,8 @@ namespace kr
 		static bool isDirectoryModified(Text16 dir, filetime_t axis) noexcept;
 		static bool createDirectory(pcstr16 str) noexcept;
 		static bool createFullDirectory(Text16 str) noexcept;
-		static bool removeFullDirectory(Text16 path) noexcept;
-		static bool removeShell(Text16 path) noexcept;
+		static bool removeFullDirectory(pcstr16 path) noexcept;
+		static bool removeShell(pcstr16 path) noexcept;
 		
 		template <typename C>
 		inline SizedStreamBuffer<C, io::StreamableStream<File, C>* > readAll() throws(TooBigException)

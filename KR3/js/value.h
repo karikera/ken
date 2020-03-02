@@ -112,6 +112,7 @@ default: unreachable();\
 			set(name, JsFunction::make(forward<LAMBDA>(func)));
 		}
 
+		// cast<Text16>() - null terminated
 		template <typename T> T cast() const noexcept;
 
 		JsValue& operator =(const JsValue& _copy) noexcept;

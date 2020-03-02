@@ -60,7 +60,7 @@ namespace kr
 		HttpConnection() noexcept;
 		~HttpConnection() noexcept;
 
-		HttpStatus open(Text url, const HttpConnectionRequest * request, AHttpHeader * response); // SocketException
+		HttpStatus open(Text url, const HttpConnectionRequest * request, HeaderStore * response); // SocketException
 		void close() noexcept;
 		Text get() noexcept;
 		bool next() throws(SocketException);

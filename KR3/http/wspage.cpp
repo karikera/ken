@@ -23,8 +23,8 @@ static bool connectionIs(Text list, Text type) noexcept
 
 #pragma warning(push)
 #pragma warning(disable:26495)
-WebSocketSession::WebSocketSession(Socket * socket) noexcept
-	:Super(socket)
+WebSocketSession::WebSocketSession(HttpClient* client) noexcept
+	:Super(client)
 {
 }
 #pragma warning(pop)
@@ -40,10 +40,11 @@ void WebSocketSession::onRead() throws(...)
 		catch (TooBigException&)
 		{
 			onError("Too big data", ERROR_NOT_ENOUGH_MEMORY);
-			close();
+			lock().closeClient();
 			throw;
 		}
-		switch (m_wsf.frame.opcode)
+		_assert(m_wsf.opcode != WSOpcode::CONTINUE);
+		switch (m_wsf.opcode)
 		{
 		case WSOpcode::BINARY:
 			onBinary(data);
@@ -55,7 +56,7 @@ void WebSocketSession::onRead() throws(...)
 			sendPong(data);
 			break;
 		default:
-			dout << "OPCODE: " << (int)m_wsf.frame.opcode << endl;
+			dout << "OPCODE: " << (int)m_wsf.opcode << endl;
 			break;
 		}
 		
@@ -80,9 +81,7 @@ WebSocketPage::WebSocketPage() noexcept
 void WebSocketPage::process(HttpClient * client)
 {
 	_handShake(client);
-	Socket * socket = client->getSocket();
-	WebSocketSession * newclient = onAccept(socket);
-	client->switchClient(newclient);
+	onAccept(client);
 }
 
 void WebSocketPage::_handShake(HttpClient * client)
@@ -90,7 +89,7 @@ void WebSocketPage::_handShake(HttpClient * client)
 	// client->m_stream.base()->setTimeout(1, 500000);
 
 	HttpRequestHeader header;
-	header.set(client->getHeader());
+	header.set(client->requestHeaders());
 
 	if (header.upgrade != "websocket")
 	{
@@ -115,13 +114,13 @@ void WebSocketPage::_handShake(HttpClient * client)
 	Sec-WebSocket-Origin: http://www.rua.kr\r\n\
 	Sec-WebSocket-Protocol: /protocol/\r\n\
 	*/
-	client->writes({
-		"HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
+	HttpClient::Lock _lock = client->lock();
+	_lock.writes({ "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
 		"Upgrade: WebSocket\r\n"
 		"Connection: Upgrade\r\n"
 		"Sec-WebSocket-Accept: ", makeSecWebSocketAccept(header.wsKey), "\r\n\r\n"
 	});
-	client->flush();
+	_lock.flush();
 }
 
 #endif

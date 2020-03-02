@@ -19,10 +19,17 @@ void FSLPolicyClient::onRead() noexcept
 	if (text == "<policy-file-request/>")
 	{
 		Text text = "<?xml version=\'1.0\'?><cross-domain-policy><allow-access-from domain=\'*\' to-ports=\'*\' /></cross-domain-policy>\0";
-		write(text.cast<void>());
-		flush();
+
+		if (Lock _lock = lock())
+		{
+			_lock.write(text.cast<void>());
+			_lock.flush();
+		}
 	}
-	close();
+	else
+	{
+		lock().closeClient();
+	}
 }
 void FSLPolicyClient::onError(Text func, int code) noexcept
 {

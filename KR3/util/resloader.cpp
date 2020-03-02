@@ -4,11 +4,18 @@
 
 kr::krb::File::File(const fchar_t* path) noexcept
 {
-	krb_fopen(this, path, _TF("rb"));
+	if (!krb_fopen(this, path, _TF("rb")))
+	{
+		param = nullptr;
+		vftable = nullptr;
+	}
 }
 kr::krb::File::~File() noexcept
 {
-	KrbFile::close();
+	if (vftable != nullptr)
+	{
+		KrbFile::close();
+	}
 }
 
 #ifdef _DEBUG

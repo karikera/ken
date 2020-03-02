@@ -155,6 +155,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="webserver.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Texture3D9.rc" />

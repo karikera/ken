@@ -127,6 +127,7 @@
     <ClInclude Include="common\io\pointable.h" />
     <ClInclude Include="common\text\writablemethod.h" />
     <ClInclude Include="data\mixed.h" />
+    <ClInclude Include="data\strstore.h" />
     <ClInclude Include="fs\asyncfile.h" />
     <ClInclude Include="fs\file.h" />
     <ClInclude Include="fs\installer.h" />
@@ -254,6 +255,7 @@
     <ClInclude Include="util\namedenum.h" />
     <ClInclude Include="util\parameter.h" />
     <ClInclude Include="util\path.h" />
+    <ClInclude Include="util\pdb.h" />
     <ClInclude Include="util\resloader.h" />
     <ClInclude Include="util\serializer.h" />
     <ClInclude Include="util\singleinstance.h" />
@@ -433,6 +435,7 @@
     <ClCompile Include="util\logger.cpp" />
     <ClCompile Include="util\parameter.cpp" />
     <ClCompile Include="util\path.cpp" />
+    <ClCompile Include="util\pdb.cpp" />
     <ClCompile Include="util\process.cpp" />
     <ClCompile Include="util\resloader.cpp" />
     <ClCompile Include="util\singleinstance.cpp" />

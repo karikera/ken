@@ -69,6 +69,7 @@ namespace kr
 		WSFrameReader() noexcept;
 		Buffer readFrom(BufferQueue* receive) throws(EofException, ThrowAbort, TooBigException);
 		WSFrameEx frame;
+		WSOpcode opcode;
 		ABuffer data;
 
 	private:
@@ -87,9 +88,9 @@ namespace kr
 	template <class Parent> class WSSender:public Parent
 	{
 	public:
+		using typename Parent::Lock;
 		using Parent::Parent;
-		using Parent::write;
-		using Parent::flush;
+		using Parent::lock;
 
 		void writeBinary(Buffer data) noexcept
 		{
@@ -99,8 +100,11 @@ namespace kr
 			frame.fin = true;
 			frame.setDataLengthAuto(data.size());
 
-			write({ &frame, frame.getSize() });
-			write(data);
+			if (Lock _lock = lock())
+			{
+				_lock.write({ &frame, frame.getSize() });
+				_lock.write(data);
+			}
 		}
 		void writeText(Text data) noexcept
 		{
@@ -109,8 +113,12 @@ namespace kr
 			frame.opcode = WSOpcode::TEXT;
 			frame.fin = true;
 			frame.setDataLengthAuto(data.size());
-			write({ &frame, frame.getSize() });
-			write(data.cast<void>());
+
+			if (Lock _lock = lock())
+			{
+				_lock.write({ &frame, frame.getSize() });
+				_lock.write(data.cast<void>());
+			}
 		}
 		void sendPong(Buffer buffer) noexcept
 		{
@@ -119,9 +127,17 @@ namespace kr
 			frame.opcode = WSOpcode::PONG;
 			frame.fin = true;
 			frame.setDataLengthAuto(buffer.size());
-			write({ &frame, frame.getSize() });
-			write(buffer);
-			flush();
+
+			if (Lock _lock = lock())
+			{
+				_lock.write({ &frame, frame.getSize() });
+				_lock.write(buffer);
+				_lock.flush();
+			}
+		}
+		void flush() noexcept
+		{
+			lock().flush();
 		}
 	};
 }

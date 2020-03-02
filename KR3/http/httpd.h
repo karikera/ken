@@ -111,28 +111,6 @@ namespace kr
 		
 	};
 
-	
-	template <typename C>
-	class StringStore
-	{
-		using AText = Array<C>;
-		using Text = View<C>;
-	public:
-		class Preparing
-		{
-		public:
-			Preparing() noexcept;
-
-		private:
-			Array<size_t> m_offset;
-			AText m_buffer;
-		};
-
-	private:
-		AText m_buffer;
-		View<Text> m_view;
-	};
-
 	class MultipartFormData
 	{
 	public:
@@ -163,16 +141,30 @@ namespace kr
 	class HttpClient :public MTClient
 	{
 	public:
+		class Lock :public MTClient::Lock
+		{
+			friend HttpClient;
+			using Super = MTClient::Lock;
+		public:
+			~Lock() noexcept;
+			void write(Text buffer) noexcept;
+			void writes(View<Text> buffers) noexcept;
+			void writeHeader(HeaderStore* header = nullptr) noexcept;
+
+		protected:
+			Lock(HttpClient* client) noexcept;
+		};
 		HttpClient(HttpServer* server, Socket* socket) noexcept;
 		~HttpClient() noexcept;
 		void onRead() throws(...) override;
 		void onSendDone() noexcept override;
 
-		void write(Text data) noexcept;
-		void writes(View<Text> data) noexcept;
-		void writeWithoutLock(Text data) noexcept;
-		void writeHeader(View<Text> headers) noexcept;
-		void writeHeader() noexcept;
+		void inheritFileHeader(HeaderStore* header) noexcept;
+
+		Lock lock() noexcept;
+		void sendText(Text text) noexcept;
+		void sendFile(AText path) noexcept;
+		void sendFile(AText path, File* file) noexcept;
 		void onError(Text funcname, int code) noexcept override;
 
 		Text getMethod() noexcept;
@@ -180,8 +172,10 @@ namespace kr
 		Text getQuery() noexcept;
 		AText getPostData() throws(ThrowRetry, NotEnoughSpaceException);
 		MultipartFormData& getMultipartFormData() throws(ThrowRetry, NotEnoughSpaceException);
-		Text getHeader(Text name) throws(ThrowRetry, NotEnoughSpaceException);
-		HttpHeader& getHeader() throws(ThrowRetry, NotEnoughSpaceException);
+
+		HeaderView* requestHeaders() noexcept;
+
+		HttpServer* const server;
 
 	private:
 		void _readHeadLine() throws(ThrowRetry, NotEnoughSpaceException);
@@ -195,11 +189,10 @@ namespace kr
 			SendFile,
 			IgnoreReceive
 		};
-		HttpServer* m_server;
-		HttpHeader m_header;
 		AText m_headLine;
 		AText m_headerBuffers;
 		MultipartFormData m_multipart;
+		HeaderView m_requestHeaders;
 
 		State m_state;
 		Text m_method;
@@ -208,6 +201,7 @@ namespace kr
 		Text m_query;
 		HttpFindPage m_fp;
 		bool m_headerParsed : 1;
+		bool m_headerSended : 1;
 	};
 
 
@@ -218,8 +212,7 @@ namespace kr
 		HttpServer(AText16 htmlRoot) throws(FunctionError);
 		~HttpServer() noexcept;
 
-		void setDefaultHeader(pcstr16 filename) noexcept;
-		Text getDefaultHeader() noexcept;
+		HeaderStore* defaultHeaders() noexcept;
 		void setErrorPage(HttpStatus exception, pcstr16 filename) noexcept;
 		void setTemplatePage(Text url, pcstr16 filename) noexcept;
 		void setMIMEType(Text type, Text mime) noexcept;
@@ -229,10 +222,16 @@ namespace kr
 		Page * getErrorPage(HttpStatus code) noexcept;
 
 		void onError(Text funcname, int error) noexcept override;
-		MTClient* onAccept(Socket * socket) noexcept override;
+		MTClient* onAccept(Socket* socket) noexcept override;
 
+		template <typename LAMBDA>
+		void onPage(Text path, LAMBDA&& lambda) noexcept
+		{
+			attachPage(path, _new LambdaPage<LAMBDA>(forward<LAMBDA>(lambda)));
+		}
+		
 	private:
-		AText m_headers;
+		HeaderStore m_headers;
 		std::unordered_map<HttpStatus, Page*> m_error;
 		AText16 m_htmlRoot;
 		Map<Text, Page*> m_map;

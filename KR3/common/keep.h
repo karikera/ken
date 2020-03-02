@@ -105,6 +105,7 @@ namespace kr
 		Manual() noexcept;
 		template <typename ... ARGS> void create(const ARGS & ... args);
 		void remove() noexcept;
+		T* address() noexcept;
 		T* operator ->() noexcept;
 		operator T*() noexcept;
 		const T* operator ->() const noexcept;
@@ -554,6 +555,11 @@ namespace kr
 		ondebug(_assert(m_constructed));
 		ondebug(m_constructed = false);
 		((T*)m_buffer)->~T();
+	}
+	template<class T>
+	inline T* Manual<T>::address() noexcept
+	{
+		return (T*)m_buffer;
 	}
 	template<class T>
 	inline T* Manual<T>::operator ->() noexcept

@@ -386,10 +386,13 @@ public:
 	}
 };
 
+
+#include "webserver.h"
+
 int main()
 {
-
-	MainWindow wnd;
-	main_loop(&wnd);
+	webServerMain();
+	// MainWindow wnd;
+	// main_loop(&wnd);
 	return 0;
 }

@@ -147,7 +147,7 @@ namespace kr
 
 	}
 
-	template <typename TI, typename TV, bool referencedInput = false>
+	template <typename TI, typename TV, bool referencedInput>
 	class Map:public meta::if_t<IsMemory<TI>::value, _pri_::MapWrapper<TI, TV, referencedInput>, std::unordered_map<TI, TV> >
 	{
 		using Super = meta::if_t<IsMemory<TI>::value, _pri_::MapWrapper<TI, TV, referencedInput>, std::unordered_map<TI, TV> >;
@@ -155,6 +155,7 @@ namespace kr
 		using typename Super::const_iterator;
 		using Super::Super;
 		using Super::find;
+		using Super::begin;
 		using Super::end;
 
 		bool has(const TI& key) const noexcept

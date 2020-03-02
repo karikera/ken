@@ -44,6 +44,7 @@ namespace kr
 		OPTION(bool, console)
 		OPTION(bool, detached)
 		OPTION(bool, suspended)
+		OPTION(bool, noWindow)
 		OPTIONS_END()
 
 		ivec2 getCursorPos() noexcept;
