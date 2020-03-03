@@ -205,6 +205,10 @@ namespace kr
 			{
 				m_end = end;
 			}
+			void addEnd(intptr_t n) noexcept
+			{
+				m_end += n;
+			}
 			void _init(C* beg, size_t sz) noexcept
 			{
 				m_begin = (InternalComponent*)beg;
@@ -268,7 +272,7 @@ namespace kr
 			InternalComponent* m_limit;
 
 		public:
-			void _setEnd(InternalComponentRef* str) noexcept
+			void _setEnd(InternalComponent* str) noexcept
 			{
 				m_end = (InternalComponent*)str;
 			}
@@ -276,9 +280,17 @@ namespace kr
 			{
 				m_end += inc;
 			}
-			void _setLimit(InternalComponentRef* str) noexcept
+			void setEnd(InternalComponent* str) noexcept
 			{
-				m_limit = (InternalComponent*)str;
+				m_end = (InternalComponent*)str;
+			}
+			void addEnd(intptr_t inc) noexcept
+			{
+				m_end += inc;
+			}
+			void _setLimit(InternalComponent* str) noexcept
+			{
+				m_limit = str;
 			}
 			InternalComponentRef* $_extend(size_t inc) throws(NotEnoughSpaceException)
 			{

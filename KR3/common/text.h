@@ -81,7 +81,7 @@ struct std::hash<kr::View<C>>
 {
 	size_t operator ()(const kr::View<C> & buffer) const noexcept
 	{
-		return kr::mem::hash(buffer.begin(), buffer.sizeBytes());
+		return kr::mem::hash(buffer.begin(), buffer.bytes());
 	}
 };
 template <typename C>
@@ -89,7 +89,7 @@ struct std::hash<kr::Array<C>>
 {
 	size_t operator ()(const kr::View<C> & buffer) const noexcept
 	{
-		return kr::mem::hash(buffer.begin(), buffer.sizeBytes());
+		return kr::mem::hash(buffer.begin(), buffer.bytes());
 	}
 };
 template <typename C, size_t cap>
@@ -97,7 +97,7 @@ struct std::hash<kr::BArray<C, cap>>
 {
 	size_t operator ()(const kr::BArray<C, cap> & buffer) const noexcept
 	{
-		return kr::mem::hash(buffer.begin(), buffer.sizeBytes());
+		return kr::mem::hash(buffer.begin(), buffer.bytes());
 	}
 };
 

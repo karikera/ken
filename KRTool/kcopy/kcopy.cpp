@@ -5,7 +5,7 @@
 #include <KR3/util/parameter.h>
 #include <iostream>
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 using namespace kr;
 

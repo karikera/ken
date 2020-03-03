@@ -5,8 +5,6 @@
 
 namespace kr
 {
-	class EventPump;
-
 	template <typename T>
 	class Promise;
 	template <typename T>

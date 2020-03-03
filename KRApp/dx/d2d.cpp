@@ -8,10 +8,10 @@
 #endif
 
 #include "d2d.h"
-#include <KR3/wl/com.h>
+#include <KR3/win/com.h>
 #include <KRWin/gdi.h>
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #ifdef USE_D2D2
 #include <wrl.h>
 #endif

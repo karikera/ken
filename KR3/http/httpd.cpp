@@ -12,7 +12,7 @@ EMPTY_SOURCE
 #include <KR3/initializer.h>
 #include <KR3/mt/thread.h>
 #include <KR3/msg/pool.h>
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #include <KRTool/mimetypes/gen/mime.h>
 
 using namespace kr;

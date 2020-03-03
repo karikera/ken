@@ -2,7 +2,7 @@
 
 #include <KR3/main.h>
 #include <KR3/math/coord.h>
-#include <KR3/wl/com.h>
+#include <KR3/win/com.h>
 #include <KRWin/handle.h>
 
 #include "gi.h"

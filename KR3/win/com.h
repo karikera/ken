@@ -5,7 +5,7 @@
 #endif
 
 #include <KR3/main.h>
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 #include <Unknwn.h>
 #include <kr3/meta/types.h>

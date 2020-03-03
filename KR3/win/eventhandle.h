@@ -4,17 +4,70 @@
 #error is not windows system
 #endif
 
-#include "../main.h"
-#include "../util/time.h"
+#include <KR3/main.h>
+#include <KR3/util/time.h>
+#include <KR3/msg/promise.h>
+#include <KR3/msg/pump.h>
 #include "handle.h"
+#include "devent.h"
 
 namespace kr
 {
 	class EventHandle:public Handle<>
 	{
-	public:
-		static constexpr dword MAXIMUM_WAIT = 64;
+		template <typename LAMBDA>
+		class DispatchedEventLambda :public DispatchedEvent
+		{
+		private:
+			LAMBDA m_lambda;
 
+		public:
+			DispatchedEventLambda(EventHandle* event, const LAMBDA& lambda) noexcept
+				:DispatchedEvent(event), m_lambda(lambda)
+			{
+			}
+			DispatchedEventLambda(EventHandle* event, LAMBDA&& lambda) noexcept
+				:DispatchedEvent(event), m_lambda(move(lambda))
+			{
+				// regist after lambda copy
+			}
+
+			void call() noexcept override
+			{
+				m_lambda(this);
+			}
+		};
+
+		template <typename LAMBDA>
+		class DispatchedEventLambdaCurrentThread :public DispatchedEvent
+		{
+		private:
+			LAMBDA m_lambda;
+			Must<EventPump> m_pump;
+
+		public:
+			DispatchedEventLambdaCurrentThread(EventHandle* event, const LAMBDA& lambda) noexcept
+				:DispatchedEvent(event), m_lambda(lambda), m_pump(EventPump::getInstance())
+			{
+			}
+			DispatchedEventLambdaCurrentThread(EventHandle* event, LAMBDA&& lambda) noexcept
+				:DispatchedEvent(event), m_lambda(lambda), m_pump(EventPump::getInstance())
+			{
+			}
+
+			void call() noexcept override
+			{
+				AddRef();
+				m_pump->post([this](TimerEvent*) {
+					if (!canceled())
+					{
+						m_lambda(this);
+					}
+					Release();
+					});
+			}
+		};
+	public:
 		EventHandle() = delete;
 		EventHandle(const EventHandle&) = delete;
 		EventHandle& operator =(const EventHandle&) = delete;
@@ -33,6 +86,25 @@ namespace kr
 		int waitWith(EventHandle * ev, duration ms) noexcept;
 		void set() noexcept;
 		void reset() noexcept;
+
+		template <typename LAMBDA>
+		DispatchedEvent* callback(LAMBDA&& lambda) noexcept
+		{
+			using DEvent = DispatchedEventLambdaCurrentThread<decay_t<LAMBDA> >;
+			DEvent* ev = _new DEvent(this, forward<LAMBDA>(lambda));
+			ev->_regist();
+			return ev;
+		}
+		template <typename LAMBDA>
+		DispatchedEvent* callbackThreaded(LAMBDA&& lambda) noexcept
+		{
+			using DEvent = DispatchedEventLambda<decay_t<LAMBDA> >;
+			DEvent* ev = _new DEvent(this, forward<LAMBDA>(lambda));
+			ev->_regist();
+			return ev;
+		}
+		Promise<void>* promise() noexcept;
+		Promise<void>* promiseAndRemove() noexcept;
 	};
 
 	class SemaphoreHandle:public EventHandle

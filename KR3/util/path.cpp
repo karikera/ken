@@ -7,8 +7,8 @@ using namespace kr;
 
 #ifdef WIN32
 
-#include <KR3/wl/windows.h>
-#include <KR3/wl/handle.h>
+#include <KR3/win/windows.h>
+#include <KR3/win/handle.h>
 
 CurrentApplicationPath::CurrentApplicationPath() noexcept
 {

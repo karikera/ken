@@ -9,7 +9,7 @@ namespace kr
 {
 	class Timeout
 #ifdef WIN32
-		: private EventPump::Timer
+		: private TimerEvent
 #endif
 	{
 	public:
@@ -61,10 +61,10 @@ namespace kr
 
 	private:
 #ifdef WIN32
-		class Wrapper : public EventPump::Timer
+		class Wrapper : public TimerEvent
 		{
 		public:
-			using EventPump::Timer::Timer;
+			using TimerEvent::TimerEvent;
 			bool start(duration interval) noexcept;
 
 		protected:

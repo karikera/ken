@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KR3/wl/handle.h>
+#include <KR3/win/handle.h>
 #include <KR3/msg/msgloop.h>
 #include <KR3/data/linkedlist.h>
 #include <KR3/math/coord.h>

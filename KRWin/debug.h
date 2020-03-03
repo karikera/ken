@@ -5,8 +5,8 @@
 #endif
 
 #include <KR3/mt/thread.h>
-#include <KR3/wl/windows.h>
-#include <KR3/wl/eventhandle.h>
+#include <KR3/win/windows.h>
+#include <KR3/win/eventhandle.h>
 #include <KR3/data/map.h>
 #include <atomic>
 

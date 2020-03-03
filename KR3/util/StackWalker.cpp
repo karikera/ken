@@ -8,7 +8,7 @@
 
 #include <tchar.h>
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 #pragma comment(lib, "dbghelp.lib")
 

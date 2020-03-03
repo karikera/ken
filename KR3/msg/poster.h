@@ -10,7 +10,7 @@ namespace kr
 
 	class Posted
 #ifdef WIN32
-		: private EventPump::Timer
+		: private TimerEvent
 #endif
 	{
 		friend PostTarget;

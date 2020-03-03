@@ -3,7 +3,7 @@
 #if _WIN_VER > _WIN32_WINNT_WIN7
 #include "xaudio2.h"
 
-#include <KR3/wl/com.h>
+#include <KR3/win/com.h>
 #include <xaudio2.h>
 
 using namespace kr;

@@ -1,9 +1,13 @@
 #pragma once
 
 #include <KR3/util/callable.h>
-#include <KR3/mt/thread.h>
-#include <KR3/mt/criticalsection.h>
 #include <KR3/util/keeper.h>
+#include <KR3/mt/criticalsection.h>
+
+#ifdef WIN32
+#include <KR3/win/threadid.h>
+#endif
+
 #include "promise.h"
 
 namespace kr
@@ -16,43 +20,17 @@ namespace kr
 	};
 	class EventPump:public Interface<Empty>
 	{
+		friend TimerEvent;
 		friend void PromiseRaw::_setState(State state) noexcept;
 	public:
-		constexpr static dword MAXIMUM_WAIT = EventHandle::MAXIMUM_WAIT - 1;
-		class Timer;
+		constexpr static dword MAXIMUM_WAIT = EventHandleMaxWait - 1;
 
 	private:
 		class NodeHead
 		{
 			friend EventPump;
 		protected:
-			Timer * m_next;
-		};
-	public:
-		class Timer :public Interface<NodeHead>
-		{
-			friend EventPump;
-			friend Referencable<Timer>;
-		public:
-			Timer() noexcept;
-			Timer(timepoint at) noexcept;
-			virtual ~Timer() noexcept;
-			bool isPosted() noexcept;
-			void setTime(timepoint time) noexcept;
-			void addTime(duration time) noexcept;
-			timepoint getTime() const noexcept;
-			void AddRef() noexcept;
-			size_t Release() noexcept;
-			size_t getRefCount() noexcept;
-
-			template <typename LAMBDA>
-			static Timer * create(timepoint at, LAMBDA &&lambda) noexcept;
-		protected:
-			virtual void call() = 0;
-
-			size_t m_ref;
-			Timer * m_prev;
-			timepoint m_at;
+			TimerEvent * m_next;
 		};
 	public:
 		void quit(int exitCode) noexcept;
@@ -61,27 +39,27 @@ namespace kr
 
 		// node는 내부에서 관리하게 된다.
 		// return: 이미 만료 혹은 취소된 이벤트의 경우 false
-		bool cancel(Timer * node) noexcept;
+		bool cancel(TimerEvent* node) noexcept;
 
 		// newnode는 내부에서 관리하게된다.
-		void attach(Timer * newnode) noexcept;
+		void attach(TimerEvent* newnode) noexcept;
 
 		template <typename LAMBDA>
 		void post(LAMBDA &&lambda) noexcept
 		{
-			return attach(Timer::create(timepoint::now(), forward<LAMBDA>(lambda)));
+			return attach(TimerEvent::create(timepoint::now(), forward<LAMBDA>(lambda)));
 		}
 
 		template <typename LAMBDA>
 		void post(timepoint at, LAMBDA &&lambda) noexcept
 		{
-			return attach(Timer::create(at, forward<LAMBDA>(lambda)));
+			return attach(TimerEvent::create(at, forward<LAMBDA>(lambda)));
 		}
 
 		template <typename LAMBDA>
-		Timer* makePost(timepoint at, LAMBDA &&lambda) noexcept
+		TimerEvent* makePost(timepoint at, LAMBDA &&lambda) noexcept
 		{
-			Timer * node = Timer::create(at, forward<LAMBDA>(lambda));
+			TimerEvent * node = TimerEvent::create(at, forward<LAMBDA>(lambda));
 			node->AddRef();
 			if (attach(node))
 			{
@@ -98,9 +76,9 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		Timer* makePost(duration wait, LAMBDA &&lambda) noexcept
+		TimerEvent* makePost(duration wait, LAMBDA &&lambda) noexcept
 		{
-			return makePost(Timer::create(timepoint::now() + wait, forward<LAMBDA>(lambda)));
+			return makePost(TimerEvent::create(timepoint::now() + wait, forward<LAMBDA>(lambda)));
 		}
 
 		// events를 대기한다.
@@ -168,7 +146,7 @@ namespace kr
 		struct CallWithParamIfHas
 		{
 			template <typename LAMBDA>
-			static void call(LAMBDA && lambda, EventPump::Timer * param) throws(...)
+			static void call(LAMBDA && lambda, TimerEvent * param) throws(...)
 			{
 				lambda(param);
 			}
@@ -177,31 +155,38 @@ namespace kr
 		struct CallWithParamIfHas<0>
 		{
 			template <typename LAMBDA>
-			static void call(LAMBDA && lambda, EventPump::Timer * param) throws(...)
+			static void call(LAMBDA && lambda, TimerEvent * param) throws(...)
 			{
 				lambda();
 			}
 		};
 	}
 
-	template <typename LAMBDA>
-	static EventPump::Timer * EventPump::Timer::create(timepoint at, LAMBDA &&lambda) noexcept
+	class TimerEvent :public Interface<EventPump::NodeHead>
 	{
-		struct LambdaWrap :public Timer
-		{
-			decay_t<LAMBDA> m_lambda;
-			LambdaWrap(LAMBDA &&lambda, timepoint at) noexcept
-				: Timer(at), m_lambda(forward<LAMBDA>(lambda))
-			{
-			}
-			void call() throws(...) override
-			{
-				constexpr size_t argn = meta::function<LAMBDA>::args_t::size;
-				_pri_::CallWithParamIfHas<argn>::call(m_lambda, this);
-			}
-		};
-		return _new LambdaWrap(forward<LAMBDA>(lambda), at);
-	}
+		friend EventPump;
+		friend Referencable<TimerEvent>;
+	public:
+		TimerEvent() noexcept;
+		TimerEvent(timepoint at) noexcept;
+		virtual ~TimerEvent() noexcept;
+		bool isPosted() noexcept;
+		void setTime(timepoint time) noexcept;
+		void addTime(duration time) noexcept;
+		timepoint getTime() const noexcept;
+		void AddRef() noexcept;
+		size_t Release() noexcept;
+		size_t getRefCount() noexcept;
+
+		template <typename LAMBDA>
+		static TimerEvent* create(timepoint at, LAMBDA&& lambda) noexcept;
+	protected:
+		virtual void call() = 0;
+
+		size_t m_ref;
+		TimerEvent* m_prev;
+		timepoint m_at;
+	};
 
 	class EventThread
 	{
@@ -218,5 +203,23 @@ namespace kr
 		EventPump * m_pump;
 	};
 
-	using TimerEvent = EventPump::Timer;
+	template <typename LAMBDA>
+	static TimerEvent* TimerEvent::create(timepoint at, LAMBDA&& lambda) noexcept
+	{
+		struct LambdaWrap :public TimerEvent
+		{
+			decay_t<LAMBDA> m_lambda;
+			LambdaWrap(LAMBDA&& lambda, timepoint at) noexcept
+				: TimerEvent(at), m_lambda(forward<LAMBDA>(lambda))
+			{
+			}
+			void call() throws(...) override
+			{
+				constexpr size_t argn = meta::function<LAMBDA>::args_t::size;
+				_pri_::CallWithParamIfHas<argn>::call(m_lambda, this);
+			}
+		};
+		return _new LambdaWrap(forward<LAMBDA>(lambda), at);
+	}
+
 }

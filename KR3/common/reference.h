@@ -180,14 +180,21 @@ namespace kr
 	}
 
 	class EmbeddedBrowser;
+	class DispatchedEventKrImpl;
+	class DispatchedEventWinImpl;
+	using DispatchedEvent = DispatchedEventWinImpl;
 	
 	// net
 	class Socket;
 	class Client;
 	class SocketException;
 
-	// mt
+	// win
+	static constexpr dword EventHandleMaxWait = 64;
+	class ThreadId;
 	class EventHandle;
+	class ThreadHandle;
+	class MessageThreadId;
 	class Event;
 	class EventDispatcher;
 
@@ -657,4 +664,23 @@ namespace kr
 	template <typename Derived, typename Info>
 	using AddBufferable = typename _pri_::AddBufferableType<Derived, Info>::type;
 
+	// msg
+	class EventPump;
+	class TimerEvent;
+
+	// mt
+	namespace _pri_
+	{
+		class TaskImpl;
+	}
+	using Task = Node<_pri_::TaskImpl>;
+
+	// path
+	class CurrentDirectory;
+	class CurrentApplicationPath;
+	class Path;
+	template <typename C>
+	class path_t;
+
+	static constexpr size_t PathMaxLen = 260;
 }

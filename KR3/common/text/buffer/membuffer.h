@@ -423,7 +423,7 @@ namespace kr
 				mema::subs_copy((InternalComponent*)dest, begin(), size());
 				return size();
 			}
-			size_t sizeBytes() const noexcept
+			size_t bytes() const noexcept
 			{
 				return size() * sizeof(InternalComponent);
 			}
@@ -1049,7 +1049,7 @@ namespace kr
 			using Super::begin;
 			using Super::end;
 			using Super::size;
-			using Super::sizeBytes;
+			using Super::bytes;
 			using Super::cut;
 			using Super::subarr;
 			using Super::subarray;
@@ -1106,7 +1106,7 @@ namespace kr
 			}
 			void zero() noexcept
 			{
-				memset(data(), 0, sizeBytes());
+				memset(data(), 0, bytes());
 			}
 
 			void subfill(const InternalComponent& chr, size_t sz, size_t offset) noexcept

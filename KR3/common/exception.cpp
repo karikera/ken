@@ -4,7 +4,7 @@
 #include <stdarg.h>
 
 #ifdef WIN32
-#include "../wl/windows.h"
+#include <KR3/win/windows.h>
 #endif
 
 using namespace kr;

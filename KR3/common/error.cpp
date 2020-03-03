@@ -22,7 +22,7 @@ const char * ErrorMessage::getMessage() noexcept
 
 
 #ifdef WIN32
-#include "../wl/windows.h"
+#include <KR3/win/windows.h>
 
 namespace
 {

@@ -2,7 +2,7 @@
 #include "singleinstance.h"
 
 #ifdef WIN32
-#include "../wl/windows.h"
+#include <KR3/win/windows.h>
 #endif
 
 bool kr::singleInstanceTest() noexcept

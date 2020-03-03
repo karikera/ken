@@ -5,7 +5,6 @@
 #endif
 
 #include <KR3/main.h>
-#include <KR3/util/path.h>
 
 #include "windows.h"
 
@@ -68,9 +67,9 @@ namespace kr
 				void $writeTo(OutStream<_Derived, C, _Info>* os) const throws(...)
 				{
 					using OS = OutStream<_Derived, C, _Info>;
-					WriteLock<OS, CurrentDirectory::PREPARE> lock;
+					WriteLock<OS, PathMaxLen> lock;
 					C* dest = lock.lock(os);
-					size_t size = m_this->getFileName(dest, CurrentDirectory::PREPARE);
+					size_t size = m_this->getFileName(dest, PathMaxLen);
 					lock.unlock(os, size);
 				}
 			};

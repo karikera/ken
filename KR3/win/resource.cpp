@@ -3,7 +3,7 @@
 #ifdef WIN32
 #include "resource.h"
 #include <KR3/util/process.h>
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 int kr::ResourceFile::m_nTempNo=0;
 

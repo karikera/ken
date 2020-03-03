@@ -9,7 +9,6 @@
 
 #include <KR3/net/socket.h>
 #include <KR3/msg/pump.h>
-#include <KR3/msg/eventdispatcher.h>
 
 using namespace kr;
 
@@ -68,7 +67,7 @@ NetworkState SocketEventHandle::getState(Socket* sock) noexcept
 Promise<void> * SocketEventHandle::waitState(Socket* sock, int fdbit) noexcept
 {
 	DeferredPromise<void> * prom = new DeferredPromise<void>;
-	EventDispatcher::registThreaded(this, [this, prom, sock, fdbit](DispatchedEvent * ev) {
+	callbackThreaded([this, prom, sock, fdbit](DispatchedEvent * ev) {
 		try
 		{
 			NetworkState ne = getState(sock);
@@ -77,7 +76,7 @@ Promise<void> * SocketEventHandle::waitState(Socket* sock, int fdbit) noexcept
 				int error = ne.errors[fdbit];
 				if (error == 0)
 				{
-					ev->detach();
+					ev->cancel();
 					prom->_resolve();
 				}
 				else
@@ -88,7 +87,7 @@ Promise<void> * SocketEventHandle::waitState(Socket* sock, int fdbit) noexcept
 		}
 		catch (...)
 		{
-			ev->detach();
+			ev->cancel();
 			prom->_reject();
 		}
 	});
@@ -97,19 +96,19 @@ Promise<void> * SocketEventHandle::waitState(Socket* sock, int fdbit) noexcept
 Promise<NetworkState> * SocketEventHandle::waitStates(Socket* sock, int fdmask) noexcept
 {
 	DeferredPromise<NetworkState> * prom = new DeferredPromise<NetworkState>;
-	EventDispatcher::registThreaded(this, [this, prom, sock, fdmask](DispatchedEvent * ev) {
+	callbackThreaded([this, prom, sock, fdmask](DispatchedEvent * ev) {
 		try
 		{
 			NetworkState ne = getState(sock);
 			if (ne.bits & fdmask)
 			{
-				ev->detach();
+				ev->cancel();
 				prom->_resolve(ne);
 			}
 		}
 		catch (...)
 		{
-			ev->detach();
+			ev->cancel();
 			prom->_reject();
 		}
 	});
@@ -259,7 +258,7 @@ Promise<size_t>* EventedSocket::readWithPromise(void * data, size_t size) noexce
 		if (m_socket == nullptr) throw EofException();
 		m_event->select(m_socket, FNetworkEvent(false, true, false, true, false));
 		size_t left = size;
-		EventDispatcher::registThreaded(&m_event, [this, prom, data, size, left](DispatchedEvent * ev) mutable {
+		m_event->callbackThreaded([this, prom, data, size, left](DispatchedEvent * ev) mutable {
 			try
 			{
 				NetworkState ne = getState();
@@ -270,7 +269,7 @@ Promise<size_t>* EventedSocket::readWithPromise(void * data, size_t size) noexce
 					left -= readed;
 					if (left == 0)
 					{
-						ev->detach();
+						ev->cancel();
 						prom->_resolve(size);
 					}
 				}
@@ -278,13 +277,13 @@ Promise<size_t>* EventedSocket::readWithPromise(void * data, size_t size) noexce
 				{
 					delete m_socket;
 					m_socket = nullptr;
-					ev->detach();
+					ev->cancel();
 					prom->_resolve(size - left);
 				}
 			}
 			catch (...)
 			{
-				ev->detach();
+				ev->cancel();
 				prom->_reject();
 			}
 		});
@@ -315,7 +314,7 @@ Promise<void>* EventedSocket::writeWithPromise(ABuffer buffer) noexcept
 		}
 		catch (ThrowAbort&)
 		{
-			EventDispatcher::registThreaded(&m_event, [this, prom, buffer = move(buffer)](DispatchedEvent * ev) mutable {
+			m_event->callbackThreaded([this, prom, buffer = move(buffer)](DispatchedEvent * ev) mutable {
 				try
 				{
 					NetworkState ne = getState();
@@ -330,7 +329,7 @@ Promise<void>* EventedSocket::writeWithPromise(ABuffer buffer) noexcept
 						try
 						{
 							m_socket->$write(buffer.data(), buffer.size());
-							ev->detach();
+							ev->cancel();
 							prom->_resolve();
 						}
 						catch (ThrowAbort&)
@@ -340,7 +339,7 @@ Promise<void>* EventedSocket::writeWithPromise(ABuffer buffer) noexcept
 				}
 				catch (...)
 				{
-					ev->detach();
+					ev->cancel();
 					prom->_reject();
 				}
 			});

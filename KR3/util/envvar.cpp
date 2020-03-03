@@ -5,7 +5,7 @@ using namespace kr;
 
 #ifdef WIN32
 
-#include "../wl/windows.h"
+#include <KR3/win/windows.h>
 
 #pragma warning(disable:4800)
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #include <ShellAPI.h>
 
 namespace kr

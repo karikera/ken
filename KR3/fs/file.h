@@ -98,7 +98,7 @@ namespace kr
 		static inline void saveFromArrayT(const CHR * name, View<C> arr) throws(TooBigException, Error)
 		{
 			Must<File> file = create(name);
-			return file->$write(arr.begin(), arr.sizeBytes());
+			return file->$write(arr.begin(), arr.bytes());
 		}
 		template <typename C>
 		static inline void saveFromArray(const char * name, View<C> arr) throws(Error)

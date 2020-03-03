@@ -7,7 +7,6 @@
 #include <KR3/util/serializer.h>
 #include <KR3/msg/progressor.h>
 #include <KR3/msg/promise.h>
-#include <KR3/msg/eventdispatcher.h>
 #include "wsevent.h"
 
 namespace kr

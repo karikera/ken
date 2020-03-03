@@ -2,11 +2,10 @@
 
 #define INITGUID
 #include "sound.h"
-#include <KR3/wl/com.h>
+#include <KR3/win/com.h>
 #include <KR3/fs/file.h>
 #include <KR3/util/path.h>
 #include <KRWin/handle.h>
-#include <KR3/msg/eventdispatcher.h>
 
 #include <CGuid.h>
 #include <MMSystem.h>
@@ -347,9 +346,12 @@ bool Sound::dupPlay() noexcept
 		sb->Release();
 		return false;
 	}
-	EventDispatcher::regist(event, [sb](DispatchedEvent * ev) {
+	
+	event->callback([sb](DispatchedEvent * ev) {
 		sb->Release();
-		ev->remove();
+		EventHandle* event = ev->handle();
+		ev->cancel();
+		delete event;
 	});
 	return true;
 }

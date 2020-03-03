@@ -1,8 +1,7 @@
 #pragma once
 
 #include <KR3/msg/promise.h>
-#include <KR3/wl/com.h>
-#include <KR3/msg/eventdispatcher.h>
+#include <KR3/win/com.h>
 
 struct IGraphBuilder;
 struct IMediaControl;

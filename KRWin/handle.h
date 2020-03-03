@@ -4,10 +4,10 @@
 #include <KR3/util/callable.h>
 #include <KR3/util/process.h>
 #include <kr3/math/coord.h>
-#include <KR3/wl/windows.h>
-#include <KR3/wl/handle.h>
-#include <KR3/wl/eventhandle.h>
-#include <KR3/wl/threadhandle.h>
+#include <KR3/win/windows.h>
+#include <KR3/win/handle.h>
+#include <KR3/win/eventhandle.h>
+#include <KR3/win/threadhandle.h>
 #include <KR3/util/uts.h>
 
 namespace kr

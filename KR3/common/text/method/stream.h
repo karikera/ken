@@ -111,6 +111,7 @@ namespace kr
 			using Super::end;
 			using Super::size;
 			using Super::setEnd;
+			using Super::addEnd;
 			using Super::empty;
 
 			void skipBack() throws(EofException)
@@ -127,22 +128,22 @@ namespace kr
 			InternalComponent readBack() throws(EofException)
 			{
 				if (empty()) throw EofException();
-				const InternalComponent * comp = (InternalComponent *)end() - 1;
-				setEnd(comp);
-				return *comp;
+				InternalComponentRef* endptr = end() - 1;
+				setEnd(endptr);
+				return *endptr;
 			}
 			Ref readBack(size_t count) throws(EofException)
 			{
 				if (size() < count) throw EofException();
-				const InternalComponent * endptr = (InternalComponent *)end();
-				const InternalComponent * comp = endptr - count;
+				InternalComponentRef* endptr = end();
+				InternalComponentRef* comp = endptr - count;
 				setEnd(comp);
 				return Ref(comp, endptr);
 			}
-			void cut_self(const Component* newend) noexcept
+			void cut_self(InternalComponentRef* newend) noexcept
 			{
 				_assert(begin() <= newend && newend <= end());
-				setEnd((InternalComponent*)newend);
+				setEnd(newend);
 			}
 			void cut_self(size_t _len) noexcept
 			{
@@ -150,13 +151,12 @@ namespace kr
 			}
 			InternalComponent popGet() throws(EofException)
 			{
-				size_t osize = size();
-				if (osize == 0)
-					throw EofException();
-				osize--;
-				InternalComponent out = (begin())[osize];
-				_resize(osize);
-				return out;
+				return readBack();
+			}
+			void pop() throws(EofException)
+			{
+				if (empty()) throw EofException();
+				addEnd(-1);
 			}
 
 			template <typename T>

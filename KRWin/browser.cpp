@@ -2,7 +2,7 @@
 #define WIN32_UNICODE
 
 #include "browser.h"
-#include <KR3/wl/com.h>
+#include <KR3/win/com.h>
 
 #include <stdio.h>
 #include <string>

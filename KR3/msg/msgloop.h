@@ -4,7 +4,7 @@
 #error is not windows system
 #endif
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #include <KR3/math/coord.h>
 #include <KR3/data/linkedlist.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #include <CommCtrl.h>
 #include "handle.h"
 

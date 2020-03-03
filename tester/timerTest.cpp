@@ -10,11 +10,11 @@ void timerTest() noexcept
 	for (int i = 0; i < 10; i++)
 	{
 		timepoint at = start + duration(rand() % 5000);
-		pump->post(at, [&, i, at](EventPump::Timer * node) {
+		pump->post(at, [&, i, at](TimerEvent * node) {
 			dout << i << ".hello " << (at - start).value() << endl;
 		});
 	}
-	pump->post(start+6000_ms, [&](EventPump::Timer * node) {
+	pump->post(start+6000_ms, [&](TimerEvent * node) {
 		pump->quit(0);
 	});
 

@@ -3,7 +3,7 @@
 #ifdef WIN32
 #include "fileinfo.h"
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 #pragma comment(lib, "version.lib")
 

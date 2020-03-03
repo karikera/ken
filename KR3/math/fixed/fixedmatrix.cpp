@@ -36,7 +36,7 @@ void kr::fixedmatrix2::SetScale(fixed sx, fixed sy) noexcept
 	_22=(fixed)sy;
 }
 #ifdef WIN32
-#include "../../wl/windows.h"
+#include <KR3/win/windows.h>
 
 kr::fixedmatrix2::operator MAT2() noexcept
 {

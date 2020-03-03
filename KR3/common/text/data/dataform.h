@@ -230,7 +230,7 @@ namespace kr
 			{
 				return CAP;
 			}
-			size_t sizeBytes() const noexcept
+			size_t bytes() const noexcept
 			{
 				return m_size * sizeof(C);
 			}
@@ -477,7 +477,7 @@ namespace kr
 				if (m_begin == null) return 0;
 				return Allocator::_mem_msize(m_begin);
 			}
-			size_t sizeBytes() const noexcept
+			size_t bytes() const noexcept
 			{
 				return $size() * sizeof(C);
 			}

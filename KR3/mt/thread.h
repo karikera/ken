@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../main.h"
-#include "../meta/chreturn.h"
+#include <KR3/main.h>
+#include <KR3/meta/chreturn.h>
 
 #ifdef WIN32
-#include "../wl/threadhandle.h"
+#include <KR3/win/threadhandle.h>
 #else
 #include <pthread.h>
 #endif

@@ -168,12 +168,6 @@
     <ClInclude Include="util\scopeobserver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wl\handle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\windows.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mt\thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -285,12 +279,6 @@
     <ClInclude Include="common\memlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wl\version.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\vhelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="io\bufferedstream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -352,18 +340,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\error.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\eventhandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\threadhandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\msgthread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util\envvar.h">
@@ -463,15 +439,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="text\template.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\com.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\fileinfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wl\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util\bitmap.h">
@@ -606,9 +573,6 @@
     <ClInclude Include="msg\cascader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="msg\eventdispatcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="msg\minidb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -696,6 +660,48 @@
     <ClInclude Include="util\pdb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="win\com.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\eventhandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\fileinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\handle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\msgthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\threadhandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\vhelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\threadid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\minidef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win\devent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\autovar\autoptr.cpp">
@@ -714,9 +720,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="math\fixed\fixedmatrix.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\handle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="common\keep.cpp">
@@ -750,9 +753,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\time.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\version.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="math\vertexlist.cpp">
@@ -792,18 +792,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="common\error.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\eventhandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\threadhandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\msgthread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="initializer.cpp">
@@ -867,15 +855,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="text\filter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\com.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\fileinfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wl\resource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\bitmap.cpp">
@@ -983,9 +962,6 @@
     <ClCompile Include="msg\cascader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="msg\eventdispatcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="msg\minidb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1050,6 +1026,39 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\pdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\com.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\console.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\eventhandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\fileinfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\msgthread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\resource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\threadhandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\threadid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\devent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,7 +2,7 @@
 #include "checksum.h"
 
 #ifndef NO_USE_FILESYSTEM
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 inline int fileCheckSum(HANDLE hFile) noexcept
 {

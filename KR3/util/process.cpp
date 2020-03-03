@@ -4,8 +4,8 @@
 #ifdef WIN32
 
 #include "envvar.h"
-#include "../wl/windows.h"
-#include "../wl/eventhandle.h"
+#include <KR3/win/windows.h>
+#include <KR3/win/eventhandle.h>
 #include <shellapi.h>
 #include <TlHelp32.h>
 

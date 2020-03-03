@@ -2,6 +2,9 @@
 
 #ifdef WIN32
 
+#include <KR3/win/eventhandle.h>
+#include <KR3/win/threadhandle.h>
+
 #include "pump.h"
 #include "msgloop.h"
 
@@ -68,24 +71,24 @@ void EventPump::clearTasks() noexcept
 	process->_deleteCascade();
 #pragma warning(pop)
 }
-bool EventPump::cancel(Timer * node) noexcept
+bool EventPump::cancel(TimerEvent* node) noexcept
 {
 	m_timercs.enter();
-	Timer * p = node->m_prev;
+	TimerEvent* p = node->m_prev;
 	if (p == nullptr)
 	{
 		m_timercs.leave();
 		return false;
 	}
 
-	Timer * n = node->m_next;
+	TimerEvent* n = node->m_next;
 	p->m_next = n;
 	if (n != nullptr) n->m_prev = p;
 	m_timercs.leave();
 	node->m_prev = nullptr;
 	return true;
 }
-void EventPump::attach(Timer * newnode) noexcept
+void EventPump::attach(TimerEvent* newnode) noexcept
 {
 	// reline_new(newnode); // if timer is secondary parent, it make error
 
@@ -96,8 +99,8 @@ void EventPump::attach(Timer * newnode) noexcept
 
 	{
 		CsLock locked = m_timercs;
-		Timer * pnode = static_cast<Timer*>(&m_start);
-		Timer * node;
+		TimerEvent* pnode = static_cast<TimerEvent*>(&m_start);
+		TimerEvent* node;
 		for (;;)
 		{
 			node = pnode->m_next;
@@ -186,11 +189,11 @@ Promise<void> * EventPump::promise(duration time) noexcept
 }
 Promise<void> * EventPump::promiseTo(timepoint at) noexcept
 {
-	class Prom :public Promise<void>, public Timer
+	class Prom :public Promise<void>, public TimerEvent
 	{
 	public:
 		Prom(timepoint at) noexcept
-			:Timer(at)
+			:TimerEvent(at)
 		{
 			AddRef();
 		}
@@ -493,7 +496,7 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 	int tryCount = 0;
 	for (;;)
 	{
-		Timer * node;
+		TimerEvent * node;
 		{
 			CsLock locked = m_timercs;
 			node = m_start.m_next;
@@ -537,41 +540,41 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 	}
 }
 
-EventPump::Timer::Timer() noexcept
+TimerEvent::TimerEvent() noexcept
 {
 	m_ref = 0;
 	m_prev = nullptr;
 }
-EventPump::Timer::Timer(timepoint at) noexcept
+TimerEvent::TimerEvent(timepoint at) noexcept
 {
 	m_at = at;
 	m_ref = 0;
 	m_prev = nullptr;
 }
-EventPump::Timer::~Timer() noexcept
+TimerEvent::~TimerEvent() noexcept
 {
 }
-bool EventPump::Timer::isPosted() noexcept
+bool TimerEvent::isPosted() noexcept
 {
 	return m_prev != nullptr;
 }
-void EventPump::Timer::setTime(timepoint time) noexcept
+void TimerEvent::setTime(timepoint time) noexcept
 {
 	m_at = time;
 }
-void EventPump::Timer::addTime(duration time) noexcept
+void TimerEvent::addTime(duration time) noexcept
 {
 	m_at += time;
 }
-timepoint EventPump::Timer::getTime() const noexcept
+timepoint TimerEvent::getTime() const noexcept
 {
 	return m_at;
 }
-void EventPump::Timer::AddRef() noexcept
+void TimerEvent::AddRef() noexcept
 {
 	m_ref++;
 }
-size_t EventPump::Timer::Release() noexcept
+size_t TimerEvent::Release() noexcept
 {
 	size_t ret = --m_ref;
 	if (ret == 0)
@@ -580,7 +583,7 @@ size_t EventPump::Timer::Release() noexcept
 	}
 	return ret;
 }
-size_t EventPump::Timer::getRefCount() noexcept
+size_t TimerEvent::getRefCount() noexcept
 {
 	return m_ref;
 }

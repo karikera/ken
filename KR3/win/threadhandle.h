@@ -4,12 +4,11 @@
 #error is not windows system
 #endif
 
-#include "handle.h"
-#include "eventhandle.h"
-#include "windows.h"
-
 #include <KR3/meta/chreturn.h>
 #include <KR3/mt/task.h>
+
+#include "eventhandle.h"
+#include "threadid.h"
 
 namespace kr
 {
@@ -21,30 +20,6 @@ namespace kr
 		Normal,
 		High,
 		Highest,
-	};
-	class ThreadHandle;
-	class MessageThreadId;
-
-	class ThreadId
-	{
-		friend MessageThreadId;
-		friend ThreadHandle;
-	public:
-		ThreadId() = default;
-		ThreadId(nullptr_t) noexcept;
-		ThreadId(dword id) noexcept;
-		bool quit(int exitCode) noexcept;
-		bool postMessage(int msg, WPARAM wParam, LPARAM lParam) noexcept;
-		void setName(pcstr name) noexcept;
-		dword value() noexcept;
-		static ThreadId getCurrent() noexcept;
-
-		bool operator == (const ThreadId & id) const noexcept;
-		bool operator != (const ThreadId & id) const noexcept;
-		bool operator == (nullptr_t) const noexcept;
-		bool operator != (nullptr_t) const noexcept;
-	private:
-		dword m_id;
 	};
 
 	class ThreadHandle :public TaskLambdaPost<ThreadHandle, EventHandle>

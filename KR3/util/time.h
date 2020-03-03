@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../main.h"
+#include <KR3/main.h>
 
 namespace kr
 {

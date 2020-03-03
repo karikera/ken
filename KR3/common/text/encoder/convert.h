@@ -29,6 +29,8 @@ namespace kr
 		static size_t encode(To * out, FromText text) noexcept;
 		static size_t delength(ToText text) noexcept;
 		static size_t decode(From * out, ToText text) noexcept;
+		static void encode(ArrayWriter<To>* out, FromText* text) noexcept;
+		static void decode(ArrayWriter<From>* out, ToText* text) noexcept;
 	};
 
 	class Utf16ToUtf32
@@ -42,6 +44,8 @@ namespace kr
 		static size_t encode(char32 * out, Text16 text) noexcept;
 		static size_t delength(Text32 text) noexcept;
 		static size_t decode(char16 * out, Text32 text) noexcept;
+		static void encode(Writer32* out, Text16* text) noexcept;
+		static void decode(Writer16* out, Text32* text) noexcept;
 	};;
 
 	template <Charset charset, typename To> class ToConvert
@@ -57,14 +61,21 @@ namespace kr
 		static size_t encode(To * out, Text text) noexcept;
 		static size_t delength(ToText text) noexcept;
 		static size_t decode(char * out, ToText text) noexcept;
+		static void encode(ArrayWriter<To>* out, Text* text) noexcept;
+		static void decode(Writer* out, ToText* text) noexcept;
 	};;
 
 	template <Charset charset>
 	class meml
 	{
 	public:
+		struct StrLenResult
+		{
+			size_t len;
+			bool odd;
+		};
 		static bool isDbcs(char chr) noexcept;
-		static char* next(const char* str) noexcept;
+		static char * next(const char* str) noexcept;
 		static char * find(const char * _src, char _tar) noexcept;
 		static char * find(const char * _src, char _tar, size_t _srclen) noexcept;
 		static char * find_e(const char * _src, char _tar, size_t _srclen) noexcept;
@@ -76,6 +87,8 @@ namespace kr
 		static Text find_e(Text txt, char tar) noexcept;
 		static Text find_n(Text txt, char tar) noexcept;
 		static Text find_ne(Text txt, char tar) noexcept;
+		static StrLenResult strlen(Text txt) noexcept;
+		static bool endsWithOdd(Text txt) noexcept;
 	};
 
 	template <Charset charset> class ToConvert<charset, char>;
@@ -104,6 +117,16 @@ namespace kr
 		TmpArray<M> text_m = typename ToConverter::Decoder(text);
 		return FromConverter::decode(out, text_m);
 	}
+	template <typename ToConverter, typename FromConverter>
+	void TransConverter<ToConverter, FromConverter>::encode(ArrayWriter<To>* out, FromText* text) noexcept
+	{
+		notImplementedYet();
+	}
+	template <typename ToConverter, typename FromConverter>
+	void TransConverter<ToConverter, FromConverter>::decode(ArrayWriter<From>* out, ToText* text) noexcept
+	{
+		notImplementedYet();
+	}
 
 	template <Charset charset>
 	char* meml<charset>::next(const char* str) noexcept
@@ -117,6 +140,7 @@ namespace kr
 		{
 			if (*_src == _tar)
 				return (char*)_src;
+
 			_src = next(_src);
 		}
 	}
@@ -232,6 +256,34 @@ namespace kr
 		const char * finded = find_ne(txt.begin(), tar, txt.size());
 		txt.setBegin(finded);
 		return txt;
+	}
+	template <Charset charset>
+	typename meml<charset>::StrLenResult meml<charset>::strlen(Text txt) noexcept
+	{
+		size_t charcount = 0;
+		while (!txt.empty())
+		{
+			if (isDbcs(*txt++))
+			{
+				if (txt.empty()) return {charcount, true };
+				txt++;
+			}
+			charcount++;
+		}
+		return {charcount, false};
+	}
+	template <Charset charset>
+	bool meml<charset>::endsWithOdd(Text txt) noexcept
+	{
+		while (!txt.empty())
+		{
+			if (isDbcs(*txt++))
+			{
+				if (txt.empty()) return true;
+				txt++;
+			}
+		}
+		return false;
 	}
 
 	namespace _pri_

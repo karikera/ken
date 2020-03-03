@@ -4,7 +4,7 @@
 #include "math.h"
 
 #ifdef WIN32
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #elif defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #endif

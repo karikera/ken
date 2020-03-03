@@ -112,20 +112,22 @@ namespace kr
 			}
 			static void encode(Writer * out, Text * text) noexcept
 			{
-				*out << text->readAll();
+				size_t minsize = mint(out->remaining(), text->size());
+				memcpy(out->end(), text->data(), minsize * sizeof(T));
+				out->addEnd(minsize);
+				text->addBegin(minsize);
 			}
 			static size_t delength(Text text) noexcept
 			{
-				return text.size();
+				return length(text);
 			}
 			static size_t decode(T * out, Text text) noexcept
 			{
-				mema::subs_copy(out, text.data(), text.size());
-				return text.size();
+				return encode(out, text);
 			}
 			static void decode(Writer * out, Text * text) noexcept
 			{
-				*out << text->readAll();
+				encode(out, text);
 			}
 		};;
 

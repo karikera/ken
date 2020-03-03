@@ -294,7 +294,7 @@ void HtmlEntity::decode(Writer *out, Text * text) noexcept
 	}
 _end:
 
-	out->_setEnd(dest);
+	out->setEnd(dest);
 	text->setBegin(src);
 }
 

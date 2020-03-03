@@ -6,7 +6,6 @@
 
 namespace kr
 {
-
 	namespace _pri_
 	{
 		class TaskImpl :public Callable
@@ -15,7 +14,6 @@ namespace kr
 			virtual void cancel() noexcept;
 		};
 	}
-	using Task = Node<_pri_::TaskImpl>;
 
 	template <typename This, typename Super = Empty>
 	class TaskLambdaPost :public Super

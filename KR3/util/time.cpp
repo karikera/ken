@@ -2,7 +2,7 @@
 #include "time.h"
 
 #ifdef WIN32
-#include "../wl/windows.h"
+#include <KR3/win/windows.h>
 #else
 #include <time.h>
 #endif

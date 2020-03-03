@@ -2,6 +2,7 @@
 #include "dshow.h"
 using namespace kr;
 
+#include <KR3/win/eventhandle.h>
 #include <dshow.h>
 #pragma comment(lib, "strmiids.lib")
 
@@ -33,7 +34,7 @@ DShowSound::~DShowSound() noexcept
 {
 	if (m_eventHandler)
 	{
-		m_eventHandler->detach();
+		m_eventHandler->cancel();
 	}
 }
 bool DShowSound::play(pcstr16 path) noexcept
@@ -50,7 +51,7 @@ Promise<void>* DShowSound::playAnd(pcstr16 path) noexcept
 
 	if (m_eventHandler)
 	{
-		m_eventHandler->detach();
+		m_eventHandler->cancel();
 		m_eventHandler = nullptr;
 	}
 
@@ -59,7 +60,7 @@ Promise<void>* DShowSound::playAnd(pcstr16 path) noexcept
 	if (FAILED(hr)) return Promise<void>::reject(ErrorCode(hr));
 
 	DeferredPromise<void> * prom = _new DeferredPromise<void>();
-	m_eventHandler = EventDispatcher::registThreaded((EventHandle*)handle, [this, prom](DispatchedEvent * ev){
+	m_eventHandler = ((EventHandle*)handle)->callbackThreaded([this, prom](DispatchedEvent * ev){
 		long code;
 		LONG_PTR param1;
 		LONG_PTR param2;
@@ -70,7 +71,7 @@ Promise<void>* DShowSound::playAnd(pcstr16 path) noexcept
 				prom->resolve();
 				if (m_eventHandler)
 				{
-					m_eventHandler->detach();
+					m_eventHandler->cancel();
 					m_eventHandler = nullptr;
 				}
 			}

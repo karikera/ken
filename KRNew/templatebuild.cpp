@@ -12,7 +12,7 @@
 #include <KR3/util/process.h>
 
 #ifdef WIN32
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #endif
 
 
@@ -21,6 +21,8 @@
 #endif
 
 using namespace kr;
+
+#pragma warning(disable:4661)
 
 inline void buildTest() noexcept
 {

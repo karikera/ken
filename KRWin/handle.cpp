@@ -6,7 +6,7 @@
 #include "hack.h"
 
 #include <process.h>
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 #include <Psapi.h>
 
 #pragma comment(lib,"psapi.lib")

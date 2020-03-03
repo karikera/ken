@@ -8,8 +8,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "../util/wide.h"
-#include "../util/path.h"
-
+#include <KR3/util/wide.h>
+#include <KR3/util/path.h>
 
 #endif

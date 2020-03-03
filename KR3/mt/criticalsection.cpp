@@ -3,8 +3,8 @@
 
 
 #ifdef WIN32
-#include <KR3/wl/windows.h>
-#include <KR3/wl/eventhandle.h>
+#include <KR3/win/windows.h>
+#include <KR3/win/eventhandle.h>
 #else
 #include <pthread.h>
 #include <sched.h>

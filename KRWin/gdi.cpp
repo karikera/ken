@@ -2,7 +2,7 @@
 #include "gdi.h"
 #include <KR3/util/bitmap.h>
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 #pragma comment(lib, "msimg32.lib")
 

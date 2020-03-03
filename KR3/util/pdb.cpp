@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "pdb.h"
 
-#include <KR3/wl/windows.h>
+#include <KR3/win/windows.h>
 
 #define _NO_CVCONST_H
 #include <DbgHelp.h>

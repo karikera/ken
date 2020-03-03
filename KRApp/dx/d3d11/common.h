@@ -1,7 +1,7 @@
 #pragma once
 
 #include <KR3/main.h>
-#include <KR3/wl/com.h>
+#include <KR3/win/com.h>
 
 #include <dxgiformat.h>
 

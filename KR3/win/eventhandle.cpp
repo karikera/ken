@@ -5,10 +5,48 @@
 #include "eventhandle.h"
 #include "windows.h"
 
+#include <KR3/msg/promise.h>
+
 using namespace kr;
 
-static_assert(EventHandle::MAXIMUM_WAIT == MAXIMUM_WAIT_OBJECTS, "connection count unmatch");
+namespace
+{
+	class PromisedEvent :public Promise<void>, public DispatchedEvent
+	{
+	public:
+		PromisedEvent(EventHandle* handle) noexcept
+			:DispatchedEvent(handle)
+		{
+			AddRef();
+		}
+		~PromisedEvent() noexcept override
+		{
+		}
+		void call() noexcept override
+		{
+			_resolve();
+			cancel();
+		}
+	};
 
+	class PromisedEventAndRemove :public PromisedEvent
+	{
+	public:
+		using PromisedEvent::PromisedEvent;
+
+		~PromisedEventAndRemove() noexcept override
+		{
+			delete m_event;
+		}
+		void call() noexcept override
+		{
+			_resolve();
+			cancel();
+		}
+	};
+}
+
+static_assert(EventHandleMaxWait == MAXIMUM_WAIT_OBJECTS, "connection count unmatch");
 
 SemaphoreHandle * SemaphoreHandle::create(long initsem, long maxsem) noexcept
 {
@@ -57,6 +95,15 @@ void EventHandle::set() noexcept
 void EventHandle::reset() noexcept
 {
 	ResetEvent(this);
+}
+
+Promise<void>* EventHandle::promise() noexcept
+{
+	return _new PromisedEvent(this);
+}
+Promise<void>* EventHandle::promiseAndRemove() noexcept
+{
+	return _new PromisedEventAndRemove(this);
 }
 
 Event::Event(EventHandle * handle) noexcept

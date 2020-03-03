@@ -78,7 +78,7 @@ namespace kr
 			MapKeyStatic(const buffer::Memory<Derived, BufferInfo<C, method::Memory, _szable, _readonly, _Parent> >& buffer) noexcept
 			{
 				m_buffer = buffer.data();
-				m_size = buffer.sizeBytes();
+				m_size = buffer.bytes();
 			}
 			operator const MapKey& () const noexcept;
 		};

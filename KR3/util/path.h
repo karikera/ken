@@ -10,8 +10,6 @@ namespace kr
 	class CurrentDirectory final : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, method::CopyTo, true, true>>
 	{
 	public:
-		static constexpr size_t PREPARE = 260;
-
 		template <typename CHR>
 		bool set(const CHR* text) const noexcept;
 		template <typename CHR>
@@ -30,7 +28,7 @@ namespace kr
 		void $writeTo(OutStream<_Derived, C, _Info>* os) const throws(...)
 		{
 			using OS = OutStream<_Derived, C, _Info>;
-			WriteLock<OS, CurrentDirectory::PREPARE> lock;
+			WriteLock<OS, PathMaxLen> lock;
 			C* dest = lock.lock(os);
 			size_t size = copyTo(dest);
 			lock.unlock(os, size);

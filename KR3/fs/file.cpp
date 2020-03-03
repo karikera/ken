@@ -8,8 +8,8 @@ using namespace kr;
 
 #ifdef WIN32
 
-#include <KR3/wl/windows.h>
-#include <KR3/wl/handle.h>
+#include <KR3/win/windows.h>
+#include <KR3/win/handle.h>
 #include <shellapi.h>
 
 static_assert(File::NAMELEN == MAX_PATH, "MAX_PATH not matching");

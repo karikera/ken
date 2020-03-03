@@ -10,6 +10,7 @@
 #include <KR3/fs/file.h>
 #include <KR3/data/idmap.h>
 #include <KR3/util/parameter.h>
+#include <KR3/win/eventhandle.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -214,6 +215,22 @@ namespace test
 			{
 				Assert::AreEqual(v, n--);
 			}
+		}
+
+		TEST_METHOD(testEventCallback)
+		{
+			EventHandle* ev = EventHandle::create(false, false);
+			EventHandle* ev2 = EventHandle::create(false, false);
+			ev->set();
+			Assert::IsTrue(ev->wait(3000_ms), L"ev is not set");
+
+			DispatchedEvent* dispatched = ev->callbackThreaded([ev2](DispatchedEvent* dispatched){
+				ev2->set();
+				});
+
+			ev->set();
+			Assert::IsTrue(ev2->wait(3000_ms), L"ev2 is not set");
+			dispatched->cancel();
 		}
 	};
 }

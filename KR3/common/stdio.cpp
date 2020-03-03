@@ -8,7 +8,7 @@
 #include <codecvt>
 
 #ifdef WIN32
-#include "../wl/windows.h"
+#include <KR3/win/windows.h>
 #endif
 #include "../util/wide.h"
 

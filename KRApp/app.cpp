@@ -14,11 +14,11 @@ namespace
 {
 	Application * s_main;
 #ifdef WIN32
-	class DrawInterval:public EventPump::Timer
+	class DrawInterval:public TimerEvent
 	{
 	public:
 		DrawInterval() noexcept
-			:EventPump::Timer(timepoint())
+			:TimerEvent(timepoint())
 		{
 			AddRef();
 		}

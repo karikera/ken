@@ -37,7 +37,7 @@ namespace
 
 Timeout::Timeout() noexcept
 #ifdef WIN32
-	:EventPump::Timer(timepoint())
+	:TimerEvent(timepoint())
 #endif
 {
 #ifdef __EMSCRIPTEN__

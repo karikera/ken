@@ -24,7 +24,7 @@ namespace kr
 			using Super::begin;
 			using Super::end;
 			using Super::size;
-			using Super::sizeBytes;
+			using Super::bytes;
 			using Super::capacity;
 			using Super::empty;
 			using Super::reserve;
@@ -117,7 +117,7 @@ namespace kr
 			void zero(size_t sz) throws(NotEnoughSpaceException)
 			{
 				_resize(sz);
-				memset(data(), 0, sizeBytes());
+				memset(data(), 0, bytes());
 			}
 			template <typename T> void copy(const T& _copy)
 			{

@@ -2,7 +2,7 @@
 
 #ifdef WIN32
 #include "console.h"
-#include "../wl/windows.h"
+#include <KR3/win/windows.h>
 #include <fcntl.h>
 #include <io.h>
 
