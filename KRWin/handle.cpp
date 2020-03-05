@@ -1033,6 +1033,10 @@ Module* win::Process::injectDll(pcstr16 strDllPath) noexcept
 {
 	return (Module*)(DWORD_PTR)call((LPTHREAD_START_ROUTINE)LoadLibraryW, Buffer(strDllPath, mem16::find(strDllPath, u'\0') + 1));
 }
+dword win::Process::getLastError() noexcept
+{
+	return (DWORD_PTR)call((LPTHREAD_START_ROUTINE)GetLastError, (intptr_t)0);
+}
 dword win::Process::call(ThreadRoutine pThread, Buffer buffer) noexcept
 {
 	ProcessMemory memory(this, buffer);

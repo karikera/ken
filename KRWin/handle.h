@@ -133,6 +133,7 @@ namespace kr
 			Module * getFirstModule() noexcept;
 			Module* injectDll(pcstr strDllPath) noexcept;
 			Module* injectDll(pcstr16 strDllPath) noexcept;
+			dword getLastError() noexcept;
 			dword call(ThreadRoutine pThread, Buffer buffer) noexcept;
 			dword call(ThreadRoutine pThread, intptr_t data) noexcept;
 			size_t write(void * pDest, const void *pSrc, size_t nSize) noexcept;

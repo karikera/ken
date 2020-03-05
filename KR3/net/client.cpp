@@ -145,6 +145,7 @@ void Client::close() noexcept
 	m_event->reset();
 	delete m_socket;
 	m_socket = nullptr;
+	m_waitWriteEvent = true;
 	onClose();
 }
 void Client::processEvent() noexcept
@@ -240,7 +241,6 @@ void Client::processEvent() noexcept
 	{
 		// state.errClose
 		close();
-		onClose();
 	}
 }
 EventProcedure Client::makeProcedure() noexcept
