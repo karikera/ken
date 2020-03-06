@@ -99,7 +99,7 @@ bool File::clearJunk() noexcept
 {
 	if (!exists(u"junk"))
 		return true;
-	return removeFullDirectory(u"junk");
+	return removeFull(u"junk");
 }
 bool File::remove(pcstr16 str) noexcept
 {
@@ -221,7 +221,7 @@ bool File::createFullDirectory(Text16 str) noexcept
 	createDirectory(temp.c_str());
 	return true;
 }
-bool File::removeFullDirectory(pcstr16 path) noexcept
+bool File::removeFull(pcstr16 path) noexcept
 {
 	SHFILEOPSTRUCTW fos = { 0 };
 	fos.wFunc = FO_DELETE;
