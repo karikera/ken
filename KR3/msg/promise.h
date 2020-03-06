@@ -131,7 +131,7 @@ namespace kr
 		virtual void onKatch(PromiseRaw * from) noexcept;
 
 	private:
-		ATTR_DEPRECATED("all tasks must complete") void _deleteCascade() noexcept;
+		void _deleteCascade() noexcept;
 		void _setState(State state) noexcept;
 		void _addNext(PromiseRaw * next) noexcept;
 		void _readdNext(PromiseRaw * next) noexcept;

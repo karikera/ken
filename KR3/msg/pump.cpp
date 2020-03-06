@@ -44,7 +44,7 @@ void EventPump::waitAll() noexcept
 	{
 		_processPromise();
 		processOnce();
-		if (m_start.m_next != nullptr || m_reference != 0)
+		if (m_reference != 0)
 		{
 			DWORD sleep = _processTimer(INFINITE);
 			dword index = MsgWaitForMultipleObjectsEx(1, (HANDLE*)&m_msgevent, sleep, QS_ALLINPUT, MWMO_ALERTABLE);
@@ -56,20 +56,32 @@ void EventPump::waitAll() noexcept
 			if (m_process == nullptr) break;
 		}
 	}
-
-	_assert(m_start.m_next == nullptr);
-	_assert(m_process == nullptr);
+	
+	clearTasks();
 }
 void EventPump::clearTasks() noexcept
 {
-#pragma warning(push)
-#pragma warning(disable:4996)
+	TimerEvent* node = m_start.m_next;
+	if (node != nullptr)
+	{
+		m_start.m_next = nullptr;
+
+		do
+		{
+			TimerEvent* next = node->m_next;
+			node->Release();
+			node = next;
+		} while (node != nullptr);
+		
+	}
+
 	PromiseRaw* process = m_process;
-	if (process == nullptr) return;
-	m_process = nullptr;
-	m_pprocess = &m_process;
-	process->_deleteCascade();
-#pragma warning(pop)
+	if (process != nullptr)
+	{
+		m_process = nullptr;
+		m_pprocess = &m_process;
+		process->_deleteCascade();
+	}
 }
 bool EventPump::cancel(TimerEvent* node) noexcept
 {
@@ -105,7 +117,7 @@ void EventPump::attach(TimerEvent* newnode) noexcept
 		{
 			node = pnode->m_next;
 			if (node == nullptr) break;
-			if (node->m_at >= newtime)
+			if (newtime < node->m_at)
 			{
 				node->m_prev = newnode;
 				break;
@@ -500,16 +512,12 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 		{
 			CsLock locked = m_timercs;
 			node = m_start.m_next;
-			if (node == nullptr)
-			{
-				_processPromise();
-				return maxSleep;
-			}
+			if (node == nullptr) break;
 			callTime = node->m_at;
 			if (callTime > now)
 			{
-				_processPromise();
-				return mint((dword)(callTime - now).value(), maxSleep);
+				maxSleep = mint((dword)(callTime - now).value(), maxSleep);
+				break;
 			}
 			m_start.m_next = node->m_next;
 		}
@@ -520,11 +528,7 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 			node->call();
 		}
 
-		if (m_start.m_next == nullptr)
-		{
-			_processPromise();
-			return maxSleep;
-		}
+		if (m_start.m_next == nullptr) break;
 
 		tryCount++;
 		if (tryCount >= PROCESS_MESSAGE_COUNT_PER_TRY)
@@ -532,12 +536,14 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 			now = timepoint::now();
 			if (now > startTime + 10_ms)
 			{
-				_processPromise();
-				return 0;
+				maxSleep = 0;
+				break;
 			}
 			tryCount = 0;
 		}
 	}
+	_processPromise();
+	return maxSleep;
 }
 
 TimerEvent::TimerEvent() noexcept

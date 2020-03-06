@@ -56,7 +56,7 @@ namespace kr
 		static bool exists(pcstr16 src) noexcept;
 		static bool copy(pcstr16 dest, pcstr16 src) noexcept;
 		static bool move(pcstr16 dest, pcstr16 src) noexcept;
-		static bool copyTree(pcstr16 dest, pcstr16 src) noexcept;
+		static bool copyFull(pcstr16 dest, pcstr16 src) noexcept;
 		static bool toJunk(pcstr16 src) noexcept;
 		static bool clearJunk() noexcept;
 		static bool remove(pcstr16 str) noexcept;
@@ -65,7 +65,7 @@ namespace kr
 		static bool isDirectoryModified(Text16 dir, filetime_t axis) noexcept;
 		static bool createDirectory(pcstr16 str) noexcept;
 		static bool createFullDirectory(Text16 str) noexcept;
-		static bool removeFullDirectory(pcstr16 path) noexcept;
+		static bool removeFull(pcstr16 path) noexcept;
 		static bool removeShell(pcstr16 path) noexcept;
 		
 		template <typename C>

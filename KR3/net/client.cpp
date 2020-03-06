@@ -74,8 +74,18 @@ void Client::connectSync(pcstr16 host, word port) throws(SocketException)
 	close();
 
 	m_socket = Socket::create();
-	m_socket->connect(Socket::findIp(host), port);
-	m_event->select(m_socket, FNetworkEvent(true, true, false, true, false));
+
+	try
+	{
+		m_socket->connect(Socket::findIp(host), port);
+		m_event->select(m_socket, FNetworkEvent(true, true, false, true, false));
+	}
+	catch (...)
+	{
+		delete m_socket;
+		m_socket = nullptr;
+		throw;
+	}
 }
 Ipv4Address Client::getIpAddress() noexcept
 {

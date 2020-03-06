@@ -69,6 +69,15 @@ bool File::move(pcstr16 dest, pcstr16 src) noexcept
 {
 	return MoveFileW(wide(src), wide(dest));
 }
+bool File::copyFull(pcstr16 dest, pcstr16 src) noexcept
+{
+	SHFILEOPSTRUCT fos = { 0 };
+	fos.wFunc = FO_COPY;
+	fos.pFrom = wide(src);
+	fos.pTo = wide(dest);
+	fos.fFlags = FOF_NO_UI;
+	return SHFileOperationW(&fos) == 0;
+}
 bool File::toJunk(pcstr16 src) noexcept
 {
 	createDirectory(u"junk");
@@ -212,23 +221,23 @@ bool File::createFullDirectory(Text16 str) noexcept
 	createDirectory(temp.c_str());
 	return true;
 }
-bool kr::File::removeFullDirectory(pcstr16 path) noexcept
+bool File::removeFullDirectory(pcstr16 path) noexcept
 {
 	SHFILEOPSTRUCTW fos = { 0 };
 	fos.wFunc = FO_DELETE;
 	fos.pFrom = wide(path);
 	fos.fFlags = FOF_NO_UI;
-	return SHFileOperationW(&fos);
+	return SHFileOperationW(&fos) == 0;
 }
-bool kr::File::removeShell(pcstr16 path) noexcept
+bool File::removeShell(pcstr16 path) noexcept
 {
 	SHFILEOPSTRUCTW fos = { 0 };
 	fos.wFunc = FO_DELETE;
 	fos.pFrom = wide(path);
 	fos.fFlags = FOF_NOCONFIRMATION | FOF_NOCONFIRMMKDIR; // FOF_NO_UI;
-	return SHFileOperationW(&fos);
+	return SHFileOperationW(&fos) == 0;
 }
-void kr::File::md5All(byte _dest[16]) throws(Error)
+void File::md5All(byte _dest[16]) throws(Error)
 {
 	io::FIStream<char> fis(this);
 	md5_context ctx;
@@ -248,7 +257,7 @@ void kr::File::md5All(byte _dest[16]) throws(Error)
 	}
 	md5_finish(&ctx, _dest);
 }
-void kr::File::md5(size_t sz, byte _dest[16]) throws(Error)
+void File::md5(size_t sz, byte _dest[16]) throws(Error)
 {
 	io::FIStream<char, false> fis(this);
 	intptr_t minusSize = -(intptr_t)sz;

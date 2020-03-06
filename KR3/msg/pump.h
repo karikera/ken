@@ -35,7 +35,7 @@ namespace kr
 	public:
 		void quit(int exitCode) noexcept;
 		void waitAll() noexcept;
-		ATTR_DEPRECATED("all tasks must complete") void clearTasks() noexcept;
+		void clearTasks() noexcept;
 
 		// node는 내부에서 관리하게 된다.
 		// return: 이미 만료 혹은 취소된 이벤트의 경우 false
