@@ -60,7 +60,7 @@ namespace test
 
 		TEST_METHOD(installer)
 		{
-			File::removeFullDirectory(u"../../../test/copytest_to");
+			File::removeFull(u"../../../test/copytest_to");
 			Installer installer(u"../../../test/copytest_to", u"../../../test/copytest_from");
 			installer.all();
 			Assert::AreEqual("aa", ((TText)File::openAsArray<char>(u"../../../test/copytest_to/a.txt")).c_str());
