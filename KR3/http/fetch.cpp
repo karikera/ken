@@ -1,9 +1,13 @@
 #include "stdafx.h"
 #include "fetch.h"
+
+#ifndef __EMSCRIPTEN__
+
 #include "header.h"
 #define CURL_STATICLIB
 
 #include "curl/curl.h"
+#endif
 
 #ifndef NO_USE_FILESYSTEM
 
@@ -31,13 +35,13 @@ namespace
 
 	using CurlWriteCb = size_t(*)(void *contents, size_t size, size_t nmemb, void *userp);
 
-	void setBasic(CURL * curl, curl_slist * headers) noexcept
+#ifndef __EMSCRIPTEN__
+	void setBasic(CURL* curl, curl_slist* headers) noexcept
 	{
 		if (headers) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	}
 
-#ifndef __EMSCRIPTEN__
 	AText fetchAsTextImpl(CURL * curl, curl_slist * headers) throws(HttpException)
 	{
 		AText response;
@@ -181,7 +185,7 @@ Promise<AText>* HttpRequest::fetchAsText(const char * url) noexcept
 		obj->postdata = nullptr;
 		obj->requestHeaders = nullptr;
 		obj->requestHeaderIndexes = nullptr;
-		EventPump::getInstance()->processOnce();
+		PromisePump::getInstance()->process();
 	};
 	m_obj->attr.onerror = [](emscripten_fetch_t *fetch) {
 		auto * obj = (FetchObject*)fetch->userData;
@@ -190,7 +194,7 @@ Promise<AText>* HttpRequest::fetchAsText(const char * url) noexcept
 		obj->postdata = nullptr;
 		obj->requestHeaders = nullptr;
 		obj->requestHeaderIndexes = nullptr;
-		PromiseManager::getInstance()->process();
+		PromisePump::getInstance()->process();
 	};
 	emscripten_fetch(&m_obj->attr, url);
 	FetchObject * obj = m_obj;

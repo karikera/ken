@@ -18,7 +18,6 @@ EventPump::EventPump() noexcept
 	:m_reference(0)
 {
 	m_start.m_next = nullptr;
-	m_pprocess = &m_process;
 
 	m_msgevent = EventHandle::create(false, false);
 	m_threadId = ThreadId::getCurrent();
@@ -29,7 +28,6 @@ EventPump::~EventPump() noexcept
 	waitAll();
 
 	_assert(m_start.m_next == nullptr); // all tasks must complete
-	_assert(m_process == nullptr); // all tasks must complete
 	delete m_msgevent;
 }
 
@@ -42,7 +40,7 @@ void EventPump::waitAll() noexcept
 	_assert(m_threadId == ThreadId::getCurrent());
 	for (;;)
 	{
-		_processPromise();
+		m_prompump.process();
 		processOnce();
 		if (m_reference != 0)
 		{
@@ -53,7 +51,7 @@ void EventPump::waitAll() noexcept
 		}
 		else
 		{
-			if (m_process == nullptr) break;
+			if (m_prompump.empty()) break;
 		}
 	}
 	
@@ -75,13 +73,7 @@ void EventPump::clearTasks() noexcept
 		
 	}
 
-	PromiseRaw* process = m_process;
-	if (process != nullptr)
-	{
-		m_process = nullptr;
-		m_pprocess = &m_process;
-		process->_deleteCascade();
-	}
+	m_prompump.clear();
 }
 bool EventPump::cancel(TimerEvent* node) noexcept
 {
@@ -144,7 +136,7 @@ dword EventPump::processOnce(View<EventHandle *> events) throws(QuitException)
 void EventPump::processOnce(View<EventProcedure> proc) throws(QuitException)
 {
 	_assert(m_threadId == ThreadId::getCurrent());
-	_processPromise();
+	m_prompump.process();
 	_processTimer(0);
 	TmpArray<EventHandle*> events = _makeEventArray(proc);
 
@@ -164,23 +156,23 @@ void EventPump::processOnce(View<EventProcedure> proc) throws(QuitException)
 		{
 			const EventProcedure& p = proc[index];
 			p.callback(p.param);
-			_processPromise();
+			m_prompump.process();
 		}
 	}
 }
 void EventPump::processOnceWithoutMessage() throws(QuitException)
 {
-	_processPromise();
+	m_prompump.process();
 	_processTimer(0);
 }
 void EventPump::processOnceWithoutMessage(View<EventProcedure> proc) throws(QuitException)
 {
 	_assert(m_threadId == ThreadId::getCurrent());
-	_processPromise();
+	m_prompump.process();
 	_processTimer(0);
 	TmpArray<EventHandle*> events = _makeEventArray(proc);
 
-	for (int i=0;i<3;i++)
+	for (int i = 0; i < 3; i++)
 	{
 		DWORD sleep = _processTimer(0);
 		DWORD cnt = intact<DWORD>(events.size());
@@ -191,15 +183,15 @@ void EventPump::processOnceWithoutMessage(View<EventProcedure> proc) throws(Quit
 		{
 			const EventProcedure& p = proc[index];
 			p.callback(p.param);
-			_processPromise();
+			m_prompump.process();
 		}
 	}
 }
-Promise<void> * EventPump::promise(duration time) noexcept
+Promise<void>* EventPump::promise(duration time) noexcept
 {
 	return promiseTo(timepoint::now() + time);
 }
-Promise<void> * EventPump::promiseTo(timepoint at) noexcept
+Promise<void>* EventPump::promiseTo(timepoint at) noexcept
 {
 	class Prom :public Promise<void>, public TimerEvent
 	{
@@ -218,7 +210,7 @@ Promise<void> * EventPump::promiseTo(timepoint at) noexcept
 			_resolve();
 		}
 	};
-	Prom * prom = _new Prom(at);
+	Prom* prom = _new Prom(at);
 	attach(prom);
 	return prom;
 }
@@ -230,15 +222,15 @@ void EventPump::sleepTo(timepoint time) throws(QuitException)
 {
 	waitTo(View<EventHandle*>(nullptr, nullptr), time);
 }
-void EventPump::wait(EventHandle * event) throws(QuitException)
+void EventPump::wait(EventHandle* event) throws(QuitException)
 {
 	wait(View<EventHandle*>(&event, 1));
 }
-void EventPump::wait(EventHandle * event, duration time) throws(QuitException)
+void EventPump::wait(EventHandle* event, duration time) throws(QuitException)
 {
 	wait(View<EventHandle*>(&event, 1), time);
 }
-void EventPump::waitTo(EventHandle * event, timepoint time) throws(QuitException)
+void EventPump::waitTo(EventHandle* event, timepoint time) throws(QuitException)
 {
 	waitTo(View<EventHandle*>(&event, 1), time);
 }
@@ -255,15 +247,15 @@ void EventPump::Release() noexcept
 		m_msgevent->set();
 	}
 }
-dword EventPump::wait(View<EventHandle *> events) throws(QuitException)
+dword EventPump::wait(View<EventHandle*> events) throws(QuitException)
 {
-	_processPromise();
+	m_prompump.process();
 	TmpArray<EventHandle*> newevents = _makeEventArray(events);
 	dword count = intact<DWORD>(newevents.size());
 	for (;;)
 	{
 		DWORD sleep = _processTimer(INFINITE);
-		dword index = MsgWaitForMultipleObjectsEx (count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
+		dword index = MsgWaitForMultipleObjectsEx(count, (HANDLE*)newevents.data(), sleep, QS_ALLINPUT, MWMO_ALERTABLE);
 		_assert(index != WAIT_FAILED);
 		if (index == WAIT_IO_COMPLETION) continue;
 		if (index != WAIT_OBJECT_0 + count - 1)
@@ -279,15 +271,15 @@ dword EventPump::wait(View<EventHandle *> events) throws(QuitException)
 		}
 	}
 }
-dword EventPump::wait(View<EventHandle *> events, duration time) throws(QuitException)
+dword EventPump::wait(View<EventHandle*> events, duration time) throws(QuitException)
 {
 	return waitTo(events, timepoint::now() + time);
 }
-dword EventPump::waitTo(View<EventHandle *> events, timepoint timeto) throws(QuitException)
+dword EventPump::waitTo(View<EventHandle*> events, timepoint timeto) throws(QuitException)
 {
 	_assert(events.size() < MAXIMUM_WAIT);
 
-	_processPromise();
+	m_prompump.process();
 	TmpArray<EventHandle*> newevents = _makeEventArray(events);
 	dword count = intact<DWORD>(newevents.size());
 
@@ -321,7 +313,7 @@ dword EventPump::waitTo(View<EventHandle *> events, timepoint timeto) throws(Qui
 int EventPump::messageLoop() noexcept
 {
 	_assert(m_threadId == ThreadId::getCurrent());
-	_processPromise();
+	m_prompump.process();
 	try
 	{
 		for (;;)
@@ -343,7 +335,7 @@ int EventPump::messageLoop() noexcept
 int EventPump::messageLoopWith(View<EventProcedure> proc) noexcept
 {
 	_assert(m_threadId == ThreadId::getCurrent());
-	_processPromise();
+	m_prompump.process();
 	try
 	{
 		TmpArray<EventHandle*> events = _makeEventArray(proc);
@@ -366,7 +358,7 @@ int EventPump::messageLoopWith(View<EventProcedure> proc) noexcept
 			{
 				const EventProcedure& p = proc[index];
 				p.callback(p.param);
-				_processPromise();
+				m_prompump.process();
 			}
 		}
 	}
@@ -376,71 +368,13 @@ int EventPump::messageLoopWith(View<EventProcedure> proc) noexcept
 	}
 }
 
-EventPump * EventPump::getInstance() noexcept
+EventPump* EventPump::getInstance() noexcept
 {
 	static thread_local EventPump pump;
 	return &pump;
 }
 
-size_t EventPump::getPromiseCount() noexcept
-{
-	size_t count = 0;
-	PromiseRaw* prom = m_process;
-	while (prom)
-	{
-		PromiseRaw* sib = prom;
-		do
-		{
-			_assert((uintptr_t)sib % alignof(PromiseRaw) == 0);
-			count++;
-			sib = sib->m_sibling;
-		} while (sib);
-		prom = prom->m_next;
-	}
-	return count;
-}
-void EventPump::_processPromise() noexcept
-{
-	for (;;)
-	{
-		PromiseRaw* process = m_process;
-		if (process == nullptr) return;
-		m_process = nullptr;
-		m_pprocess = &m_process;
-
-		do
-		{
-			PromiseRaw* processNext = process->m_sibling;
-			PromiseRaw::State state = process->m_state;
-			process->m_ending = true;
-			PromiseRaw* next = process->m_next;
-			process->m_next = nullptr;
-
-			while (next)
-			{
-				_assert((uintptr_t)next % alignof(PromiseRaw) == 0);
-				PromiseRaw* nextSibling = next->m_sibling;
-				switch (process->m_state)
-				{
-				case PromiseRaw::Resolved: next->onThen(process); break;
-				case PromiseRaw::Rejected: next->onKatch(process); break;
-				case PromiseRaw::Pending:
-				default:
-					_assert(!"Pending promise processed\n");
-					break;
-				}
-				next = nextSibling;
-			}
-			if (process->m_ending)
-			{
-				delete process;
-			}
-			process = processNext;
-		} while (process);
-	}
-}
-
-dword EventPump::_tryProcess(EventHandle * const * events, dword count) throws(QuitException)
+dword EventPump::_tryProcess(EventHandle* const* events, dword count) throws(QuitException)
 {
 	m_msgevent->reset();
 	_processTimer(0);
@@ -473,12 +407,12 @@ TmpArray<EventHandle*> EventPump::_makeEventArray(View<EventHandle*> events) noe
 	newevents[sz] = m_msgevent;
 	return newevents;
 }
-TmpArray<EventHandle *> EventPump::_makeEventArray(View<EventProcedure> proc) noexcept
+TmpArray<EventHandle*> EventPump::_makeEventArray(View<EventProcedure> proc) noexcept
 {
 	size_t sz = proc.size();
 	TmpArray<EventHandle*> events(sz + 1);
 	{
-		EventHandle ** dest = events.begin();
+		EventHandle** dest = events.begin();
 		for (const EventProcedure& p : proc)
 		{
 			*dest++ = p.event;
@@ -489,14 +423,14 @@ TmpArray<EventHandle *> EventPump::_makeEventArray(View<EventProcedure> proc) no
 }
 void EventPump::_processMessage() throws(QuitException)
 {
-	MessageLoop * msgloop = MessageLoop::getInstance();
+	MessageLoop* msgloop = MessageLoop::getInstance();
 	// 윈도우 메세지
 	for (int i = 0; i < PROCESS_MESSAGE_COUNT_PER_TRY; i++)
 	{
 		if (!msgloop->tryGet()) break;
 		msgloop->dispatch();
 	}
-	_processPromise();
+	m_prompump.process();
 }
 dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 {
@@ -508,7 +442,7 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 	int tryCount = 0;
 	for (;;)
 	{
-		TimerEvent * node;
+		TimerEvent* node;
 		{
 			CsLock locked = m_timercs;
 			node = m_start.m_next;
@@ -524,7 +458,7 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 
 		node->m_prev = nullptr;
 		{
-			finally{ node->Release(); };
+			finally { node->Release(); };
 			node->call();
 		}
 
@@ -542,7 +476,7 @@ dword EventPump::_processTimer(dword maxSleep) throws(QuitException)
 			tryCount = 0;
 		}
 	}
-	_processPromise();
+	m_prompump.process();
 	return maxSleep;
 }
 

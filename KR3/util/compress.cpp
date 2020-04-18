@@ -1,4 +1,7 @@
 #include "stdafx.h"
+
+#ifndef NO_USE_FILESYSTEM
+
 #include "compress.h"
 
 #include <KR3/fs/file.h>
@@ -71,3 +74,5 @@ bool Unzipper::extractTo(Text16 path) noexcept
 	};
 	return krb_load_compress(krb_make_extension_from_path(m_path), this, &file);
 }
+
+#endif

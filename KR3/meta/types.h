@@ -323,9 +323,9 @@ namespace kr
 			template<size_t... nums> struct _callcls
 			{
 				template <typename LAMBDA>
-				static auto _call(types * host, LAMBDA &&lambda) -> decltype(lambda((*(remove_reference_t<args>*)0) ...));
+				static auto _call(types * host, LAMBDA &&lambda) -> decltype(lambda(declval<remove_reference_t<args>>() ...));
 				template <typename LAMBDA>
-				static auto _call(const types * host, LAMBDA &&lambda) -> decltype(lambda((*(remove_reference_t<args>*)0) ...));
+				static auto _call(const types * host, LAMBDA &&lambda) -> decltype(lambda(declval<remove_reference_t<args>>() ...));
 				template <typename LAMBDA>
 				static void _value_loop(types * host, LAMBDA &&lambda);
 				template <typename LAMBDA>
@@ -361,9 +361,9 @@ namespace kr
 		public:
 			using super::super;
 
-			template <typename LAMBDA> auto call(LAMBDA && lambda) -> decltype(lambda((*(remove_reference_t<args>*)0) ...));
-			template <typename LAMBDA> auto call(LAMBDA && lambda) const -> decltype(lambda((*(remove_reference_t<args>*)0) ...));
-			template <typename LAMBDA> static auto castCall(LAMBDA && lambda, args ... v) -> decltype(lambda((*(remove_reference_t<args>*)0) ...));
+			template <typename LAMBDA> auto call(LAMBDA && lambda) -> decltype(lambda(declval<remove_reference_t<args>>() ...));
+			template <typename LAMBDA> auto call(LAMBDA&& lambda) const -> decltype(lambda(declval<remove_reference_t<args>>() ...));
+			template <typename LAMBDA> static auto castCall(LAMBDA&& lambda, args ... v) -> decltype(lambda(declval<remove_reference_t<args>>() ...));
 
 			template <typename LAMBDA> static void type_loop(LAMBDA && lambda) throws(...);
 			template <typename LAMBDA> static void type_loop_r(LAMBDA && lambda) throws(...);
@@ -397,14 +397,14 @@ namespace kr
 		template <typename ... args>
 		template <size_t ... nums>
 		template <typename LAMBDA>
-		auto types<args ... >::_callcls<nums ...>::_call(types<args ...> * host, LAMBDA && lambda) -> decltype(lambda((*(remove_reference_t<args>*)0) ...))
+		auto types<args ... >::_callcls<nums ...>::_call(types<args ...> * host, LAMBDA && lambda) -> decltype(lambda(declval<remove_reference_t<args>>() ...))
 		{
 			return lambda(host->get<nums>() ...);
 		}
 		template <typename ... args>
 		template <size_t ... nums>
 		template <typename LAMBDA>
-		auto types<args ... >::_callcls<nums ...>::_call(const types<args ...> * host, LAMBDA && lambda) -> decltype(lambda((*(remove_reference_t<args>*)0) ...))
+		auto types<args ... >::_callcls<nums ...>::_call(const types<args ...>* host, LAMBDA&& lambda) -> decltype(lambda(declval<remove_reference_t<args>>() ...))
 		{
 			return lambda(host->get<nums>() ...);
 		}
@@ -483,19 +483,19 @@ namespace kr
 
 		template <typename ... args>
 		template <typename LAMBDA>
-		auto types<args ... >::call(LAMBDA && lambda) -> decltype(lambda((*(remove_reference_t<args>*)0) ...))
+		auto types<args ... >::call(LAMBDA && lambda) -> decltype(lambda(declval<remove_reference_t<args>>() ...))
 		{
 			return expand_func::_call(this, lambda);
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		auto types<args ... >::call(LAMBDA && lambda) const -> decltype(lambda((*(remove_reference_t<args>*)0) ...))
+		auto types<args ... >::call(LAMBDA&& lambda) const -> decltype(lambda(declval<remove_reference_t<args>>() ...))
 		{
 			return expand_func::_call(this, lambda);
 		}
 		template <typename ... args>
 		template <typename LAMBDA>
-		auto types<args ... >::castCall(LAMBDA && lambda, args ... v) -> decltype(lambda((*(remove_reference_t<args>*)0) ...))
+		auto types<args ... >::castCall(LAMBDA&& lambda, args ... v) -> decltype(lambda(declval<remove_reference_t<args>>() ...))
 		{
 			return lambda(v ...);
 		}

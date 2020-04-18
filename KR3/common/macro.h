@@ -28,6 +28,7 @@ namespace kr
 	using std::pair;
 }
 
+using std::declval;
 using std::atomic;
 using std::is_base_of;
 using std::is_base_of_v;

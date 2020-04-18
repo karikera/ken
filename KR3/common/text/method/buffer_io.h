@@ -4,8 +4,8 @@ namespace kr
 {
 	namespace ary
 	{
-		template <class Parent> class BufferIOMethod
-			:public Parent
+		template <class Parent> 
+		class BufferIOMethod:public Parent
 		{
 			CLASS_HEADER(BufferIOMethod, Parent);
 		public:
@@ -105,11 +105,11 @@ namespace kr
 					_resize(sz);
 					if (sz < osz)
 					{
-						mema::subs_fill(begin(), chr, sz);
+						mema::assign_fill(begin(), chr, sz);
 					}
 					else
 					{
-						mema::subs_fill(begin(), chr, osz);
+						mema::assign_fill(begin(), chr, osz);
 						mema::ctor_fill(begin() + osz, chr, sz - osz);
 					}
 				}
@@ -141,12 +141,12 @@ namespace kr
 					if (sz < osz)
 					{
 						_resize(sz);
-						mema::subs_copy(begin(), (InternalComponent*)arr, sz);
+						mema::assign_copy(begin(), (InternalComponent*)arr, sz);
 					}
 					else
 					{
 						_resize(sz);
-						mema::subs_copy(begin(), (InternalComponent*)arr, osz);
+						mema::assign_copy(begin(), (InternalComponent*)arr, osz);
 						mema::ctor_copy(begin() + osz, (InternalComponent*)arr + osz, sz - osz);
 					}
 				}
@@ -233,6 +233,7 @@ namespace kr
 			{
 				size_t sz = size();
 				_assert((size_t)(axis - begin()) < sz);
+				callDestructor(axis);
 				sz--;
 				kr::mema::ctor_move_d(axis, axis + 1, begin() + sz - axis);
 				_setSize(sz);
@@ -242,6 +243,7 @@ namespace kr
 				size_t sz = size();
 				_assert(i < sz);
 				Component * axis = begin() + i;
+				callDestructor(axis);
 				sz--;
 				kr::mema::ctor_move_d(axis, axis + 1, sz - i);
 				_setSize(sz);
@@ -251,7 +253,9 @@ namespace kr
 				size_t sz = size();
 				_assert(i+cnt <= sz);
 				Component * axis = begin() + i;
-				kr::mema::ctor_move_d(axis, axis + cnt, sz - i - cnt);
+				Component* axis_to = axis + cnt;
+				kr::mema::dtor(axis, axis_to);
+				kr::mema::ctor_move_d(axis, axis_to, sz - i - cnt);
 				_setSize(sz - cnt);
 			}
 			InternalComponent removeGet(size_t i) noexcept

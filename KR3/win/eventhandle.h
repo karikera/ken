@@ -212,7 +212,7 @@ namespace kr
 
 	namespace _pri_
 	{
-		class EventListImpl:public Bufferable<EventListImpl, BufferInfo<EventHandle*> >
+		class EventListImpl:public Bufferable<EventListImpl, BufferInfo<EventHandle*, method::Memory> >
 		{
 		public:
 			EventListImpl() noexcept;

@@ -20,8 +20,9 @@ namespace kr
 		JsValue operator [](size_t i) const noexcept;
 		size_t size() const noexcept;
 
-		const JsValue& getCallee() const noexcept;
 		const JsValue& getThis() const noexcept;
+
+		void set(size_t idx, const JsValue& value) noexcept;
 
 		template <typename T>
 		T at(size_t i) const noexcept
@@ -37,13 +38,20 @@ namespace kr
 		}
 
 	private:
-		JsValue m_callee;
 		JsValue m_this;
-		JsRawDataValue* const m_args;
 		const size_t m_argn;
 
-		JsArguments(const JsValue& _callee, const JsValue& _this, JsRawDataValue* args, size_t argn) noexcept;
+	protected:
+		JsRawDataValue* const m_args;
+
+		JsArguments(const JsValue& _this, JsRawDataValue* args, size_t argn) noexcept;
 
 	};
 
+	class JsArgumentsAllocated:public JsArguments
+	{
+	public:
+		KRJS_EXPORT JsArgumentsAllocated(const JsValue& _this, size_t argn) noexcept;
+		KRJS_EXPORT ~JsArgumentsAllocated() noexcept;
+	};
 }

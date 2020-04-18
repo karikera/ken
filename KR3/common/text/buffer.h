@@ -128,7 +128,7 @@ namespace kr
 		template <typename T, bool isNumber>
 		struct BufferizeSwitch
 		{
-			using type = decltype(_pri_::numberBufferize((T)0));
+			using type = decltype(_pri_::numberBufferize(declval<T>()));
 		};
 		template <typename T>
 		struct BufferizeSwitch<T, false>

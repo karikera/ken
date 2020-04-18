@@ -3,35 +3,29 @@
 #include "../main.h"
 #include "../meta/retype.h"
 
-#ifdef _MSC_VER
-
-#define WCHAR_IS_CHAR16
-
-static_assert(sizeof(wchar_t) == sizeof(char16_t), "wchar size unmatch");
-
 namespace kr
 {
-	using unicode_wchar_t = char_sz_t<sizeof(wchar_t)>;
+	using charw_t = char_sz_t<sizeof(wchar_t)>;
 	
 	template <typename T>
 	inline meta::retype_t<T, wchar_t> wide(T v) noexcept
 	{
 		using t = meta::retype<T, wchar_t>;
-		static_assert(std::is_same<typename t::from, unicode_wchar_t>::value, "wchar type unmatch");
+		static_assert(std::is_same<typename t::from, charw_t>::value, "wchar type unmatch");
 		return (typename t::type)v;
 	}
 	template <typename T>
-	inline meta::retype_t<T, unicode_wchar_t> unwide(T v) noexcept
+	inline meta::retype_t<T, charw_t> unwide(T v) noexcept
 	{
-		using t = meta::retype<T, unicode_wchar_t>;
+		using t = meta::retype<T, charw_t>;
 		static_assert(std::is_same<typename t::from, wchar_t>::value, "wchar type unmatch");
-		return (meta::retype_t<T, unicode_wchar_t>)v;
+		return (meta::retype_t<T, charw_t>)v;
 	}
-	inline wchar_t* wide(TSZ16& tsz) noexcept
+	inline wchar_t* wide(TempSzText<charw_t>& tsz) noexcept
 	{
 		return wide(tsz.c_str());
 	}
-	inline wchar_t* wide(TSZ16&& tsz) noexcept
+	inline wchar_t* wide(TempSzText<charw_t>&& tsz) noexcept
 	{
 		return wide(tsz.c_str());
 	}
@@ -44,16 +38,16 @@ namespace kr
 			using type = TmpArray<wchar_t>;
 			static type wide_tmp(const T * str, size_t sz)
 			{
-				TmpArray<unicode_wchar_t> out;
-				out << UnicodeConverter<unicode_wchar_t, T>(View<T>(str, sz));
+				TmpArray<charw_t> out;
+				out << UnicodeConverter<charw_t, T>(View<T>(str, sz));
 				return (type&&)(type&)out;
 			}
 		};
 		template <>
-		struct wide_tmp_type<unicode_wchar_t>
+		struct wide_tmp_type<charw_t>
 		{
 			using type = View<wchar_t>;
-			static type wide_tmp(const unicode_wchar_t * str, size_t sz)
+			static type wide_tmp(const charw_t * str, size_t sz)
 			{
 				return type((const wchar_t*)str, sz);
 			}
@@ -61,7 +55,7 @@ namespace kr
 	}
 
 	template <typename T>
-	typename _pri_::wide_tmp_type<T>::type wide_tmp(const T * str, size_t sz)
+	typename _pri_::wide_tmp_type<T>::type wide_tmp(const T* str, size_t sz)
 	{
 		return _pri_::wide_tmp_type<T>::wide_tmp(str, sz);
 	}
@@ -69,6 +63,3 @@ namespace kr
 	const wchar_t * szlize(Text16 text, TText16* buffer) noexcept;
 }
 
-#else
-
-#endif

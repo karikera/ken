@@ -192,7 +192,7 @@ namespace
 	//	}
 	//}
 #pragma endregion
-#pragma region get module info
+#pragma region get _module info
 	//info.name = img; // path
 	//info.szSymType = "-unknown-";
 	//IMAGEHLP_MODULE64 Module;

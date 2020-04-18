@@ -3,6 +3,7 @@
 #include "container.h"
 #include "method/common.h"
 #include "method/buffer_i.h"
+#include "method/buffer_w.h"
 #include "method/buffer_io.h"
 #include "method/stream.h"
 #include "../../meta/ordering.h"
@@ -19,6 +20,7 @@ namespace kr
 			template attach<ary::IStreamMethod, Data::movable>::
 			template attach<ary::IRStreamMethod, Data::movable>::
 			template attach<ary::BufferIMethod, Data::readable>::
+			template attach<ary::BufferWMethod, Data::writable && Data::readable>::
 			template attach<ary::BufferIOMethod, Data::extendable && Data::readable>::
 			type
 		{
@@ -29,6 +31,7 @@ namespace kr
 				template attach<ary::IStreamMethod, Data::movable>::
 				template attach<ary::IRStreamMethod, Data::movable>::
 				template attach<ary::BufferIMethod, Data::readable>::
+				template attach<ary::BufferWMethod, Data::writable && Data::readable>::
 				template attach<ary::BufferIOMethod, Data::extendable && Data::readable>::
 				type);
 		public:

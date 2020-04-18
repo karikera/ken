@@ -137,6 +137,7 @@
     <ClInclude Include="emscripten.h" />
     <ClInclude Include="emscripten\bind.h" />
     <ClInclude Include="emscripten\html5.h" />
+    <ClInclude Include="emscripten\fetch.h" />
     <ClInclude Include="GL\glfw.h" />
     <ClInclude Include="KHR\khrplatform.h" />
     <ClInclude Include="X11\cursorfont.h" />

@@ -121,6 +121,7 @@
   <ItemGroup>
     <ClInclude Include="common\hasmethod.h" />
     <ClInclude Include="common\text\hasmethod.h" />
+    <ClInclude Include="common\text\method\buffer_w.h" />
     <ClInclude Include="common\text\method\common.h" />
     <ClInclude Include="common\autovar.h" />
     <ClInclude Include="common\error.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="js\undefined.h" />
     <ClInclude Include="js\value.h" />
     <ClInclude Include="math\coord\const.h" />
+    <ClInclude Include="meta\has_equals.h" />
     <ClInclude Include="msg\cascader.h" />
     <ClInclude Include="win\devent.h" />
     <ClInclude Include="msg\minidb.h" />
@@ -386,7 +388,11 @@
     <ClCompile Include="http\wspage.cpp" />
     <ClCompile Include="js\arguments.cpp" />
     <ClCompile Include="js\cast.cpp" />
-    <ClCompile Include="js\chakra.cpp" />
+    <ClCompile Include="js\chakra.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|Emscripten'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Emscripten'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="js\class.cpp" />
     <ClCompile Include="js\context.cpp" />
     <ClCompile Include="js\function.cpp" />
@@ -477,8 +483,11 @@
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="data\idmap.inl" />
+    <None Include="js\cast.inl" />
     <None Include="js\class.inl" />
+    <None Include="js\function.inl" />
     <None Include="js\meta.inl" />
+    <None Include="js\value.inl" />
     <None Include="math\coord\matrix_method.inl" />
     <None Include="math\coord\matrix_data.inl" />
     <None Include="math\coord\vector.inl" />

@@ -81,7 +81,7 @@ namespace kr
 				}
 				catch (SEHException & e)
 				{
-					JsSetException(createError(TSZ16() << u"Structured Exception: " << e.getErrorText() << u'(' << e.getErrorCode() << u')').m_data);
+					JsSetException(createError(TSZ16() << u"Structured Exception: " << e.getErrorText() << u"(0x" << hexf(e.getErrorCode(), 8) << u')').m_data);
 					return JS_INVALID_REFERENCE;
 				}
 				catch (std::exception & e)
@@ -170,9 +170,9 @@ namespace kr
 				NOERR JsCreateError(JsRawData(message).m_data, &out.m_data);
 				return out;
 			}
-			static JsArguments makeArgs(JsRawData callee, JsRawData _this, JsValueRef* arguments, unsigned short argumentCount) noexcept
+			static JsArguments makeArgs(JsRawData _this, JsValueRef* arguments, unsigned short argumentCount) noexcept
 			{
-				return JsArguments(callee, _this, arguments + 1, argumentCount - 1);
+				return JsArguments(_this, arguments + 1, argumentCount - 1);
 			}
 			static JsValueRef CT_STDCALL nativeConstructorCallback(JsValueRef callee, bool isConstructCall, JsValueRef* arguments, unsigned short argumentCount, void* callbackState) noexcept
 			{
@@ -193,7 +193,7 @@ namespace kr
 				JsGetPrototype(arguments[0], &prototype.m_data);
 				JsSetPrototype(_thisref.m_data, prototype.m_data);
 
-				JsArguments args = makeArgs((JsRawData)callee, _thisref, arguments, argumentCount);
+				JsArguments args = makeArgs(_thisref, arguments, argumentCount);
 
 				using CTOR = JsClass::CTOR;
 				CTOR ctor = (CTOR)callbackState;
@@ -217,7 +217,7 @@ namespace kr
 				{
 					
 					JsScope scope;
-					JsArguments args = makeArgs((JsRawData)callee, (JsRawData)*arguments, arguments, argumentCount);
+					JsArguments args = makeArgs((JsRawData)*arguments, arguments, argumentCount);
 					JsValue retValue = data->call(args);
 					return retValue.m_data;
 				}
@@ -730,6 +730,16 @@ kr::JsWeak::~JsWeak() noexcept
 bool kr::JsWeak::isEmpty() const noexcept
 {
 	return m_data == JS_INVALID_REFERENCE;
+}
+
+// arguments
+kr::JsArgumentsAllocated::JsArgumentsAllocated(const JsValue& _this, size_t argn) noexcept
+	:JsArguments(_this, _new JsRawDataValue[argn], argn)
+{
+}
+kr::JsArgumentsAllocated::~JsArgumentsAllocated() noexcept
+{
+	delete[] m_args;
 }
 
 // exception

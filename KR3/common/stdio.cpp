@@ -79,13 +79,16 @@ void StandardOutput16::flush() noexcept
 template <>
 void StandardOutput16::$write(const char16 *chr, size_t sz) noexcept
 {
-#ifdef WCHAR_IS_CHAR16
-	auto tmp = wide_tmp(chr, sz);
-	std::wcout.write(tmp.data(), tmp.size());
-#else
-	TText buf = toUtf8(Text16(chr, sz));
-	std::cout.write(buf.data(), buf.size());
-#endif
+	if (sizeof(wchar_t) == sizeof(char16_t))
+	{
+		auto tmp = wide_tmp(chr, sz);
+		std::wcout.write(tmp.data(), tmp.size());
+	}
+	else
+	{
+		TText buf = toAnsi(Text16(chr, sz));
+		std::cout.write(buf.data(), buf.size());
+	}
 }
 template <>
 void StandardErrorOutput16::flush() noexcept
@@ -95,13 +98,16 @@ void StandardErrorOutput16::flush() noexcept
 template <>
 void StandardErrorOutput16::$write(const char16 *chr, size_t sz) noexcept
 {
-#ifdef WCHAR_IS_CHAR16
-	auto tmp = wide_tmp(chr, sz);
-	std::wcerr.write(tmp.data(), tmp.size());
-#else
-	TText buf = toUtf8(Text16(chr, sz));
-	std::cerr.write(buf.data(), buf.size());
-#endif
+	if (sizeof(wchar_t) == sizeof(char16_t))
+	{
+		auto tmp = wide_tmp(chr, sz);
+		std::wcerr.write(tmp.data(), tmp.size());
+	}
+	else
+	{
+		TText buf = toAnsi(Text16(chr, sz));
+		std::cerr.write(buf.data(), buf.size());
+	}
 }
 
 #ifdef WIN32

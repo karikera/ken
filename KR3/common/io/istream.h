@@ -267,7 +267,7 @@ namespace kr
 			inline size_t read(Component * dest, size_t sz) throws(EofException)
 			{
 				const Component* src = read(&sz);
-				mema::subs_copy((InternalComponent*)dest, (InternalComponent*)src, sz);
+				mema::assign_copy((InternalComponent*)dest, (InternalComponent*)src, sz);
 				return sz;
 			}
 

@@ -858,7 +858,6 @@ void ToConvert<Charset::Utf8, char32>::decode(Writer* out, Text32* text) noexcep
 	}
 }
 
-
 #ifdef WIN32
 
 #include <KR3/win/windows.h>

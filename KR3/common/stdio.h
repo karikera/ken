@@ -114,7 +114,7 @@ namespace kr
 	template <ConsoleType type, typename C>
 	inline void ConsoleOutputStream<type, C>::$write(const C *chr, size_t sz) noexcept
 	{
-		ConsoleOutputStream<type, char>::out << (ToAcp<C>)View<C>(chr, sz);
+		ConsoleOutputStream<type, char>::out << (ToAnsi<C>)View<C>(chr, sz);
 	}
 	template <typename C>
 	inline void ConsoleOutputStream<ConsoleType::Debug, C>::$write(const C *chr, size_t sz) noexcept

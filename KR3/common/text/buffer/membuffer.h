@@ -387,24 +387,12 @@ namespace kr
 				return size();
 			}
 
-			bool operator ==(const Memory& other) const
+			bool equals(Ref other) const noexcept
 			{
 				size_t tsize = size();
 				size_t osize = other.size();
 				if (tsize != osize) return false;
 				return mem::equals(begin(), other.begin(), tsize);
-			}
-			bool operator !=(const Memory& other) const
-			{
-				return !(*this == other);
-			}
-			bool equals(Ref _v) const noexcept
-			{
-				KR_DEFINE_MMEM();
-				size_t _len = size();
-				size_t _len2 = _v.size();
-				if (_len != _len2) return false;
-				else return memm::equals(begin(), _v.begin(), _len);
 			}
 			size_t hash() const noexcept
 			{
@@ -420,7 +408,7 @@ namespace kr
 			}
 			size_t copyTo(Component * dest) const
 			{
-				mema::subs_copy((InternalComponent*)dest, begin(), size());
+				mema::assign_copy((InternalComponent*)dest, begin(), size());
 				return size();
 			}
 			size_t bytes() const noexcept
@@ -1101,7 +1089,7 @@ namespace kr
 				}
 				else
 				{
-					mema::subs_fill(begin(), chr, size());
+					mema::assign_fill(begin(), chr, size());
 				}
 			}
 			void zero() noexcept
@@ -1112,12 +1100,12 @@ namespace kr
 			void subfill(const InternalComponent& chr, size_t sz, size_t offset) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_fill(begin() + offset, chr, sz);
+				mema::assign_fill(begin() + offset, chr, sz);
 			}
 			void subcopy(const Component* arr, size_t sz, size_t offset = 0) noexcept
 			{
 				_assert(offset + sz <= size());
-				mema::subs_copy(begin() + offset, (InternalComponent*)arr, sz);
+				mema::assign_copy(begin() + offset, (InternalComponent*)arr, sz);
 			}
 			void subcopy(View<Component> arr, size_t offset = 0) noexcept
 			{

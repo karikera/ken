@@ -17,6 +17,7 @@ namespace kr
 		friend JsException;
 		friend JsObjectT<JsObject>;
 		friend JsWeak;
+		friend JsArguments;
 	public:
 		~JsRawData() noexcept;
 		JsRawData(const JsRawData& data) noexcept;

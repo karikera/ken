@@ -251,79 +251,13 @@ namespace kr
 			}
 		};
 
-		template <size_t SIZE> struct SIZE_MEM
-		{
-			static constexpr size_t align = meta::align_of<SIZE>::value;
-			static constexpr size_t blocksize = SIZE / align;
-			using almem = memt<align>;
-
-			_VOID_ fill(void* dest, const void* src, size_t size) noexcept;
-			_VOID_ copy(void* dest, const void* src, size_t size) noexcept;
-			_VOID_ move(void* dest, const void* src, size_t size) noexcept;
-			_VOID_ zero(void* dest, size_t size) noexcept;
-		};;
-
-		template <size_t SIZE> struct SIZE_MEM_SINGLE
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<1>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<2>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<3>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<4>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<5>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<6>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<8>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<9>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<10>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		template <> struct SIZE_MEM_SINGLE<12>
-		{
-			_VOID_ copy(void* dest, const void* src) noexcept;
-			_VOID_ zero(void* dest) noexcept;
-		};;
-		
-		template <bool OP, bool is_void> struct ARRCOPY;
+		template <bool isRaw, bool isVoid> struct ARRCOPY;
 		template <> struct ARRCOPY<true, true>
 		{
-			template <typename T> _VOID_ subs_copy(void* dest, const void* src, size_t size) noexcept;
-			template <typename T> _VOID_ subs_move(void* dest, void* src, size_t size) noexcept;
+			template <typename T> bool equals(const void* dest, const void* src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_fill(void* dest, byte src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_copy(void* dest, const void* src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_move(void* dest, void* src, size_t size) noexcept;
 			template <typename T> _VOID_ ctor(void* dest, void* dest_end) noexcept;
 			template <typename T> _VOID_ dtor(void* dest, void* dest_end) noexcept;
 			template <typename T> _VOID_ ctor_copy(void* dest, const void* src, size_t size) noexcept;
@@ -334,9 +268,10 @@ namespace kr
 		};
 		template <> struct ARRCOPY<true, false>
 		{
-			template <typename T> _VOID_ subs_fill(T* dest, const T& src, size_t size) noexcept;
-			template <typename T> _VOID_ subs_copy(T* dest, const T* src, size_t size) noexcept;
-			template <typename T> _VOID_ subs_move(T* dest, T* src, size_t size) noexcept;
+			template <typename T> bool equals(const T* dest, const T* src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_fill(T* dest, const T& src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_copy(T* dest, const T* src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_move(T* dest, T* src, size_t size) noexcept;
 			template <typename T> _VOID_ ctor(T* dest, T* dest_end) noexcept;
 			template <typename T> _VOID_ dtor(T* dest, T* dest_end) noexcept;
 			template <typename T> _VOID_ ctor_fill(T* dest, const T& src, size_t size) noexcept;
@@ -346,12 +281,12 @@ namespace kr
 			template <typename T> _VOID_ ctor_move_d(T* dest, T* src, size_t size) noexcept;
 			template <typename T> _VOID_ ctor_move_rd(T* dest, T* src, size_t size) noexcept;
 		};
-
 		template <> struct ARRCOPY<false, false>
 		{
-			template <typename T> _VOID_ subs_fill(T* dest, const T& src, size_t size) noexcept;
-			template <typename T> _VOID_ subs_copy(T* dest, const T* src, size_t size) noexcept;
-			template <typename T> _VOID_ subs_move(T* dest, T* src, size_t size) noexcept;
+			template <typename T> bool equals(const T* dest, const T* src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_fill(T* dest, const T& src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_copy(T* dest, const T* src, size_t size) noexcept;
+			template <typename T> _VOID_ assign_move(T* dest, T* src, size_t size) noexcept;
 			template <typename T> _VOID_ ctor(T* dest, T* dest_end) noexcept;
 			template <typename T> _VOID_ dtor(T* dest, T* dest_end) noexcept;
 			template <typename T> _VOID_ ctor_fill(T* dest, const T& src, size_t size) noexcept;
@@ -381,19 +316,20 @@ namespace kr
 		template <typename T> _NOTNULL_ T* alloc(const T &_src) noexcept;
 		template <typename T> _NOTNULL_ T* alloc(const T* _src, size_t _len) noexcept;
 
+		template <typename T> bool equals(const T* dest, const T* src, size_t size) noexcept;
 		template <typename T> _VOID_ ctor(T* dest, T* dest_end) noexcept;
 		template <typename T> _VOID_ dtor(T* dest, T* dest_end) noexcept;
-		template <typename T> _VOID_ subs_fill(T* dest, const T& src, size_t size) noexcept;
-		template <typename T> _VOID_ subs_copy(T* dest, const T* src, size_t size) noexcept;
-		template <typename T> _VOID_ subs_move(T* dest, T* src, size_t size) noexcept;
+		template <typename T> _VOID_ assign_fill(T* dest, const T& src, size_t size) noexcept;
+		template <typename T> _VOID_ assign_copy(T* dest, const T* src, size_t size) noexcept;
+		template <typename T> _VOID_ assign_move(T* dest, T* src, size_t size) noexcept;
 		template <typename T> _VOID_ ctor_fill(T* dest, const T& src, size_t size) noexcept;
 		template <typename T> _VOID_ ctor_copy(T* dest, const T* src, size_t size) noexcept;
 		template <typename T> _VOID_ ctor_move(T* dest, T* src, size_t size) noexcept;
 		template <typename T> _VOID_ ctor_move_r(T* dest, T* src, size_t size) noexcept;
 		template <typename T> _VOID_ ctor_move_d(T* dest, T* src, size_t size) noexcept;
 		template <typename T> _VOID_ ctor_move_rd(T* dest, T* src, size_t size) noexcept;
-		template <typename T, size_t size> _VOID_ subs_copy(T(&dest)[size], const T(&src)[size]) noexcept;
-		template <typename T, size_t size> _VOID_ subs_move(T(&dest)[size], const T(&src)[size]) noexcept;
+		template <typename T, size_t size> _VOID_ assign_copy(T(&dest)[size], const T(&src)[size]) noexcept;
+		template <typename T, size_t size> _VOID_ assign_move(T(&dest)[size], const T(&src)[size]) noexcept;
 	#pragma warning(pop)
 	};
 

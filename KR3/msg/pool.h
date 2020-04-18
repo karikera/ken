@@ -41,6 +41,8 @@ namespace kr
 		Array<ThreadObject> m_threads;
 	};
 
+#ifdef WIN32
+
 	class ThreadPoolWinImpl:public TaskLambdaPost<ThreadPoolWinImpl>
 	{
 	public:
@@ -54,6 +56,9 @@ namespace kr
 	};
 
 	using ThreadPool = ThreadPoolWinImpl;
+#else
+	using ThreadPool = ThreadPoolKrImpl;
+#endif
 
 	template <typename LAMBDA>
 	void threadingVoid(LAMBDA &&lambda) noexcept

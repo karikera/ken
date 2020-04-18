@@ -57,7 +57,7 @@ bool Timeout::post(duration to) noexcept
 		Timeout* timeout = (Timeout*)param;
 		timeout->m_timeoutId = 0;
 		timeout->call();
-		PromiseManager::getInstance()->process();
+		PromisePump::getInstance()->process();
 	}, to.value(), this);
 	return true;
 #endif
@@ -109,7 +109,7 @@ bool Interval::start(duration interval) noexcept
 	m_intervalId = jsSetInterval([](void * param) {
 		Interval* interval = (Interval*)param;
 		interval->call();
-		PromiseManager::getInstance()->process();
+		PromisePump::getInstance()->process();
 	}, interval.value(), this);
 	return true;
 #endif

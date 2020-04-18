@@ -12,6 +12,14 @@
 
 using namespace kr;
 
+inline char hex(size_t v) noexcept
+{
+	if (v < 10)
+		return (char)(v + '0');
+	else
+		return (char)(v - 10 + 'A');
+}
+
 #ifndef _MSC_VER
 
 #define _NORMAL_BLOCK 0
@@ -257,18 +265,42 @@ namespace
 			m_cs.enter();
 			for (BlockInfo & info : *this)
 			{
-				dout << info.m_filename << '(' << info.m_line << ") //" << info.m_allocationNumber << "\r\n";
+				dout << info.m_filename << '(' << info.m_line << ") //" << info.m_allocationNumber << ' ';
+				char* iter = (char*)info.m_address;
+				char* end = iter + 32;
+				while (iter != end)
+				{
+					char chr = *iter++;
+					if (chr < 0x20)
+					{
+						switch (chr)
+						{
+						case '\0': dout << "\\0"; break;
+						case '\t': dout << "\\t"; break;
+						case '\r': dout << "\\r"; break;
+						case '\n': dout << "\\n"; break;
+						default:
+							dout << "\\x" << hex((uint8_t)chr >> 4) << hex(chr & 0xf);
+							break;
+						}
+					}
+					else if (chr == '\\')
+					{
+						dout << "\\\\";
+					}
+					else
+					{
+						dout << chr;
+					}
+				}
+				dout << "\r\n";
 
 				uintptr_t value = (uintptr_t)info.m_address;
 				dout << "Address: 0x";
 				for (int i = 0; i < sizeof(uintptr_t) * 2; i++)
 				{
 					value = kr::intrinsic<sizeof(uintptr_t)>::rotl(value, 4);
-					uintptr_t v = value & 0xf;
-					if (v < 10)
-						dout << (char)(v + '0');
-					else
-						dout << (char)(v - 10 + 'A');
+					dout << hex(value & 0xf);
 				}
 				dout << "\r\n";
 			}

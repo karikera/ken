@@ -2,6 +2,8 @@
 #include "value.h"
 #include "object.h"
 
+#include "value.inl"
+
 using namespace kr;
 
 JsValue::JsValue() noexcept

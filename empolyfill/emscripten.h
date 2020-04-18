@@ -7,9 +7,6 @@ void emscripten_set_canvas_size(int width, int height);
 void emscripten_set_canvas_element_size(const char * target, int width, int height);
 float emscripten_random(void);
 
-
-//emscripten_set_keydown_callback
-
 typedef int EM_BOOL;
 typedef char EM_UTF8;
 

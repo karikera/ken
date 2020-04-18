@@ -52,11 +52,7 @@ namespace kr
 			template <typename To>
 			struct ToOuter<To*, JsObjectRawData>
 			{
-				static To* toOuter(const JsObjectRawData& _value) noexcept
-				{
-					if (!_value.instanceOf(JsObject::classObject)) return nullptr;
-					return dynamic_cast<To*>(_value.template as<JsObject*>());
-				}
+				static To* toOuter(const JsObjectRawData& _value) noexcept;
 			};
 			template <typename T, typename TI>
 			static T toOuter(const TI& _value) noexcept
@@ -123,42 +119,29 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static JsObjectRawData toInner(JsObject* object) noexcept;
 
 			template <typename T>
-			static T defaultValue() noexcept
-			{
-				using type = decltype(toInner(*(T*)0));
-				return toOuter<T>(defaultValue<type>());
-			}
-			template <>
-			static AText16 defaultValue<AText16>() noexcept
-			{
-				return nullptr;
-			}
-			template <>
-			static AText defaultValue<AText>() noexcept
-			{
-				return nullptr;
-			}
-			template <>
-			static Text defaultValue<Text>() noexcept
-			{
-				return "";
-			}
-			template <>
-			static void defaultValue<void>() noexcept
-			{
-			}
-#define DEFAULT(type, v)	template <> static type defaultValue<type>() noexcept { return v; }
-			DEFAULT(int, 0);
-			DEFAULT(double, NAN);
-			DEFAULT(bool, false);
-			DEFAULT(nullptr_t, nullptr);
-			DEFAULT(undefined_t, undefined);
-			DEFAULT(Text16, u"");
-#undef DEFAULT
+			static T defaultValue() noexcept;
 		};
 
-		template <>
-		JsRawData JsCast::defaultValue<JsRawData>() noexcept;
+#define DEFDECL(type) template <> type JsCast::defaultValue<type>() noexcept
+		DEFDECL(int);
+		DEFDECL(double);
+		DEFDECL(bool);
+		DEFDECL(nullptr_t);
+		DEFDECL(undefined_t);
+		DEFDECL(Text16);
+		DEFDECL(JsRawData);
+		DEFDECL(AText16);
+		DEFDECL(AText);
+		DEFDECL(Text);
+		DEFDECL(void);
+#undef DEFDECL
+
+		template <typename T>
+		T JsCast::defaultValue() noexcept
+		{
+			using type = decltype(toInner(declval<T>()));
+			return toOuter<T>(defaultValue<type>());
+		}
 
 		enum CastType
 		{
@@ -321,7 +304,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 
 		template <typename T> struct GetBridgeType
 		{
-			using type = decltype(_pri_::JsCast::toInner(*(T*)0));
+			using type = decltype(_pri_::JsCast::toInner(declval<T>()));
 		};
 		template <> struct GetBridgeType<AText16>
 		{

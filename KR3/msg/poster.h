@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef WIN32
+#ifndef __EMSCRIPTEN__
 #include "pump.h"
 #endif
 
@@ -9,7 +9,7 @@ namespace kr
 	class PostTarget;
 
 	class Posted
-#ifdef WIN32
+#ifndef __EMSCRIPTEN__
 		: private TimerEvent
 #endif
 	{
@@ -18,9 +18,9 @@ namespace kr
 		Posted() noexcept;
 
 	protected:
-#ifdef WIN32
+#ifndef __EMSCRIPTEN__
 		virtual void call() noexcept override = 0;
-#elif defined(__EMSCRIPTEN__)
+#else
 		virtual void call() noexcept = 0;
 #endif
 

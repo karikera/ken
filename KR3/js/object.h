@@ -20,7 +20,7 @@ namespace kr
 		private:
 			typedef JsObject* (*CTOR)(const JsArguments&);
 			size_t m_index;
-			byte m_classObjectBuffer[sizeof(JsClass)] alignas(JsClass);
+			byte m_classObjectBuffer alignas(JsClass) [sizeof(JsClass)];
 			void (*m_initMethods)();
 			void (*m_clearMethods)();
 			Text16 m_name;
@@ -46,7 +46,7 @@ namespace kr
 	template <class Class, class Parent>
 	class JsObjectT :public Parent
 	{
-		template <class Class, class Parent>
+		template <class Class2, class Parent2>
 		friend class JsObjectT;
 	private:
 		static constexpr undefined_t className = undefined; // Need to define with Text16
@@ -188,6 +188,9 @@ namespace kr
 	class JsIndexAccessor :public Referencable<JsIndexAccessor>
 	{
 	public:
+		virtual ~JsIndexAccessor() noexcept
+		{
+		}
 		virtual void set(const JsValue& _this, uint32_t idx, const JsValue& v) noexcept = 0;
 		virtual JsValue get(const JsValue& _this, uint32_t idx) noexcept = 0;
 
@@ -268,11 +271,11 @@ namespace kr
 			~JsIndexAccessorGetSet() noexcept override
 			{
 			}
-			virtual JsValue get(const JsObject& _this, uint32_t idx) noexcept override
+			virtual JsValue get(const JsValue& _this, uint32_t idx) noexcept override
 			{
 				return m_get(_this, idx);
 			}
-			virtual void set(const JsObject& _this, uint32_t idx, const JsValue& v) noexcept override
+			virtual void set(const JsValue& _this, uint32_t idx, const JsValue& v) noexcept override
 			{
 				return m_set(_this, idx, v);
 			}

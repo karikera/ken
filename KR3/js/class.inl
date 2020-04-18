@@ -1,6 +1,9 @@
 #pragma once
 
 #include "class.h"
+#include "arguments.h"
+#include "exception.h"
+
 #include <KR3/meta/array.h>
 
 template <typename T>
@@ -13,39 +16,37 @@ template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setAccessor(const JsPropertyId& name, P(T::*v)) noexcept
 {
-	auto get = [v](JsValue _this)->JsValue {
-		T * _nthis = _this.getNativeObject<T>();
+	JsClass::setAccessorL(name, [v](JsValue _this)->JsValue {
+		T* _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr)
 			return undefined;
 		return (const P&)(_nthis->*v);
-	};
-	auto set = [v](JsValue _this, JsValue _nv) {
-		T * _nthis = _this.getNativeObject<T>();
+		},
+		[v](JsValue _this, JsValue _nv) {
+		T* _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr)
 			return;
 		_nthis->*v = _nv.cast<P>();
-	};
-	JsClass::setAccessorL(name, get, set);
+		});
 }
 
 template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setGetter(const JsPropertyId& name, P(T::*v)) noexcept
 {
-	auto get = [v](JsObject _this)->JsValue {
-		T * _nthis = _this.getNativeObject<T>();
+	JsClass::setAccessorL(name, [v](JsValue _this)->JsValue {
+		T* _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return undefined;
 		return (const P&)(_nthis->*v);
-	};
-	JsClass::setAccessor(name, get);
+		});
 }
 
 template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setMethodGetter(const JsPropertyId& name, P(T::* get)()) noexcept
 {
-	JsClass::setReadOnlyAccessor(name, [get](JsObject _this)->JsValue {
-		T* _nthis = _this.getNativeObject<T>();
+	JsClass::setAccessorL(name, [get](JsValue _this)->JsValue {
+		T* _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return undefined;
 		return (_nthis->*get)();
 		});
@@ -55,23 +56,23 @@ template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setMethodAccessor(const JsPropertyId& name, P(T::* get)(), void(T::* set)(P)) noexcept
 {
-	JsClass::setAccessor(name, [get](JsObject _this)->JsValue {
-		T* _nthis = _this.getNativeObject<T>();
+	JsClass::setAccessorL(name, [get](JsValue _this)->JsValue {
+		T* _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return undefined;
 		return (_nthis->*get)();
-		}, [set](JsObject _this, JsValue nv) {
-			T* _nthis = _this.getNativeObject<T>();
-			if (_nthis == nullptr) return;
-			return (_nthis->*set)(nv.cast<P>());
-		});
+	}, [set](JsValue _this, JsValue nv) {
+		T* _nthis = _this.template getNativeObject<T>();
+		if (_nthis == nullptr) return;
+		return (_nthis->*set)(nv.cast<P>());
+	});
 }
 
 template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setNullableMethodGetter(const JsPropertyId& name, P(T::* get)()) noexcept
 {
-	JsClass::setReadOnlyAccessor(name, [get](JsObject _this)->JsValue {
-		T* _nthis = _this.getNativeObject<T>();
+	JsClass::setAccessorL(name, [get](JsValue _this)->JsValue {
+		T* _nthis = _this.template getNativeObject<T>();
 		return (_nthis->*get)();
 		});
 }
@@ -80,11 +81,11 @@ template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setNullableMethodAccessor(const JsPropertyId& name, P(T::*get)(), void(T::*set)(P)) noexcept
 {
-	JsClass::setAccessor(name, [get](JsObject _this)->JsValue {
-		T * _nthis = _this.getNativeObject<T>();
+	JsClass::setAccessorL(name, [get](JsValue _this)->JsValue {
+		T * _nthis = _this.template getNativeObject<T>();
 		return (_nthis->*get)();
-	}, [set](JsObject _this, JsValue nv) {
-		T * _nthis = _this.getNativeObject<T>();
+	}, [set](JsValue _this, JsValue nv) {
+		T * _nthis = _this.template getNativeObject<T>();
 		return (_nthis->*set)(nv.cast<P>());
 	});
 }
@@ -103,8 +104,8 @@ template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setIndexAccessor(P(T::* get)(uint32_t)) noexcept
 {
-	JsClass::setReadOnlyIndexAccessor(JsIndexAccessor([get](JsObject _this, uint32_t idx)->JsValue {
-		T * _nthis = _this.getNativeObject<T>();
+	JsClass::setIndexAccessorRaw(JsIndexAccessor::wrap([get](JsValue _this, uint32_t idx)->JsValue {
+		T * _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return undefined;
 		return (_nthis->*get)(idx);
 	}));
@@ -114,12 +115,12 @@ template <typename T>
 template <typename P>
 void kr::JsClassT<T>::setIndexAccessor(P(T::* get)(uint32_t), void(T::* set)(uint32_t, P)) noexcept
 {
-	JsClass::setIndexAccessor(JsIndexAccessor([get](JsObject _this, uint32_t idx)->JsValue {
-		T * _nthis = _this.getNativeObject<T>();
+	JsClass::setIndexAccessorRaw(JsIndexAccessor::wrap([get](JsValue _this, uint32_t idx)->JsValue {
+		T * _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return undefined;
 		return (_nthis->*get)(idx);
-	}, [set](JsObject _this, uint32_t idx, JsValue value) {
-		T * _nthis = _this.getNativeObject<T>();
+	}, [set](JsValue _this, uint32_t idx, JsValue value) {
+		T * _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return;
 		return (_nthis->*set)(idx, value);
 	}));
@@ -134,6 +135,62 @@ void kr::JsClassT<T>::setMethod(const JsPropertyId& name, RET(T::* func)(ARGS ..
 	}));
 }
 
+
+template <typename P>
+void kr::JsClass::setStaticAccessor(const JsPropertyId& name, P* value) noexcept
+{
+	setMethodStaticAccessor(name,
+		[value](JsValue)->JsValue { return *value; },
+		[value](JsValue, JsValue nv) { *value = nv.get<P>(); }
+	);
+}
+
+template <typename P>
+void kr::JsClass::setStaticGetter(const JsPropertyId& name, P* value) noexcept
+{
+	setStaticGetterL(name,
+		[value](JsValue)->JsValue { return *value; }
+	);
+}
+
+template <typename GET, typename SET>
+void kr::JsClass::setAccessorL(const JsPropertyId& name, GET&& get) noexcept
+{
+	setAccessorRaw(name, JsAccessor::wrap(forward<GET>(get), [](JsValue _this, JsValue _nv) {
+			throw JsException(u"Cannot assign to read only property");
+		}));
+}
+
+template <typename GET, typename SET>
+void kr::JsClass::setAccessorL(const JsPropertyId& name, GET&& get, SET&& set) noexcept
+{
+	setAccessorRaw(name, JsAccessor::wrap(forward<GET>(get), forward<SET>(set)));
+}
+
+template <typename GET>
+void kr::JsClass::setGetterL(const JsPropertyId& name, GET&& get) noexcept
+{
+	setGetterRaw(name, JsGetter::wrap(forward<GET>(get)));
+}
+
+template <typename GET, typename SET>
+void kr::JsClass::setStaticAccessorL(const JsPropertyId& name, GET&& get, SET&& set) noexcept
+{
+	setStaticAccessorRaw(name, JsAccessor::wrap(forward<GET>(get), forward<SET>(set)));
+}
+
+template <typename GET>
+void kr::JsClass::setStaticGetterL(const JsPropertyId& name, GET&& get) noexcept
+{
+	setStaticGetterRaw(name, JsGetter::wrap(forward<GET>(get)));
+}
+
+template <typename LAMBDA>
+void kr::JsClass::setMethodRaw(const JsPropertyId& name, LAMBDA&& _lambda) noexcept
+{
+	setField(name, JsFunction::make(forward<LAMBDA>(_lambda)));
+}
+
 template <typename T>
 kr::JsClass kr::JsClass::createChild(Text16 _name) noexcept
 {
@@ -144,8 +201,8 @@ kr::JsClass kr::JsClass::createChild(Text16 _name) noexcept
 template <typename T, typename P>
 void kr::JsClass::setMethodGetter(const JsPropertyId& name, P(T::* get)()) noexcept
 {
-	setGetter(name, [get](JsObject _this)->JsValue {
-		T* _nthis = _this.getNativeObject<T>();
+	setGetter(name, [get](JsValue _this)->JsValue {
+		T* _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return undefined;
 		return (_nthis->*get)();
 		});
@@ -153,12 +210,12 @@ void kr::JsClass::setMethodGetter(const JsPropertyId& name, P(T::* get)()) noexc
 template <typename T, typename P>
 void kr::JsClass::setMethodAccessor(const JsPropertyId& name, P(T:: * get)(), void(T:: * set)(P)) noexcept
 {
-	setAccessor(name, [get](JsObject _this)->JsValue {
-		T* _nthis = _this.getNativeObject<T>();
+	setAccessor(name, [get](JsValue _this)->JsValue {
+		T* _nthis = _this.template getNativeObject<T>();
 		if (_nthis == nullptr) return undefined;
 		return (_nthis->*get)();
-		}, [set](JsObject _this, JsValue nv) {
-			T* _nthis = _this.getNativeObject<T>();
+		}, [set](JsValue _this, JsValue nv) {
+			T* _nthis = _this.template getNativeObject<T>();
 			if (_nthis == nullptr) return;
 			return (_nthis->*set)(nv.cast<P>());
 		});

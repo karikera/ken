@@ -63,7 +63,7 @@ namespace kr
 		static size_t decode(char * out, ToText text) noexcept;
 		static void encode(ArrayWriter<To>* out, Text* text) noexcept;
 		static void decode(Writer* out, ToText* text) noexcept;
-	};;
+	};
 
 	template <Charset charset>
 	class meml
@@ -291,7 +291,7 @@ namespace kr
 		template <typename To, typename From>
 		struct UnicodeConverterImpl
 		{
-			static_assert(is_same<To, From>::value, "Unknown encoding time");
+			static_assert(is_same<To, From>::value, "Unknown encoding type");
 			using type = encoder::PassEncoder<To>;
 		};
 
@@ -326,9 +326,13 @@ namespace kr
 	template <Charset charset>
 	using MultiByteToUtf16 = ToConvert<charset, char16>;
 	template <Charset charset>
+	using MultiByteToWide = ToConvert<charset, wchar_t>;
+	template <Charset charset>
 	using Utf32ToMultiByte = typename MultiByteToUtf32<charset>::Decoder;
 	template <Charset charset>
 	using Utf16ToMultiByte = typename MultiByteToUtf16<charset>::Decoder;
+	template <Charset charset>
+	using WideToMultiByte = typename MultiByteToWide<charset>::Decoder;
 
 	template <typename T>
 	using FromUtf8 = ToConvert<Charset::Utf8, T>;
@@ -351,9 +355,9 @@ namespace kr
 	using NoneToUtf32 = MultiByteToUtf32<Charset::None>;
 
 	template <typename T>
-	using FromAcp = ToConvert<Charset::Default, T>;
+	using FromAnsi = ToConvert<Charset::Default, T>;
 	template <typename T>
-	using ToAcp = typename FromAcp<T>::Decoder;
+	using ToAnsi = typename FromAnsi<T>::Decoder;
 
 	using Utf16ToAnsi = Utf16ToMultiByte<Charset::Default>;
 	using AnsiToUtf16 = MultiByteToUtf16<Charset::Default>;
@@ -453,6 +457,3 @@ template <> bool kr::meml<kr::Charset::EucKr>::isDbcs(char chr) noexcept;
 template <> bool kr::meml<kr::Charset::Utf8>::isDbcs(char chr) noexcept;
 
 #undef EXTERN_CHARSET
-
-extern template class kr::ToConvert<kr::Charset::Utf8, kr::char16>;
-extern template class kr::ToConvert<kr::Charset::Default, kr::char16>;

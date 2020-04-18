@@ -4,6 +4,8 @@
 #include "news.h"
 #include "object.h"
 
+#include "cast.inl"
+
 using namespace kr;
 
 
@@ -60,8 +62,37 @@ JsObjectRawData _pri_::JsCast::toInner(JsObject* object) noexcept
 	return (JsRawData)object->m_data;
 }
 
+
+#define DEFAULT(type, v)	template <> type _pri_::JsCast::defaultValue<type>() noexcept { return v; }
+DEFAULT(int, 0);
+DEFAULT(double, NAN);
+DEFAULT(bool, false);
+DEFAULT(nullptr_t, nullptr);
+DEFAULT(undefined_t, undefined);
+DEFAULT(Text16, u"");
+#undef DEFAULT
+
 template <>
 JsRawData _pri_::JsCast::defaultValue<JsRawData>() noexcept
 {
 	return (JsRawData)undefined;
+}
+template <>
+AText16 _pri_::JsCast::defaultValue<AText16>() noexcept
+{
+	return nullptr;
+}
+template <>
+AText _pri_::JsCast::defaultValue<AText>() noexcept
+{
+	return nullptr;
+}
+template <>
+Text _pri_::JsCast::defaultValue<Text>() noexcept
+{
+	return "";
+}
+template <>
+void _pri_::JsCast::defaultValue<void>() noexcept
+{
 }

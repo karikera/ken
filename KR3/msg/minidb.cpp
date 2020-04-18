@@ -2,6 +2,8 @@
 #include "minidb.h"
 #include "pool.h"
 
+#ifndef NO_USE_FILESYSTEM
+
 #include <KR3/fs/file.h>
 #include <KR3/util/path.h>
 #include <KR3/msg/pump.h>
@@ -109,5 +111,4 @@ Promise<MiniDB::Item*>* MiniDB::Table::get(AText key) noexcept
 	return prom;
 }
 
-
-
+#endif

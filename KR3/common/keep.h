@@ -67,7 +67,7 @@ namespace kr
 #ifdef WIN32
 			std::is_base_of<IUnknown, T>::value ||
 #endif
-			decltype(_pri_::isInterfaceHelper((T*)nullptr))::value;
+			decltype(_pri_::isInterfaceHelper(declval<T*>()))::value;
 	};
 	template <typename T>
 	struct IfInterfaceCall: _pri_::IfInterfaceCallImpl<IsInterface<T>::value>
@@ -450,7 +450,7 @@ namespace kr
 		template <typename T2> Keep<T>& operator =(const Keep<T2> & copy) noexcept;
 		template <typename T2> Keep<T>& operator =(Keep<T2> && move) noexcept;
 		Keep<T>& operator =(T* ptr) noexcept;
-		Keep<T>& operator =(decltype(nullptr)) noexcept;
+		Keep<T>& operator =(nullptr_t) noexcept;
 
 	protected:
 		T* m_ptr;
@@ -801,7 +801,7 @@ namespace kr
 		return *this;
 	}
 	template<class T>
-	inline Keep<T>& Keep<T>::operator =(decltype(nullptr)) noexcept
+	inline Keep<T>& Keep<T>::operator =(nullptr_t) noexcept
 	{
 		if (m_ptr != nullptr)
 		{

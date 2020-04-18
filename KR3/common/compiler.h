@@ -50,11 +50,11 @@
 		__debugbreak();\
 	}\
 	::kr::terminate(-1);\
-} } while(0,0)
+} } while(false)
 #else
 #define ondebug(code)
-#define debug()	do {} while(0,0)
-#define _assert(x)	do {__assume(x); } while(0,0)
+#define debug()	do {} while(false)
+#define _assert(x)	do {__assume(x); } while(false)
 #endif
 
 #elif defined(__GNUG__)

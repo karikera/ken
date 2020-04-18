@@ -164,7 +164,7 @@ namespace kr
 		class IteratorEnd
 		{
 		private:
-			using counter_t = decltype(((Derived*)nullptr)->size()); /// cannot define in MakeIndexIterable, because of Derived
+			using counter_t = decltype(declval<Derived>().size()); /// cannot define in MakeIndexIterable, because of Derived
 			const counter_t m_size;
 
 		public:
@@ -176,7 +176,7 @@ namespace kr
 		class Iterator:public MakeIterator<Iterator, ValueType>
 		{
 		private:
-			using counter_t = decltype(((Derived*)nullptr)->size()); /// cannot define in MakeIndexIterable, because of Derived
+			using counter_t = decltype(declval<Derived>().size()); /// cannot define in MakeIndexIterable, because of Derived
 			Derived* m_iter;
 			counter_t m_index;
 
@@ -292,12 +292,12 @@ namespace kr
 	};
 
 	template <typename Iterable, typename LAMBDA>
-	class FilterIterable :public MakeIterableIterator<FilterIterable<Iterable, LAMBDA>, decltype(((Iterable*)nullptr)->begin())>
+	class FilterIterable :public MakeIterableIterator<FilterIterable<Iterable, LAMBDA>, decltype(declval<Iterable>().begin())>
 	{
-		INHERIT_ITERATOR(MakeIterableIterator<FilterIterable<Iterable, LAMBDA>, decltype(((Iterable*)nullptr)->begin())>);
+		INHERIT_ITERATOR(MakeIterableIterator<FilterIterable<Iterable, LAMBDA>, decltype(declval<Iterable>().begin())>);
 	private:
-		decltype(((Iterable*)nullptr)->begin()) m_iterator;
-		decltype(((Iterable*)nullptr)->end()) m_iterator_end;
+		decltype(declval<Iterable>().begin()) m_iterator;
+		decltype(declval<Iterable>().end()) m_iterator_end;
 		LAMBDA m_condition;
 
 	public:

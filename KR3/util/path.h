@@ -5,8 +5,6 @@
 namespace kr
 {
 
-#ifndef NO_USE_FILESYSTEM
-
 	class CurrentDirectory final : public Bufferable<CurrentDirectory, BufferInfo<AutoComponent, method::CopyTo, true, true>>
 	{
 	public:
@@ -18,6 +16,9 @@ namespace kr
 		size_t $sizeAs() const noexcept;
 	};
 
+	static constexpr const CurrentDirectory currentDirectory = CurrentDirectory();
+
+#ifndef NO_USE_FILESYSTEM
 
 	class CurrentApplicationPath final : public Bufferable<CurrentApplicationPath, BufferInfo<AutoComponent, method::WriteTo, true, true>>
 	{
@@ -40,8 +41,6 @@ namespace kr
 	private:
 		void* m_module;
 	};
-
-	static constexpr const CurrentDirectory currentDirectory = CurrentDirectory();
 
 #endif
 

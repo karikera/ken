@@ -44,45 +44,25 @@ namespace kr
 		KRJS_EXPORT JsValue newInstanceRaw(JsArgumentsIn args) const throws(JsException);
 
 		template <typename P>
-		void setStaticAccessor(const JsPropertyId& name, P* value) noexcept
-		{
-			setMethodStaticAccessor(name,
-				[value](JsValue)->JsValue { return *value; },
-				[value](JsValue, JsValue nv) { *value = nv.get<P>(); }
-			);
-		}
+		void setStaticAccessor(const JsPropertyId& name, P* value) noexcept;
 
 		template <typename P>
-		void setStaticGetter(const JsPropertyId& name, P* value) noexcept
-		{
-			setStaticGetterL(name,
-				[value](JsValue)->JsValue { return *value; }
-			);
-		}
+		void setStaticGetter(const JsPropertyId& name, P* value) noexcept;
 
 		template <typename GET, typename SET>
-		void setAccessorL(const JsPropertyId& name, GET&& get, SET&& set) noexcept
-		{
-			setAccessorRaw(name, JsAccessor::wrap(forward<GET>(get), forward<SET>(set)));
-		}
-
-		template <typename GET>
-		void setGetterL(const JsPropertyId& name, GET &&get) noexcept
-		{
-			setGetterRaw(name, JsGetter::wrap(forward<GET>(get)));
-		}
+		void setAccessorL(const JsPropertyId& name, GET&& get) noexcept;
 
 		template <typename GET, typename SET>
-		void setStaticAccessorL(const JsPropertyId& name, GET &&get, SET &&set) noexcept
-		{
-			setStaticAccessorRaw(name, JsAccessor::wrap(forward<GET>(get), forward<SET>(set)));
-		}
+		void setAccessorL(const JsPropertyId& name, GET&& get, SET&& set) noexcept;
 
 		template <typename GET>
-		void setStaticGetterL(const JsPropertyId &name, GET &&get) noexcept
-		{
-			setStaticGetterRaw(name, JsGetter::wrap(forward<GET>(get)));
-		}
+		void setGetterL(const JsPropertyId& name, GET&& get) noexcept;
+
+		template <typename GET, typename SET>
+		void setStaticAccessorL(const JsPropertyId& name, GET&& get, SET&& set) noexcept;
+
+		template <typename GET>
+		void setStaticGetterL(const JsPropertyId& name, GET&& get) noexcept;
 
 		template <typename T, typename P>
 		void setMethodGetter(const JsPropertyId& name, P(T::* get)()) noexcept;
@@ -91,10 +71,7 @@ namespace kr
 		void setMethodAccessor(const JsPropertyId& name, P(T::* get)(), void(T::* set)(P)) noexcept;
 
 		template <typename LAMBDA>
-		void setMethodRaw(const JsPropertyId &name, LAMBDA&& _lambda) noexcept
-		{
-			setField(name, JsFunction::make(forward<LAMBDA>(_lambda)));
-		}
+		void setMethodRaw(const JsPropertyId& name, LAMBDA&& _lambda) noexcept;
 
 		template <typename LAMBDA>
 		void setStaticMethodRaw(const JsPropertyId& name, LAMBDA&& _lambda) noexcept;

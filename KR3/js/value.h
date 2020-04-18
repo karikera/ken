@@ -52,8 +52,8 @@ default: unreachable();\
 		JsValue() noexcept;
 		template <typename T> JsValue(const T& value) noexcept;
 		template <typename T> JsValue(T&& value) noexcept;
-		template <> JsValue(const JsPropertyId& value) noexcept = delete;
-		template <> JsValue(JsPropertyId&& value) noexcept = delete;
+		JsValue(const kr::JsPropertyId& value) noexcept = delete;
+		JsValue(kr::JsPropertyId&& value) noexcept = delete;
 		JsValue(const JsValue& v) noexcept;
 		JsValue(JsValue&& v) noexcept;
 		JsValue(const JsRawData& v) noexcept;
@@ -79,7 +79,7 @@ default: unreachable();\
 		template <typename T = JsValue, typename ... ARGS>
 		T call(ARGS && ... args) const throws(JsException)
 		{
-			return callRaw(undefined, {JsValue(forward<ARGS>(args)) ...}).cast<T>();
+			return callRaw(undefined, {JsValue(forward<ARGS>(args)) ...}).template cast<T>();
 		}
 		template <typename ... ARGS>
 		JsValue operator()(ARGS&& ... args) const throws(JsException)
@@ -102,15 +102,9 @@ default: unreachable();\
 			return dynamic_cast<T*>(getNativeObject());
 		}
 		template <size_t size, typename LAMBDA>
-		void setMethod(const char16(&name)[size], LAMBDA &&func) const noexcept
-		{
-			set(name, JsFunction::makeT(forward<LAMBDA>(func)));
-		}
+		void setMethod(const char16(&name)[size], LAMBDA&& func) const noexcept;
 		template <size_t size, typename LAMBDA>
-		void setMethodRaw(const char16(&name)[size], LAMBDA&& func) const noexcept
-		{
-			set(name, JsFunction::make(forward<LAMBDA>(func)));
-		}
+		void setMethodRaw(const char16(&name)[size], LAMBDA&& func) const noexcept;
 
 		// cast<Text16>() - null terminated
 		template <typename T> T cast() const noexcept;

@@ -5,6 +5,8 @@
 
 namespace kr
 {
+	class PromisePump;
+
 	template <typename T>
 	class Promise;
 	template <typename T>
@@ -93,7 +95,7 @@ namespace kr
 
 	class PromiseRaw
 	{
-		friend EventPump;
+		friend PromisePump;
 
 		template <typename T>
 		friend class Promise;
@@ -158,7 +160,7 @@ namespace kr
 		using ResultType = T;
 		virtual ~Promise() noexcept override;
 		template <typename LAMBDA>
-		auto then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda((T&)*(T*)0))> >*;
+		auto then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda(declval<T&>()))> >*;
 		template <typename LAMBDA>
 		auto katch(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda(nullref))> >*;
 		void connect(DeferredPromise<T>* prom) noexcept;
@@ -567,9 +569,9 @@ namespace kr
 
 	template <typename T>
 	template <typename LAMBDA>
-	auto Promise<T>::then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda((T&)*(T*)0))> >*
+	auto Promise<T>::then(LAMBDA &&lambda) noexcept->Promise<unwrap_promise_t<decltype(lambda(declval<T&>()))> >*
 	{
-		using OutType = decltype(lambda((T&)*(T*)0));
+		using OutType = decltype(lambda(declval<T&>()));
 		using Prom = PromiseThen<T, OutType, decay_t<LAMBDA> >;
 		using OutTypeRes = typename Prom::ResultType;
 		Promise<OutTypeRes> * next = _new Prom(forward<LAMBDA>(lambda));
@@ -670,5 +672,26 @@ namespace kr
 		{
 			return _rejectException(*from->_rejectValue());
 		}
+	};
+
+	class PromisePump
+	{
+		friend void PromiseRaw::_setState(State state) noexcept;
+	public:
+		PromisePump() noexcept;
+		~PromisePump() noexcept;
+
+		bool empty() noexcept;
+		void clear() noexcept;
+		void process() noexcept;
+
+		// use to fix webasm
+		size_t count() noexcept;
+
+		static PromisePump* getInstance() noexcept;
+
+	private:
+		PromiseRaw* m_process;
+		PromiseRaw** m_pprocess;
 	};
 }

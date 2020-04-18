@@ -122,15 +122,7 @@ namespace kr
 		}
 
 		// 객체의 함수를 호출합니다.
-		RET call(JsObject _this, const ARGS & ... args) const throws(JsException)
-		{
-			JsArguments jsargs(_this, sizeof ... (args));
-
-			size_t i = sizeof ... (args)-1;
-			unpackR((jsargs[i--] = args));
-
-			return JsFunction::call(jsargs).get<RET>();
-		}
+		RET call(const JsValue &_this, const ARGS& ... args) const throws(JsException);
 	};
 }
 

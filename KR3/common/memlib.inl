@@ -1,9 +1,12 @@
 #pragma once
 
 #include "reference.h"
-#include <KRNew/alloc.h>
 #include "intrinsic.h"
+
+#include <KRNew/alloc.h>
+
 #include "../meta/log2.h"
+#include "../meta/has_equals.h"
 
 constexpr int MOD_ADLER = 65521;
 
@@ -1163,57 +1166,25 @@ inline void kr::memt<BASE>::fromint(ptr _dst, size_t _cipher, T _number, uint _r
 	}
 }
 
-template <size_t SIZE>
-inline void kr::_pri_::SIZE_MEM<SIZE>::fill(void* dest, const void* src, size_t size) noexcept
-{
-	using comptype = typename almem::type;
-	if (align == SIZE) almem::set(dest, *(comptype*)src, size);
-	else
-	{
-		comptype* dst = (comptype*)dest;
-		comptype* end = dst + size;
-		while (dst != end)
-		{
-			*dst = *(comptype*)src;
-			dst++;
-		}
-	}
-}
-template <size_t SIZE>
-inline void kr::_pri_::SIZE_MEM<SIZE>::copy(void* dest, const void* src, size_t size) noexcept
-{
-	almem::copy(dest, src, size*blocksize);
-}
-template <size_t SIZE>
-inline void kr::_pri_::SIZE_MEM<SIZE>::move(void* dest, const void* src, size_t size) noexcept
-{
-	almem::move(dest, src, size*blocksize);
-}
-template <size_t SIZE>
-inline void kr::_pri_::SIZE_MEM<SIZE>::zero(void* dest, size_t size) noexcept
-{
-	almem::zero(dest, size*blocksize);
-}
-template <size_t SIZE>
-inline void kr::_pri_::SIZE_MEM_SINGLE<SIZE>::copy(void* dest, const void* src) noexcept
-{
-	SIZE_MEM<SIZE>::copy(dest, src, 1);
-}
-template <size_t SIZE>
-inline void kr::_pri_::SIZE_MEM_SINGLE<SIZE>::zero(void* dest) noexcept
-{
-	SIZE_MEM<SIZE>::zero(dest, 1);
-}
-
 template <typename T>
-void kr::_pri_::ARRCOPY<true, true>::subs_copy(void* dest, const void* src, size_t size) noexcept
+bool kr::_pri_::ARRCOPY<true, true>::equals(const void* dest, const void* src, size_t size) noexcept
+{
+	return memcmp(dest, src, size) == 0;
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, true>::assign_copy(void* dest, const void* src, size_t size) noexcept
 {
 	memcpy(dest, src, size);
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, true>::subs_move(void* dest, void* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<true, true>::assign_move(void* dest, void* src, size_t size) noexcept
 {
 	memcpy(dest, src, size);
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, true>::assign_fill(void* dest, byte src, size_t size) noexcept
+{
+	memset(dest, src, size);
 }
 template <typename T>
 void kr::_pri_::ARRCOPY<true, true>::ctor(void* dest, void* dest_end) noexcept
@@ -1249,35 +1220,117 @@ void kr::_pri_::ARRCOPY<true, true>::ctor_move_rd(void* dest, void* src, size_t 
 	memmove(dest, src, size);
 }
 
+
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::subs_fill(T* dest, const T& src, size_t size) noexcept
+bool kr::_pri_::ARRCOPY<true, false>::equals(const T* dest, const T* src, size_t size) noexcept
 {
-	T * end = dest + size;
-	while (dest != end)
+	return memcmp(dest, src, size * sizeof(T)) == 0;
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::assign_copy(T* dest, const T* src, size_t size) noexcept
+{
+	memcpy(dest, src, size * sizeof(T));
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::assign_move(T* dest, T* src, size_t size) noexcept
+{
+	memcpy(dest, src, size * sizeof(T));
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::assign_fill(T* dest, const T& src, size_t size) noexcept
+{
+	if (sizeof(T) == 1)
 	{
-		*dest++ = src;
+		memset(dest, src, size);
+	}
+	else
+	{
+		T* end = dest + size;
+		while (dest != end)
+		{
+			*dest++ = src;
+		}
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::subs_copy(T* dest, const T* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<true, false>::ctor(T* dest, T* dest_end) noexcept
 {
-	T * end = dest + size;
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::dtor(T* dest, T* dest_end) noexcept
+{
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::ctor_fill(T* dest, const T& src, size_t size) noexcept
+{
+	assign_fill<T>(dest, src, size);
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::ctor_copy(T* dest, const T* src, size_t size) noexcept
+{
+	memcpy(dest, src, size * sizeof(T));
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::ctor_move(T* dest, T* src, size_t size) noexcept
+{
+	memcpy(dest, src, size * sizeof(T));
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::ctor_move_r(T* dest, T* src, size_t size) noexcept
+{
+	memmove(dest, src, size * sizeof(T));
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::ctor_move_d(T* dest, T* src, size_t size) noexcept
+{
+	memcpy(dest, src, size * sizeof(T));
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<true, false>::ctor_move_rd(T* dest, T* src, size_t size) noexcept
+{
+	memmove(dest, src, size * sizeof(T));
+}
+
+
+template <typename T>
+bool kr::_pri_::ARRCOPY<false, false>::equals(const T* dest, const T* src, size_t size) noexcept
+{
+	T* end = dest + size;
+	while (dest != end)
+	{
+		if (*dest++ != *src++) return false;
+	}
+	return true;
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<false, false>::assign_copy(T* dest, const T* src, size_t size) noexcept
+{
+	T* end = dest + size;
 	while (dest != end)
 	{
 		*dest++ = *src++;
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::subs_move(T* dest, T* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::assign_move(T* dest, T* src, size_t size) noexcept
 {
-	T * end = dest + size;
+	T* end = dest + size;
 	while (dest != end)
 	{
 		*dest++ = move(*src++);
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor(T* dest, T* dest_end) noexcept
+void kr::_pri_::ARRCOPY<false, false>::assign_fill(T* dest, const T& src, size_t size) noexcept
+{
+	T* end = dest + size;
+	while (dest != end)
+	{
+		*dest++ = src;
+	}
+}
+template <typename T>
+void kr::_pri_::ARRCOPY<false, false>::ctor(T* dest, T* dest_end) noexcept
 {
 	while (dest != dest_end)
 	{
@@ -1285,7 +1338,7 @@ void kr::_pri_::ARRCOPY<true, false>::ctor(T* dest, T* dest_end) noexcept
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::dtor(T* dest, T* dest_end) noexcept
+void kr::_pri_::ARRCOPY<false, false>::dtor(T* dest, T* dest_end) noexcept
 {
 	while (dest != dest_end)
 	{
@@ -1293,38 +1346,38 @@ void kr::_pri_::ARRCOPY<true, false>::dtor(T* dest, T* dest_end) noexcept
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor_fill(T* dest, const T& src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::ctor_fill(T* dest, const T& src, size_t size) noexcept
 {
-	T * end = dest + size;
+	T* end = dest + size;
 	while (dest != end)
 	{
 		new(dest++) T(src);
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor_copy(T* dest, const T* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::ctor_copy(T* dest, const T* src, size_t size) noexcept
 {
-	T * end = dest + size;
+	T* end = dest + size;
 	while (dest != end)
 	{
 		new(dest++) T(*src++);
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor_move(T* dest, T* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::ctor_move(T* dest, T* src, size_t size) noexcept
 {
-	T * end = dest + size;
+	T* end = dest + size;
 	while (dest != end)
 	{
 		new(dest++)T(move(*src++));
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor_move_r(T* dest, T* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::ctor_move_r(T* dest, T* src, size_t size) noexcept
 {
 	dest--;
 	src--;
-	T * end = dest;
+	T* end = dest;
 	dest += size;
 	src += size;
 	while (dest != end)
@@ -1333,9 +1386,9 @@ void kr::_pri_::ARRCOPY<true, false>::ctor_move_r(T* dest, T* src, size_t size) 
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor_move_d(T* dest, T* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::ctor_move_d(T* dest, T* src, size_t size) noexcept
 {
-	T * end = dest + size;
+	T* end = dest + size;
 	while (dest != end)
 	{
 		new(dest++) T(move(*src));
@@ -1343,11 +1396,11 @@ void kr::_pri_::ARRCOPY<true, false>::ctor_move_d(T* dest, T* src, size_t size) 
 	}
 }
 template <typename T>
-void kr::_pri_::ARRCOPY<true, false>::ctor_move_rd(T* dest, T* src, size_t size) noexcept
+void kr::_pri_::ARRCOPY<false, false>::ctor_move_rd(T* dest, T* src, size_t size) noexcept
 {
 	dest--;
 	src--;
-	T * end = dest;
+	T* end = dest;
 	dest += size;
 	src += size;
 	while (dest != end)
@@ -1355,60 +1408,6 @@ void kr::_pri_::ARRCOPY<true, false>::ctor_move_rd(T* dest, T* src, size_t size)
 		new(dest--) T(move(*src));
 		(src--)->~T();
 	}
-}
-
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::subs_fill(T* dest, const T& src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::fill(dest, &src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::subs_copy(T* dest, const T* src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::copy(dest, src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::subs_move(T* dest, T* src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::copy(dest, src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor(T* dest, T* dest_end) noexcept
-{
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::dtor(T* dest, T* dest_end) noexcept
-{
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor_fill(T* dest, const T& src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::fill(dest, &src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor_copy(T* dest, const T* src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::copy(dest, src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor_move(T* dest, T* src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::copy(dest, src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor_move_r(T* dest, T* src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::move(dest, src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor_move_d(T* dest, T* src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::copy(dest, src, size);
-}
-template <typename T>
-void kr::_pri_::ARRCOPY<false, false>::ctor_move_rd(T* dest, T* src, size_t size) noexcept
-{
-	SIZE_MEM<sizeof(T)>::move(dest, src, size);
 }
 
 
@@ -1442,23 +1441,23 @@ template <typename T> size_t kr::mema::pos(const T* _src, const T &_tar, size_t 
 }
 template <typename T> void kr::mema::zero(T& _dst) noexcept
 {
-	_pri_::SIZE_MEM_SINGLE<sizeof(T)>::zero(&_dst);
+	memset(&_dst, 0, sizeof(T));
 }
 template <typename T> void kr::mema::zero(T* _dst, size_t _len) noexcept
 {
-	_pri_::SIZE_MEM<sizeof(T)>::zero(_dst, _len);
+	memset(_dst, 0, _len * sizeof(T));
 }
 template <typename T> void kr::mema::copy(T& _dst, const T &_src) noexcept
 {
-	_pri_::SIZE_MEM_SINGLE<sizeof(T)>::copy(&_dst, &_src);
+	_dst = _src;
 }
 template <typename T> void kr::mema::copy(T* _dst, const T* _src, size_t _len) noexcept
 {
-	_pri_::SIZE_MEM<sizeof(T)>::copy(_dst, _src, _len);
+	memcpy(_dst, _src, _len * sizeof(T));
 }
 template <typename T> void kr::mema::copy_r(T* _dst, const T* _src, size_t _len) noexcept
 {
-	_pri_::SIZE_MEM<sizeof(T)>::copy_r(_dst, _src, _len);
+	memmove(_dst, _src, _len * sizeof(T));
 }
 template <typename T, size_t size> void kr::mema::copy(T(&dest)[size], const T(&src)[size]) noexcept
 {
@@ -1477,57 +1476,61 @@ template <typename T> T* kr::mema::alloc(const T* _src, size_t _len) noexcept
 	return _dst;
 }
 
+template <typename T> bool kr::mema::equals(const T* dest, const T* src, size_t size) noexcept
+{
+	_pri_::ARRCOPY<!meta::has_equals<T>::value, std::is_void<T>::value>::template equals<T>(dest, src, size);
+}
 template <typename T> void kr::mema::ctor(T* dest, T* dest_end) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor<T>(dest, dest_end);
+	_pri_::ARRCOPY<std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor<T>(dest, dest_end);
 }
 template <typename T> void kr::mema::dtor(T* dest, T* dest_end) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template dtor<T>(dest, dest_end);
+	_pri_::ARRCOPY<std::is_trivially_destructible<T>::value, std::is_void<T>::value>::template dtor<T>(dest, dest_end);
 }
-template <typename T> void kr::mema::subs_fill(T* dest, const T& src, size_t size) noexcept
+template <typename T> void kr::mema::assign_fill(T* dest, const T& src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template subs_fill<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_copy_assignable<T>::value, std::is_void<T>::value>::template assign_fill<T>(dest, src, size);
 }
-template <typename T> void kr::mema::subs_copy(T* dest, const T* src, size_t size) noexcept
+template <typename T> void kr::mema::assign_copy(T* dest, const T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template subs_copy<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_copy_assignable<T>::value, std::is_void<T>::value>::template assign_copy<T>(dest, src, size);
 }
-template <typename T> void kr::mema::subs_move(T* dest, T* src, size_t size) noexcept
+template <typename T> void kr::mema::assign_move(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template subs_move<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_move_assignable<T>::value, std::is_void<T>::value>::template assign_move<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_fill(T* dest, const T& src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor_fill<T>(dest, src, size);
+	_pri_::ARRCOPY<!std::is_trivially_copy_constructible<T>::value, std::is_void<T>::value>::template ctor_fill<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_copy(T* dest, const T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor_copy<T>(dest, src, size);
+	_pri_::ARRCOPY<!std::is_trivially_copy_constructible<T>::value, std::is_void<T>::value>::template ctor_copy<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor_move<T>(dest, src, size);
+	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move_r(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor_move_r<T>(dest, src, size);
+	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_r<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move_d(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor_move_d<T>(dest, src, size);
+	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_d<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move_rd(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_default_constructible<T>::value, std::is_void<T>::value>::template ctor_move_rd<T>(dest, src, size);
+	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_rd<T>(dest, src, size);
 }
-template <typename T, size_t size> void kr::mema::subs_copy(T(&dest)[size], const T(&src)[size]) noexcept
+template <typename T, size_t size> void kr::mema::assign_copy(T(&dest)[size], const T(&src)[size]) noexcept
 {
-	subs_copy(dest, src, size);
+	assign_copy(dest, src, size);
 }
-template <typename T, size_t size> void kr::mema::subs_move(T(&dest)[size], const T(&src)[size]) noexcept
+template <typename T, size_t size> void kr::mema::assign_move(T(&dest)[size], const T(&src)[size]) noexcept
 {
-	subs_move(dest, src, size);
+	assign_move(dest, src, size);
 }
 
 //#pragma optimize("",on)

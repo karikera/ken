@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "object.h"
-
 #include "class.h"
+
 #include "class.inl"
 
 using namespace kr;

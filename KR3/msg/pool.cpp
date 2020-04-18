@@ -95,6 +95,8 @@ ThreadPoolKrImpl * ThreadPoolKrImpl::getInstance() noexcept
 	return &instance;
 }
 
+#ifdef WIN32
+
 ThreadPoolWinImpl* ThreadPoolWinImpl::getInstance() noexcept
 {
 	static ThreadPoolWinImpl instance;
@@ -118,3 +120,5 @@ ThreadPoolWinImpl::ThreadPoolWinImpl() noexcept
 ThreadPoolWinImpl::~ThreadPoolWinImpl() noexcept
 {
 }
+
+#endif

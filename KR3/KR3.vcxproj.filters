@@ -702,6 +702,12 @@
     <ClInclude Include="win\devent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common\text\method\buffer_w.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meta\has_equals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\autovar\autoptr.cpp">
@@ -1098,6 +1104,15 @@
     </None>
     <None Include="cpp.hint" />
     <None Include="math\coord\quaternion.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="js\cast.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="js\value.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="js\function.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

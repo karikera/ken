@@ -21,7 +21,7 @@ namespace kr
 	class EventPump:public Interface<Empty>
 	{
 		friend TimerEvent;
-		friend void PromiseRaw::_setState(State state) noexcept;
+		friend PromisePump;
 	public:
 		constexpr static dword MAXIMUM_WAIT = EventHandleMaxWait - 1;
 
@@ -113,16 +113,12 @@ namespace kr
 		int messageLoop() noexcept;
 		int messageLoopWith(View<EventProcedure> proc) noexcept;
 
-		// use to fix webasm
-		size_t getPromiseCount() noexcept;
-
 		static EventPump * getInstance() noexcept;
 
 	private:
 		EventPump() noexcept;
 		~EventPump() noexcept;
 
-		void _processPromise() noexcept;
 		dword _tryProcess(EventHandle * const * events, dword count) throws(QuitException);
 		TmpArray<EventHandle *> _makeEventArray(View<EventHandle *> events) noexcept;
 		TmpArray<EventHandle *> _makeEventArray(View<EventProcedure> proc) noexcept;
@@ -134,10 +130,7 @@ namespace kr
 		NodeHead m_start;
 		ThreadId m_threadId;
 		atomic<size_t> m_reference;
-		
-	private:
-		PromiseRaw* m_process;
-		PromiseRaw** m_pprocess;
+		PromisePump m_prompump;
 	};
 
 	namespace _pri_

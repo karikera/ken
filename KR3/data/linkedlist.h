@@ -47,7 +47,7 @@ namespace kr
 		const Iterable * m_iterable;
 
 	public:
-		using Iterator = decltype(((Iterable*)0)->begin());
+		using Iterator = decltype(declval<Iterable>().begin());
 		CastIterable(const Iterable * iterable) noexcept
 			:m_iterable(iterable)
 		{
@@ -685,7 +685,7 @@ namespace kr
 
 			void sortAttach(Node* _node) noexcept
 			{
-				using KeyType = decltype(Key<Node>::getKey(*(Node*)0));
+				using KeyType = decltype(Key<Node>::getKey(declval<Node>()));
 
 				KeyType insertKey = Key<Node>::getKey(*_node);
 

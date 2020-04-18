@@ -7,8 +7,7 @@ namespace kr
 	namespace ary
 	{
 		template <class Parent>
-		class IStreamMethod
-			: public InStream<IStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>
+		class IStreamMethod: public InStream<IStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>
 		{
 			CLASS_HEADER(IStreamMethod, InStream<IStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>);
 		public:

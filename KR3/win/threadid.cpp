@@ -1,4 +1,6 @@
 #include "stdafx.h"
+
+#ifdef WIN32
 #include "threadid.h"
 
 #include <KR3/win/windows.h>
@@ -72,3 +74,9 @@ bool kr::ThreadId::operator != (nullptr_t) const noexcept
 {
 	return m_id != 0;
 }
+
+#else
+
+EMPTY_SOURCE
+
+#endif

@@ -107,7 +107,7 @@ namespace kr
 			}
 			static size_t encode(T * out, Text text) noexcept
 			{
-				mema::subs_copy(out, text.data(), text.size());
+				mema::assign_copy(out, text.data(), text.size());
 				return text.size();
 			}
 			static void encode(Writer * out, Text * text) noexcept

@@ -3,6 +3,8 @@
 #include "resloader.h"
 #include <KRThird/ken-res-loader/include/ken-back/compress.h>
 
+NEED_FILESYSTEM
+
 namespace kr
 {
 	void extractEntryTo(pcstr16 dest, KrbCompressEntry* entry) noexcept;

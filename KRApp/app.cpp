@@ -13,7 +13,7 @@ using namespace kr;
 namespace
 {
 	Application * s_main;
-#ifdef WIN32
+#ifndef __EMSCRIPTEN__
 	class DrawInterval:public TimerEvent
 	{
 	public:
@@ -49,7 +49,7 @@ namespace
 void ::kr::_pri_::emOndrawCallback() noexcept
 {
 	s_main->onDraw();
-	s_main->m_pump->processOnce();
+	PromisePump::getInstance()->process();
 }
 #endif
 
@@ -96,7 +96,11 @@ namespace
 
 Application::Application() noexcept
 	:
+#ifdef __EMSCRIPTEN__
+	m_pump(PromisePump::getInstance())
+#else
 	m_pump(EventPump::getInstance())
+#endif
 {
 }
 Application::~Application() noexcept
@@ -167,31 +171,31 @@ void Application::create(int width, int height) noexcept
 	emscripten_set_keydown_callback("#window", this, false, [](int eventType, const EmscriptenKeyboardEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onKeyDown(keyEvent->keyCode, keyEvent->repeat);
-		app->m_pump->processOnce();
+		app->m_pump->process();
 		return true;
 	});
 	emscripten_set_keyup_callback("#window", this, false, [](int eventType, const EmscriptenKeyboardEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onKeyUp(keyEvent->keyCode);
-		app->m_pump->processOnce();
+		app->m_pump->process();
 		return true;
 	});
 	emscripten_set_mousedown_callback("#window", this, false, [](int eventType, const EmscriptenMouseEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onMouseDown(keyEvent->canvasX, keyEvent->canvasY, keyEvent->button);
-		app->m_pump->processOnce();
+		app->m_pump->process();
 		return true;
 	});
 	emscripten_set_mouseup_callback("#window", this, false, [](int eventType, const EmscriptenMouseEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onMouseMove(keyEvent->canvasX, keyEvent->canvasY);
-		app->m_pump->processOnce();
+		app->m_pump->process();
 		return true;
 	});
 	emscripten_set_mousemove_callback("#window", this, false, [](int eventType, const EmscriptenMouseEvent *keyEvent, void *webcanvas)->EM_BOOL {
 		Application* app = (Application*)webcanvas;
 		app->onMouseUp(keyEvent->canvasX, keyEvent->canvasY, keyEvent->button);
-		app->m_pump->processOnce();
+		app->m_pump->process();
 		return true;
 	});
 	emscripten_set_resize_callback("#window", this, false,
@@ -203,7 +207,7 @@ void Application::create(int width, int height) noexcept
 		app->m_width = width;
 		app->m_height = height;
 		app->onResize(width, height);
-		app->m_pump->processOnce();
+		app->m_pump->process();
 		return true;
 	});
 #endif

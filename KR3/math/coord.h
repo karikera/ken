@@ -18,6 +18,8 @@
 #include "coord/vector_method.inl"
 #include "coord/vector.inl"
 
+#include "coord/quaternion.inl"
+
 #include "coord/matrix_data.inl"
 #include "coord/matrix_method.inl"
 

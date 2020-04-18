@@ -55,7 +55,11 @@ namespace kr
 #ifdef __KR_APP_FLUSHER
 	public:
 #endif
+#ifdef __EMSCRIPTEN__
+		PromisePump* m_pump;
+#else
 		EventPump* m_pump;
+#endif
 	};
 
 	void openDevTools() noexcept;

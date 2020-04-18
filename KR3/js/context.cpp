@@ -2,6 +2,9 @@
 #include "context.h"
 #include "value.h"
 
+#include "function.inl"
+#include "value.inl"
+
 using namespace kr;
 
 JsValue JsRuntime::run(Text16 source) throws(JsException)

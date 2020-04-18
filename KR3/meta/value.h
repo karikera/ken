@@ -10,9 +10,11 @@ namespace kr
 			static constexpr T value = _value;
 		};
 
-		struct bool_true:cvalue<bool, true> {};
-		struct bool_false:cvalue<bool, false> {};
+		template <bool value>
+		using bool_value = cvalue<bool, value>;
+		using bool_true = bool_value<true>;
+		using bool_false = bool_value<false>;
 		template <int value>
-		struct int_value :cvalue<int, value> {};
+		using int_value = cvalue<int, value>;
 	}
 }

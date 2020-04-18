@@ -18,9 +18,13 @@
 #include "exception.h"
 #include "arguments.h"
 
+#include "cast.inl"
 #include "meta.inl"
 // #include "private.inl"
 #include "class.inl"
+#include "value.inl"
+#include "function.inl"
+
 #include "context.h"
 #include "undefined.h"
 #include "propertyid.h"

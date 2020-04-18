@@ -82,9 +82,9 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		auto call(LAMBDA&& lambda) throws(...)->decltype((*(LAMBDA*)nullptr)(*(meta::typeAt<types, 0>*)nullptr))
+		auto call(LAMBDA&& lambda) throws(...)->void
 		{
-			if (m_type == EMPTY) return;
+			_assert(m_type != EMPTY);
 			types::type_switch(m_type, [&](auto* t) {
 				using T = remove_pointer_t<decltype(t)>;
 				lambda(*(T*)&m_data);

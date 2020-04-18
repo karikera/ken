@@ -452,7 +452,7 @@ namespace kr
 
 	// 참조하는 텍스트(읽기 전용), 근원이 사라지면 안된다.
 	using Text = View<char>;
-	
+
 	// 참조하는 UTF-16 텍스트(읽기 전용), 근원이 사라지면 안된다.
 	using Text16 = View<char16>;
 
