@@ -322,8 +322,7 @@ bool kr::image::ImageData::load(krb::File file, krb::Extension extension, Palett
 	cb.data = this;
 	cb.palette = palette != nullptr ? palette : nullptr;
 	cb.start = [](KrbImageCallback * _this, KrbImageInfo * info){
-		info->data = ((ImageCallback*)_this)->data->allocate(info->pixelformat, info->width, info->height, info->pitchBytes);
-		return true;
+		return ((ImageCallback*)_this)->data->allocate(info->pixelformat, info->width, info->height, info->pitchBytes);
 	};
 	return krb_load_image(extension, &cb, &file);
 }

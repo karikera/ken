@@ -293,7 +293,7 @@ double Sound::load(krb::Extension extension, krb::File file) noexcept
 		if (FAILED(hr)) return nullptr;
 		return (short*)buffer;
 	};
-	if (krb_sound_load(extension, &cb, &file))
+	if (krb_load_sound(extension, &cb, &file))
 	{
 		return cb.duration;
 	}

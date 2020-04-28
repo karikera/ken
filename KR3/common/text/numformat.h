@@ -80,9 +80,9 @@ namespace kr
 			m_fillchr = fillchr;
 			m_radix = _radix;
 			dword cipher = math::cipher(m_value, m_radix);
-			m_contlen = maxt(cipher, _fixed);
-			m_zerolen = m_contlen - cipher;
-			m_size = (size_t)m_contlen + m_minus;
+			m_contlen = cipher;
+			m_zerolen = maxt(cipher, _fixed) - cipher;
+			m_size = (size_t)m_contlen + m_zerolen + m_minus;
 		}
 
 		template <typename C>
@@ -97,7 +97,7 @@ namespace kr
 
 			using memm = memt<sizeof(C)>;
 			memm::set(dest, m_fillchr, m_zerolen);
-			memm::fromint(dest, m_contlen, m_value, m_radix);
+			memm::fromint(dest + m_zerolen, m_contlen, m_value, m_radix);
 			return m_size;
 		}
 	};

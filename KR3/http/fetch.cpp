@@ -34,26 +34,44 @@ namespace
 	bool initCurl = false;
 
 	using CurlWriteCb = size_t(*)(void *contents, size_t size, size_t nmemb, void *userp);
+	using CurlXferInfoCb = int(*)(void* contents, 
+		curl_off_t dltotal, curl_off_t dlnow,
+		curl_off_t ultotal, curl_off_t ulnow);
 
 #ifndef __EMSCRIPTEN__
 	void setBasic(CURL* curl, curl_slist* headers) noexcept
 	{
 		if (headers) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+		curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, CURL_MAX_WRITE_SIZE);
 	}
 
+	void setProgressImpl(CURL* curl, AtomicProgress* progress) noexcept
+	{
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, (void*)progress);
+		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, (CurlXferInfoCb)[](void* context,
+			curl_off_t dltotal, curl_off_t dlnow,
+			curl_off_t ultotal, curl_off_t ulnow)->int{
+				AtomicProgress* prog = ((AtomicProgress*)context);
+				prog->uploadNow = ulnow;
+				prog->uploadTotal = ultotal;
+				prog->downloadNow = dlnow;
+				prog->downloadTotal = dltotal;
+				return 0;
+			});
+	}
 	AText fetchAsTextImpl(CURL * curl, curl_slist * headers) throws(HttpException)
 	{
 		AText response;
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response);
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (CurlWriteCb)[](void *ptr, size_t size, size_t nmemb, void *context)->size_t {
-			*((AText*)context) << Text((char*)ptr, size * nmemb);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (CurlWriteCb)[](void *ptr, 
+			size_t size, size_t nmemb, void *context)->size_t {
+			(*(AText*)context) << Text((char*)ptr, size * nmemb);
 			return nmemb;
 		});
-		CURLcode res = curl_easy_perform(curl);
-		
+		CURLcode res = curl_easy_perform(curl);		
 		curl_slist_free_all(headers);
-		
 		if (res != CURLE_OK)
 		{
 #ifndef NDEBUG
@@ -90,6 +108,11 @@ namespace
 #endif
 }
 
+AtomicProgress::AtomicProgress() noexcept
+	:uploadNow(0), uploadTotal(0), downloadNow(0), downloadTotal(0)
+{
+}
+
 #ifdef __EMSCRIPTEN__
 struct HttpRequest::FetchObject :public DeferredPromise<AText>
 {
@@ -110,6 +133,7 @@ HttpRequest::FetchObject::~FetchObject() noexcept
 {
 }
 #endif
+
 HttpRequest::HttpRequest() noexcept
 {
 #ifdef __EMSCRIPTEN__
@@ -174,10 +198,15 @@ void HttpRequest::setPostFields(AText data) noexcept
 	curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, intact<long>(m_postdata.size()));
 #endif
 }
-Promise<AText>* HttpRequest::fetchAsText(const char * url) noexcept
+Promise<AText>* HttpRequest::fetchAsText(const char * url, AtomicProgress* progress) noexcept
 {
 #ifdef __EMSCRIPTEN__
 	m_obj->attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+	if (progress)
+	{
+		m_obj->attr.onprogress = [] {
+		}
+	};
 	m_obj->attr.onsuccess = [](emscripten_fetch_t *fetch) {
 		auto * obj = (FetchObject*)fetch->userData;
 		obj->_resolve(AText(fetch->data, fetch->numBytes));
@@ -206,20 +235,22 @@ Promise<AText>* HttpRequest::fetchAsText(const char * url) noexcept
 	curl_slist * headers = m_headers;
 	m_curl = nullptr;
 	m_headers = nullptr;
-	return threading([curl, headers, postdata = move(m_postdata)]{
+	return threading([curl, headers, postdata = move(m_postdata), progress]{
 		finally{ curl_easy_cleanup(curl); };
 		setBasic(curl, headers);
+		if (progress) setProgressImpl(curl, progress);
 		return fetchAsTextImpl(curl, headers);
 	});
 #endif
 }
 #ifndef __EMSCRIPTEN__
-AText HttpRequest::fetchAsTextSync(const char * url) throws(HttpException)
+AText HttpRequest::fetchAsTextSync(const char * url, AtomicProgress* progress) throws(HttpException)
 {
 	curl_easy_setopt(m_curl, CURLOPT_URL, url);
 	curl_slist * headers = m_headers;
 	m_headers = nullptr;
 	setBasic(m_curl, headers);
+	if (progress) setProgressImpl(m_curl, progress);
 	AText response = fetchAsTextImpl(m_curl, headers);
 	HttpStatus code = _getStatusCode();
 	if (code != HttpStatus::OK) throw HttpException(code);
@@ -227,7 +258,7 @@ AText HttpRequest::fetchAsTextSync(const char * url) throws(HttpException)
 }
 #endif
 #ifndef NO_USE_FILESYSTEM
-Promise<void>* HttpRequest::fetchAsFile(const char * url, AText16 filename) noexcept
+Promise<void>* HttpRequest::fetchAsFile(const char * url, AText16 filename, AtomicProgress* progress) noexcept
 {
 	curl_easy_setopt(m_curl, CURLOPT_URL, url);
 	filename.c_str();
@@ -236,11 +267,12 @@ Promise<void>* HttpRequest::fetchAsFile(const char * url, AText16 filename) noex
 	curl_slist * headers = m_headers;
 	m_curl = nullptr;
 	m_headers = nullptr;
-	return threading([curl, headers, postdata = move(m_postdata), filename = move(filename)]{
+	return threading([curl, headers, postdata = move(m_postdata), filename = move(filename), progress]{
 		finally{ curl_easy_cleanup(curl); };
 		try
 		{
 			setBasic(curl, headers);
+			if (progress) setProgressImpl(curl, progress);
 			return fetchAsFileImpl(curl, File::create(filename.data()), headers);
 		}
 		catch (...)
@@ -250,13 +282,14 @@ Promise<void>* HttpRequest::fetchAsFile(const char * url, AText16 filename) noex
 		}
 		});
 }
-void HttpRequest::fetchAsFileSync(const char * url, pcstr16 filename) throws(HttpException, Error)
+void HttpRequest::fetchAsFileSync(const char * url, pcstr16 filename, AtomicProgress* progress) throws(HttpException, Error)
 {
 	curl_easy_setopt(m_curl, CURLOPT_URL, url);
 
 	curl_slist * headers = m_headers;
 	m_headers = nullptr;
 	setBasic(m_curl, headers);
+	if (progress) setProgressImpl(m_curl, progress);
 	fetchAsFileImpl(m_curl, File::create(filename), headers);
 	HttpStatus code = _getStatusCode();
 	if (code != HttpStatus::OK) throw HttpException(code);
@@ -271,7 +304,7 @@ HttpStatus HttpRequest::_getStatusCode() noexcept
 }
 #endif
 
-Promise<AText>* kr::fetchAsText(Text16 url) noexcept
+Promise<AText>* kr::fetchAsText(Text16 url, AtomicProgress* progress) noexcept
 {
 #ifdef NO_USE_FILESYSTEM
 	return fetchAsTextFromWeb(TSZ() << toUtf8(url));
@@ -289,7 +322,7 @@ Promise<AText>* kr::fetchAsText(Text16 url) noexcept
 	});
 #endif
 }
-Promise<AText>* kr::fetchAsText(Text url) noexcept
+Promise<AText>* kr::fetchAsText(Text url, AtomicProgress* progress) noexcept
 {
 #ifdef NO_USE_FILESYSTEM
 	return fetchAsTextFromWeb(TSZ() << url);
@@ -307,23 +340,23 @@ Promise<AText>* kr::fetchAsText(Text url) noexcept
 	});
 #endif
 }
-Promise<AText>* kr::fetchAsTextFromWeb(const char * url) noexcept
+Promise<AText>* kr::fetchAsTextFromWeb(const char * url, AtomicProgress* progress) noexcept
 {
 	HttpRequest req;
 	return req.fetchAsText(url);
 }
 #ifndef NO_USE_FILESYSTEM
-Promise<void>* kr::fetchAsFile(Text16 url, AText16 filename) noexcept
+Promise<void>* kr::fetchAsFile(Text16 url, AText16 filename, AtomicProgress* progress) noexcept
 {
-	return fetchAsFile(TSZ() << toUtf8(url), move(filename));
+	return fetchAsFile(TSZ() << toUtf8(url), move(filename), progress);
 }
-Promise<void>* kr::fetchAsFile(Text url, AText16 filename) noexcept
+Promise<void>* kr::fetchAsFile(Text url, AText16 filename, AtomicProgress* progress) noexcept
 {
-	return fetchAsFileFromSz(TSZ() << url, move(filename));
+	return fetchAsFileFromSz(TSZ() << url, move(filename), progress);
 }
-Promise<void>* kr::fetchAsFileFromSz(const char * url, AText16 filename) noexcept
+Promise<void>* kr::fetchAsFileFromSz(const char * url, AText16 filename, AtomicProgress* progress) noexcept
 {
 	HttpRequest req;
-	return req.fetchAsFile(url, move(filename));
+	return req.fetchAsFile(url, move(filename), progress);
 }
 #endif
