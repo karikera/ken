@@ -96,22 +96,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(MYSQL_C_DIR)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(KEN_DIR)KRThird\mariadb\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|Win32'">
-    <IncludePath>$(MYSQL_C_DIR)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(KEN_DIR)KRThird\mariadb\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(MYSQL_C_DIR)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(KEN_DIR)KRThird\mariadb\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(MYSQL_C_DIR)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(KEN_DIR)KRThird\mariadb\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|x64'">
-    <IncludePath>$(MYSQL_C_DIR)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(KEN_DIR)KRThird\mariadb\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(MYSQL_C_DIR)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(KEN_DIR)KRThird\mariadb\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

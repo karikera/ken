@@ -178,6 +178,9 @@
     <ProjectReference Include="..\KRApp\KRApp.vcxproj">
       <Project>{de83e736-47ac-475f-9db8-8ddf22b70bf5}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\KRMySQL\KRMySQL.vcxproj">
+      <Project>{e25f0c5a-72ce-481e-8f08-c36ac5ad9666}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\KRNew\KRNew.vcxproj">
       <Project>{7102424c-18ec-4918-b6e1-1d58d1185387}</Project>
     </ProjectReference>
