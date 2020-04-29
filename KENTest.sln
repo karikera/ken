@@ -54,6 +54,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kget", "KRTool\kget\kget.vc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{B3754476-8E51-4FCF-AB64-CC60FEA27FB3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1D5C2534-24AA-487A-8B4E-7F42EC496692}"
+	ProjectSection(SolutionItems) = preProject
+		krpm.config.js = krpm.config.js
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Emscripten = Debug|Emscripten

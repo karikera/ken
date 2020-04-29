@@ -31,11 +31,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KRSound", "KRSound\KRSound.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "COPY_DLL", "KRTool\COPY_DLL\COPY_DLL.vcxproj", "{F476FE60-4037-4045-8495-D744E325192A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{629A3E66-42D4-4E21-88E8-83AE56D43CAD}"
-	ProjectSection(SolutionItems) = preProject
-		krpm.config.js = krpm.config.js
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Emscripten = Debug|Emscripten
