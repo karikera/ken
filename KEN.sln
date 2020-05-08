@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.28729.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "KEN", "KEN", "{723F917F-0072-4B76-ABB1-3336381F001A}"
-	ProjectSection(SolutionItems) = preProject
-		KR.props = KR.props
-		KRLibrary.props = KRLibrary.props
-		KRThird\third.props = KRThird\third.props
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KR3", "KR3\KR3.vcxproj", "{F5212E7B-4791-4488-A23A-57AF3023E7D3}"
 EndProject
@@ -30,11 +25,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KRSound", "KRSound\KRSound.vcxproj", "{179C15FF-42C0-4D89-B1C9-3F47CF571D6B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "COPY_DLL", "KRTool\COPY_DLL\COPY_DLL.vcxproj", "{F476FE60-4037-4045-8495-D744E325192A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{629A3E66-42D4-4E21-88E8-83AE56D43CAD}"
-	ProjectSection(SolutionItems) = preProject
-		krpm.config.js = krpm.config.js
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +69,7 @@ Global
 		{432CC3C8-34B1-405D-9675-36FDF25289C7}.Release|x86.ActiveCfg = Release|Win32
 		{432CC3C8-34B1-405D-9675-36FDF25289C7}.Release|x86.Build.0 = Release|Win32
 		{CC68C111-CA4B-42F6-B2A1-956420CE5D0F}.Debug|Emscripten.ActiveCfg = Debug|Win32
+		{CC68C111-CA4B-42F6-B2A1-956420CE5D0F}.Debug|Emscripten.Build.0 = Debug|Win32
 		{CC68C111-CA4B-42F6-B2A1-956420CE5D0F}.Debug|x64.ActiveCfg = Debug|x64
 		{CC68C111-CA4B-42F6-B2A1-956420CE5D0F}.Debug|x64.Build.0 = Debug|x64
 		{CC68C111-CA4B-42F6-B2A1-956420CE5D0F}.Debug|x86.ActiveCfg = Debug|Win32

@@ -26,24 +26,25 @@
   <PropertyGroup Label="UserMacros" Condition="'$(PlatformShortName)' != 'x64'">
     <PlatformShortName2>$(PlatformShortName)</PlatformShortName2>
   </PropertyGroup>
-  <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' == 'Debug'">
-    <DebugPostfix>d</DebugPostfix>
+  <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'DebugStatic'">
+    <d>d</d>
     <ConfigDir>Debug</ConfigDir>
+    <_debug>_debug</_debug>
   </PropertyGroup>
   <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' != 'Debug'">
-    <DebugPostfix>
-    </DebugPostfix>
+    <d></d>
     <ConfigDir>Release</ConfigDir>
+    <_debug></_debug>
   </PropertyGroup>
   <PropertyGroup Label="UserMacros">
-    <ZLIB_NAME>zlib$(DebugPostfix)$(StaticLibraryExt)</ZLIB_NAME>
+    <ZLIB_NAME>zlib$(d)$(StaticLibraryExt)</ZLIB_NAME>
   </PropertyGroup>
   <PropertyGroup>
     <OutDir>$(SolutionDir)bin\$(PlatformShortName)\$(Configuration)\</OutDir>
     <IntDir>bin\$(PlatformShortName)\$(Configuration)\</IntDir>
     <ExecutablePath>$(OutDir);$(KEN_DIR)batch;$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(KEN_DIR);$(KEN_DIR)KRThird\angle\include;$(KEN_DIR)KRThird\zlib\$(PlatformShortName)\include;$(KEN_DIR)empolyfill;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);$(KEN_DIR)KRThird\ken-res-loader\lib\$(PlatformShortName);$(KEN_DIR)\lib\$(PlatformShortName)\$(Configuration);$(KEN_DIR)KRThird\zlib\$(PlatformShortName)\lib;$(KEN_DIR)KRThird\libpng\lib\$(PlatformShortName);$(KEN_DIR)KRThird\curl\lib\$(PlatformShortName);$(KEN_DIR)KRThird\angle\lib\$(PlatformShortName)\$(ConfigDir);$(KEN_DIR)KRThird\mariadb\lib\$(PlatformShortName)\$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(OutDir);$(KEN_DIR)KRThird\ken-res-loader\lib\$(PlatformShortName);$(KEN_DIR)\lib\$(PlatformShortName)\$(Configuration);$(KEN_DIR)KRThird\zlib\$(PlatformShortName)\lib;$(KEN_DIR)KRThird\libpng\lib\$(PlatformShortName);$(KEN_DIR)KRThird\curl\lib\$(PlatformShortName);$(KEN_DIR)KRThird\angle\lib\$(PlatformShortName)\$(ConfigDir);$(KEN_DIR)KRThird\mariadb\lib\$(PlatformShortName)\$(ConfigDir);$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -87,18 +88,20 @@
       <ObjectFileName>$(IntDir)asm$%(FileName).obj</ObjectFileName>
     </MASM>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'DebugStatic'">
     <ClCompile>
       <PreprocessorDefinitions>PROJECTRUN;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  
   <ItemDefinitionGroup Condition="'$(Configuration)' == 'ReleaseTest'">
     <ClCompile>
       <PreprocessorDefinitions>PROJECTRUN;NDEBUG;RELEASE_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release'">
+
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'ReleaseStatic'">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>MaxSpeed</Optimization>
@@ -122,6 +125,18 @@
       <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'DebugStatic'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'ReleaseStatic'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  
+  
   <ItemDefinitionGroup Condition="'$(Platform)' != 'Emscripten'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>

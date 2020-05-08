@@ -71,33 +71,7 @@ inline Text symToString(ULONG sym) noexcept
 
 PdbReader::PdbReader() noexcept
 {
-	::SymInitialize(
-		GetCurrentProcess(),  // Process handle of the current process 
-		NULL,                 // No user-defined search path -> use default 
-		FALSE                 // Do not load symbols for modules in the current process 
-	);
-
-	TSZ16 moduleName;
-	moduleName << CurrentApplicationPath() << nullterm;
-
-	Must<File> file = File::open(moduleName.data());
-	dword filesize = file->size32();
-
 	m_process = GetCurrentProcess();
-	HANDLE handle = GetModuleHandleW(nullptr);
-
-	m_base = ::SymLoadModuleExW(
-		m_process,
-		file,
-		wide(moduleName.data()),
-		nullptr,
-		(uintptr_t)handle,
-		filesize,
-		nullptr,
-		0
-	);
-
-	// Unload symbols for the module 
 }
 PdbReader::~PdbReader() noexcept
 {
@@ -108,16 +82,65 @@ void* PdbReader::base() noexcept
 {
 	return (void*)m_base;
 }
-void PdbReader::showInfo(Lambda<sizeof(size_t), void(Text)> print) noexcept
+bool PdbReader::load(Lambda<sizeof(size_t), void(Text)> print) noexcept
+{
+	if (!::SymInitialize(
+		m_process,  // Process handle of the current process 
+		NULL,                 // No user-defined search path -> use default 
+		FALSE                 // Do not load symbols for modules in the current process 
+	))
+	{
+		int err = GetLastError();
+		print(TSZ() << "PdbReader: Error: SymInitialize() failed. Error code: " << err << '\n');
+		return false;
+	}
+
+	TSZ16 moduleName;
+	moduleName << CurrentApplicationPath() << nullterm;
+
+	try
+	{
+		Must<File> file = File::open(moduleName.data());
+		dword filesize = file->size32();
+
+		HANDLE handle = GetModuleHandleW(nullptr);
+
+		m_base = ::SymLoadModuleExW(
+			m_process,
+			file,
+			wide(moduleName.data()),
+			nullptr,
+			(uintptr_t)handle,
+			filesize,
+			nullptr,
+			0
+		);
+		if (!m_base)
+		{
+			int err = GetLastError();
+			print(TSZ() << "PdbReader: Error: SymLoadModuleEx() failed. Error code: " << err << '\n');
+			return false;
+		}
+		return true;
+	}
+	catch (Error&)
+	{
+		int err = GetLastError();
+		print(TSZ() << "PdbReader: Error: load pdb failed. Error code: " << err << '\n');
+		return false;
+	}
+}
+bool PdbReader::showInfo(Lambda<sizeof(size_t), void(Text)> print) noexcept
 {
 	IMAGEHLP_MODULEW64 ModuleInfo;
 	memset(&ModuleInfo, 0, sizeof(ModuleInfo));
 	ModuleInfo.SizeOfStruct = sizeof(ModuleInfo);
 
-	if (!SymGetModuleInfoW64(GetCurrentProcess(), m_base, &ModuleInfo))
+	if (!SymGetModuleInfoW64(m_process, m_base, &ModuleInfo))
 	{
-		print(TSZ() << "PdbReader: Error: SymGetModuleInfo64() failed. Error code: " << GetLastError() << '\n');
-		return;
+		int err = GetLastError();
+		print(TSZ() << "PdbReader: Error: SymGetModuleInfo64() failed. Error code: " << err << '\n');
+		return false;
 	}
 
 	// Display information about symbols 
@@ -151,6 +174,7 @@ void PdbReader::showInfo(Lambda<sizeof(size_t), void(Text)> print) noexcept
 	//cout << "PdbReader: Type information: " << (ModuleInfo.TypeInfo ? "Available" : "Not available") << endl;
 	//cout << "PdbReader: Source indexing: " << (ModuleInfo.SourceIndexed ? "Yes" : "No") << endl;
 	//cout << "PdbReader: Public symbols: " << (ModuleInfo.Publics ? "Available" : "Not available") << endl;
+	return true;
 }
 AText PdbReader::getTypeName(uint32_t typeId) noexcept
 {
@@ -187,9 +211,9 @@ AText PdbReader::getTypeName(uint32_t typeId) noexcept
 
 	return out;
 }
-void PdbReader::search(const char* filter, Callback callback) noexcept
+bool PdbReader::search(const char* filter, Callback callback) noexcept
 {
-	SymEnumSymbols(
+	return SymEnumSymbols(
 		m_process,
 		m_base,
 		filter,
@@ -404,11 +428,11 @@ public:
 };
 Map<Text, size_t> TemplateParser::s_lambdas;
 
-void PdbReader::getAll(GetAllCallback callback) noexcept
+bool PdbReader::getAll(GetAllCallback callback) noexcept
 {
 	callback.reader = this;
 
-	SymEnumSymbols(
+	return SymEnumSymbols(
 		m_process,
 		m_base,
 		nullptr,
