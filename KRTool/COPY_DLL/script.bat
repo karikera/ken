@@ -1,14 +1,10 @@
 
-set projdir=%1
-set projdir=%projdir:"=%
+set projdir=%~1
 set thirddir=%projdir%..\..\KRThird
-set configdir=%2
-set configdir=%configdir:"=%
-set platform=%3
-set outdir=%4
-set outdir=%outdir:"=%
-set batchdir=%5
-set batchdir=%batchdir:"=%
+set configdir=%~2
+set platform=%~3
+set outdir=%~4
+set batchdir=%~5
 set path=%path%;%batchdir%
 
 if "%configdir%" equ "Debug" ( 

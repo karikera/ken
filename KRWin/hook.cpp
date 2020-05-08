@@ -275,6 +275,13 @@ namespace
 	{
 		return r % R8;
 	}
+	RegSize ptr_to_size(AddressPointerRule rule) noexcept
+	{
+		if (rule == QwordPtr) return RegSize::Qword;
+		else if (rule == DwordPtr) return RegSize::Dword;
+		else if (rule == BytePtr) return RegSize::Byte;
+		else unreachable();
+	}
 }
 
 CodeWriter::CodeWriter(ExecutableAllocator* alloc, size_t size) noexcept
@@ -350,70 +357,71 @@ void CodeWriter::pop(Register r) noexcept
 }
 void CodeWriter::mov(Register dest, Register src) noexcept
 {
-	movex(BitType::Full, dest, src, AccessType::Normal, 0);
+	movex(RegSize::Qword, dest, src, AccessType::Register, 0);
 }
 void CodeWriter::movb(Register dest, Register src) noexcept
 {
-	movex(BitType::Byte, dest, src, AccessType::Normal, 0);
+	movex(RegSize::Byte, dest, src, AccessType::Register, 0);
 }
-void CodeWriter::movex(BitType bittype, Register reg1, Register reg2, AccessType atype, int32_t offset) noexcept
+void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) noexcept
 {
-	write(0x40 | 
-		((byte)bittype << 3) | 
-		(regex(reg1) ? 0x01 : 0x00) | 
-		(regex(reg2) ? 0x04 : 0x00));
+	// reg1 is memory address
+
+	Register reg2 = (Register)reg2_or_constvalue;
+	bool is_const = atype == AccessType::WriteConst;
+
+	byte rex = 0x40;
+	if (bittype == RegSize::Qword) rex |= 0x08;
+	if (regex(reg1)) rex |= 0x01;
+	if (!is_const && regex(reg2)) rex |= 0x04;
+	if (rex != 0x40) write(rex);
 
 
-	byte offsettype;
-	switch (atype)
+	if (atype == AccessType::WriteConst)
 	{
-	case AccessType::Normal:
-		write(0x89);
-		break;
-	case AccessType::Write:
-		write(0x89);
-		break;
-	case AccessType::Read:
-		write(0x8b);
-		break;
-	case AccessType::Lea:
-		write(0x8d);
-		break;
+		_assert(bittype == RegSize::Dword || bittype == RegSize::Qword);
+
+		write(0xc7);
+	}
+	else
+	{
+		_assert(atype != AccessType::Lea || (bittype == RegSize::Dword || bittype == RegSize::Qword));
+
+		byte memorytype = 0x88;
+		if (atype == AccessType::Lea) memorytype |= 0x05;
+		if (atype == AccessType::Read) memorytype |= 0x02;
+		if (bittype != RegSize::Byte) memorytype |= 0x01;
+		write(memorytype);
 	}
 
-	if (atype != AccessType::Normal)
+	byte offsettype;
+	if (atype != AccessType::Register)
 	{
-		if (offset == 0)
-		{
-			offsettype = 0x00;
-		}
-		else if ((int8_t)offset == offset)
-		{
-			offsettype = 0x40;
-		}
-		else
-		{
-			offsettype = 0x80;
-		}
+		if (offset == 0) offsettype = 0x00;
+		else if ((int8_t)offset == offset) offsettype = 0x40;
+		else offsettype = 0x80;
 	}
 	else
 	{
 		offsettype = 0xc0;
 	}
-	write(offsettype | regidx(reg1) | (regidx(reg2) << 3));
-	if (offsettype == 0xc0) return;
-	if (reg1 == RSP) write(0x24);
-	if (offsettype == 0x40) writeas<int8_t>(offset);
-	else if (offsettype == 0x80) writeas<int32_t>(offset);
+
+	byte opcode = offsettype | regidx(reg1);
+	if (!is_const) opcode |= (regidx(reg2) << 3);
+	write(opcode);
+
+	if (atype != AccessType::Register)
+	{
+		if (reg1 == RSP) write(0x24);
+		if (offsettype == 0x40) writeas<int8_t>(offset);
+		else if (offsettype == 0x80) writeas<int32_t>(offset);
+	}
+
+	if (is_const) writeas<int32_t>(reg2_or_constvalue);
 }
 void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept
 {
-	write(0x48);
-	write(0xc7);
-	write(0x40 | dest);
-	if (dest == RSP) write(0x24);
-	write(0x26);
-	writeas<int32_t>(value);
+	movex(ptr_to_size(address), dest, value, AccessType::WriteConst, offset);
 }
 void CodeWriter::mov(AddressPointerRule address, Register dest, Register src) noexcept
 {
@@ -421,15 +429,15 @@ void CodeWriter::mov(AddressPointerRule address, Register dest, Register src) no
 }
 void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept
 {
-	movex(BitType::Full, dest, src, AccessType::Write, offset);
+	movex(ptr_to_size(address), dest, src, AccessType::Write, offset);
 }
 void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
 {
-	movex(BitType::Full, src, dest, AccessType::Read, offset);
+	movex(ptr_to_size(address), src, dest, AccessType::Read, offset);
 }
 void CodeWriter::lea(Register dest, Register src, int32_t offset) noexcept
 {
-	movex(BitType::Full, src, dest, AccessType::Lea, offset);
+	movex(RegSize::Qword, src, dest, AccessType::Lea, offset);
 }
 void CodeWriter::operex(Operator oper, Register dest, int32_t chr) noexcept
 {

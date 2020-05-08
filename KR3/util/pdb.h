@@ -24,10 +24,11 @@ namespace kr
 		PdbReader() noexcept;
 		~PdbReader() noexcept;
 		void* base() noexcept;
-		void showInfo(Lambda<sizeof(size_t), void(Text)> print) noexcept;
+		bool load(Lambda<sizeof(size_t), void(Text)> print) noexcept;
+		bool showInfo(Lambda<sizeof(size_t), void(Text)> print) noexcept;
 		AText getTypeName(uint32_t typeId) noexcept;
-		void search(const char* filter, Callback callback) noexcept;
-		void getAll(GetAllCallback callback) noexcept;
+		bool search(const char* filter, Callback callback) noexcept;
+		bool getAll(GetAllCallback callback) noexcept;
 		autoptr getFunctionAddress(const char* name) noexcept;
 
 	private:

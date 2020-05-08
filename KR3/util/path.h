@@ -323,7 +323,7 @@ namespace kr
 										skip_sep = false;
 										continue;
 									}
-									if (dest->endsWith(sep))
+									if (dest->endsWith(seper))
 									{
 										if (dest->size() == 1)
 										{

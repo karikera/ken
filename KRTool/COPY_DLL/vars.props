@@ -3,8 +3,6 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <ThirdDir>$(ProjectDir)..\..\KRThird\</ThirdDir>
-    <d Condition="'$(Configuration)'=='Debug'">d</d>
-    <d Condition="'$(Configuration)'!='Debug'"></d>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />

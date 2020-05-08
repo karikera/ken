@@ -154,21 +154,25 @@ namespace kr
 
 		enum AddressPointerRule
 		{
+			BytePtr,
+			DwordPtr,
 			QwordPtr
 		};
 
-		enum class BitType
+		enum class RegSize
 		{
 			Byte,
-			Full,
+			Dword,
+			Qword,
 		};
 
 		enum class AccessType
 		{
-			Normal,
+			Register,
 			Write,
 			Read,
 			Lea,
+			WriteConst,
 		};
 
 		enum class Operator
@@ -204,7 +208,7 @@ namespace kr
 			void pop(Register r) noexcept;
 			void mov(Register dest, Register src) noexcept;
 			void movb(Register dest, Register src) noexcept;
-			void movex(BitType bittype, Register reg1, Register reg2, AccessType atype, int32_t offset) noexcept;
+			void movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) noexcept;
 			void mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept;
 			void mov(AddressPointerRule address, Register dest, Register src) noexcept;
 			void mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept;
