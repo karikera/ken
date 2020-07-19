@@ -124,7 +124,7 @@
     <PostBuildEvent />
     <PreBuildEvent />
     <CustomBuild>
-      <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
+      <Command>call "%(Identity)" "$(ProjectDir)" "$(ConfigDir)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
 @echo done &gt; $(IntDir)%(Identity).log
 </Command>
       <Outputs>$(IntDir)%(Identity).log</Outputs>
@@ -135,7 +135,7 @@
     <PostBuildEvent />
     <PreBuildEvent />
     <CustomBuild>
-      <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
+      <Command>call "%(Identity)" "$(ProjectDir)" "$(ConfigDir)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
 @echo done &gt; $(IntDir)%(Identity).log
 </Command>
       <Outputs>$(IntDir)%(Identity).log</Outputs>
@@ -146,7 +146,7 @@
     <PostBuildEvent />
     <PreBuildEvent />
     <CustomBuild>
-      <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
+      <Command>call "%(Identity)" "$(ProjectDir)" "$(ConfigDir)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
 @echo done &gt; $(IntDir)%(Identity).log
 </Command>
       <Outputs>$(IntDir)%(Identity).log</Outputs>
@@ -157,7 +157,7 @@
     <PostBuildEvent />
     <PreBuildEvent />
     <CustomBuild>
-      <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
+      <Command>call "%(Identity)" "$(ProjectDir)" "$(ConfigDir)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
 @echo done &gt; $(IntDir)%(Identity).log
 </Command>
       <Outputs>$(IntDir)%(Identity).log</Outputs>
@@ -168,7 +168,7 @@
     <PostBuildEvent />
     <PreBuildEvent />
     <CustomBuild>
-      <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
+      <Command>call "%(Identity)" "$(ProjectDir)" "$(ConfigDir)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
 @echo done &gt; $(IntDir)%(Identity).log
 </Command>
       <Outputs>$(IntDir)%(Identity).log</Outputs>
@@ -179,7 +179,7 @@
     <PostBuildEvent />
     <PreBuildEvent />
     <CustomBuild>
-      <Command>call "%(Identity)" "$(ProjectDir)" "$(Configuration)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
+      <Command>call "%(Identity)" "$(ProjectDir)" "$(ConfigDir)" $(PlatformShortName) "$(OutDir)" "$(KEN_DIR)batch"
 @echo done &gt; $(IntDir)%(Identity).log
 </Command>
       <Outputs>$(IntDir)%(Identity).log</Outputs>
