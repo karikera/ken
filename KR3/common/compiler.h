@@ -117,7 +117,7 @@ void vem__debug_break() noexcept;
 		if (::kr::requestDebugger())\
 			debug();\
 		::kr::terminate(-1);\
-	} while(0,0)
+	} while(0)
 
 #define notImplementedYet()	debugOrDie()
 #define unreachable()		debugOrDie()

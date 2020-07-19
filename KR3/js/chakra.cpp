@@ -68,11 +68,13 @@ namespace kr
 	{
 		struct InternalTools
 		{
-			static JsRef processException() noexcept
+			template <typename LAMBDA>
+			static JsRef wrapToJsException(const LAMBDA& lambda) noexcept
 			{
+				SEHCatcher __catcher;
 				try
 				{
-					std::rethrow_exception(std::current_exception());
+					return lambda();
 				}
 				catch (JsException & e)
 				{
@@ -197,64 +199,39 @@ namespace kr
 
 				using CTOR = JsClass::CTOR;
 				CTOR ctor = (CTOR)callbackState;
-				SEHCatcher __catcher;
-				try
-				{
+				return wrapToJsException([&] {
 					JsObject* jsobj = ctor(args);
 					JsSetExternalData(_thisref.m_data, jsobj);
 					return _thisref.m_data;
-				}
-				catch (...)
-				{
-					return processException();
-				}
+					});
 			}
 			static JsValueRef CT_STDCALL nativeFunctionCallback(JsValueRef callee, bool isConstructCall, JsValueRef* arguments, unsigned short argumentCount, void* callbackState) noexcept
 			{
 				kr::JsFunction::Data*  data = (kr::JsFunction::Data*)callbackState;
-				SEHCatcher __catcher;
-				try
-				{
-					
+				return wrapToJsException([&] {
 					JsScope scope;
 					JsArguments args = makeArgs((JsRawData)*arguments, arguments, argumentCount);
 					JsValue retValue = data->call(args);
 					return retValue.m_data;
-				}
-				catch (...)
-				{
-					return processException();
-				}
+					});
 			}
 			static JsValueRef CT_STDCALL getterCallback(JsValueRef callee, bool isConstructCall, JsValueRef* arguments, unsigned short argumentCount, void* callbackState) noexcept
 			{
 				kr::JsAccessor* data = (kr::JsAccessor*)callbackState;
-				SEHCatcher __catcher;
-				try
-				{
+				return wrapToJsException([&] {
 					JsScope scope;
 					JsValue retValue = data->get((JsRawData)arguments[0]);
 					return retValue.m_data;
-				}
-				catch (...)
-				{
-					return processException();
-				}
+					});
 			}
 			static JsValueRef CT_STDCALL setterCallback(JsValueRef callee, bool isConstructCall, JsValueRef* arguments, unsigned short argumentCount, void* callbackState) noexcept
 			{
 				kr::JsAccessor* data = (kr::JsAccessor*)callbackState;
-				SEHCatcher __catcher;
-				try
-				{
+				return wrapToJsException([&] {
 					JsScope scope;
 					data->set((JsRawData)arguments[0], argumentCount >= 2 ? (JsValue)(JsRawData)arguments[1] : (JsValue)undefined);
 					return JS_INVALID_REFERENCE;
-				}
-				catch (...)
-				{
-					return processException();
-				}
+					});
 			}
 
 			static JsContextRef createContext() noexcept
@@ -393,9 +370,21 @@ _ErrorCatchThrow::_ErrorCatchThrow(JsErrorCode err) throws(kr::JsException)
 	}
 }
 
+kr::JsExceptionCatcher::JsExceptionCatcher() noexcept
+{
+}
+kr::JsExceptionCatcher::~JsExceptionCatcher() throws(kr::JsException)
+{
+	JsValueRef exception;
+	if (JsGetAndClearException(&exception) == JsNoError) {
+		InternalTools::throwException(exception);
+	}
+}
+
 // scope
 kr::JsScope::JsScope() noexcept
 {
+	_assert(InternalTools::getCurrentContext() != nullptr);
 	ondebug(s_scopeStackCounter++);
 }
 kr::JsScope::~JsScope() noexcept
@@ -539,6 +528,9 @@ kr::JsRawData kr::JsRawData::getByProperty(const JsPropertyId& name) const noexc
 }
 bool kr::JsRawData::instanceOf(const JsRawData& value) const noexcept
 {
+	JsValueType a, b;
+	JsGetValueType(m_data, &a);
+	JsGetValueType(value.m_data, &b);
 	bool res;
 	NOERR JsInstanceOf(m_data, value.m_data, &res);
 	return res;
@@ -584,7 +576,6 @@ size_t kr::JsRawData::getArrayLength() const throws(JsException)
 	NOERR JsGetProperty(m_data, s_context->m_lengthId, &jslength);
 	int length;
 	ERRCT JsNumberToInt(jslength, &length);
-	JsAssertRelease(jslength);
 	if (length < 0) throw JsException(TSZ16() << u"length is " << length);
 	return length;
 }
@@ -593,7 +584,6 @@ void kr::JsRawData::setArrayLength(size_t length) const throws(JsException)
 	JsValueRef jslength;
 	ERRCT JsIntToNumber(intact<int>(length), &jslength);
 	NOERR JsSetProperty(m_data, s_context->m_lengthId, jslength, true);
-	JsAssertRelease(jslength);
 }
 kr::JsRawData kr::JsRawData::call(JsRawData _this, JsArgumentsIn arguments) const throws(JsException)
 {
@@ -669,6 +659,26 @@ bool kr::JsRawData::as<bool>() const noexcept
 	return out;
 }
 
+// #define REF_VIEW
+
+void logRef(JsValueRef value, bool release) noexcept
+{
+#ifdef REF_VIEW
+	using namespace kr;
+	if (value == JS_INVALID_REFERENCE) return;
+	cout << value;
+	if (release)
+	{
+		cout << ": release ";
+	}
+	else
+	{
+		cout << ": addref ";
+	}
+	cout << InternalTools::getRef(value) << endl;
+#endif
+}
+
 // persistent
 kr::JsPersistent::JsPersistent() noexcept
 {
@@ -678,16 +688,19 @@ kr::JsPersistent::JsPersistent(const JsRawData& value) noexcept
 {
 	m_data = value.m_data;
 	JsAssertAddRef(m_data);
+	logRef(m_data, false);
 }
 kr::JsPersistent::JsPersistent(const JsWeak& obj) noexcept
 {
 	m_data = obj.m_data;
 	NOERR JsAddRef(m_data, nullptr);
+	logRef(m_data, false);
 }
 kr::JsPersistent::JsPersistent(const JsPersistent& obj) noexcept
 {
 	m_data = obj.m_data;
 	NOERR JsAddRef(m_data, nullptr);
+	logRef(m_data, false);
 }
 kr::JsPersistent::JsPersistent(JsPersistent&& obj) noexcept
 {
@@ -696,6 +709,7 @@ kr::JsPersistent::JsPersistent(JsPersistent&& obj) noexcept
 }
 kr::JsPersistent::~JsPersistent() noexcept
 {
+	logRef(m_data, true);
 	JsAssertRelease(m_data);
 }
 bool kr::JsPersistent::isEmpty() const noexcept
@@ -1046,10 +1060,15 @@ kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 	NOERR JsGetFalseValue(&m_falseValue);
 	NOERR JsGetNullValue(&m_nullValue);
 	NOERR JsGetPropertyIdFromName(L"prototype", &m_prototypeId);
+	JsAddRef(m_prototypeId, nullptr);
 	NOERR JsGetPropertyIdFromName(L"constructor", &m_constructorId);
+	JsAddRef(m_constructorId, nullptr);
 	NOERR JsGetPropertyIdFromName(L"length", &m_lengthId);
+	JsAddRef(m_lengthId, nullptr);
 	NOERR JsGetPropertyIdFromName(L"get", &m_getId);
+	JsAddRef(m_getId, nullptr);
 	NOERR JsGetPropertyIdFromName(L"set", &m_setId);
+	JsAddRef(m_setId, nullptr);
 	s_context = this;
 
 	JsSetPromiseContinuationCallback([](JsValueRef value, void* state) {
@@ -1061,16 +1080,18 @@ kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 
 		for (auto & info : s_classList)
 		{
-			JsRawData* cls = m_classes.prepare(1);
 			JsRawData name(info.m_name);
-			*cls = InternalTools::createClass(name, info.m_ctor, m_prototypeId, s_context->m_constructorId);
-			*info.get() = *cls;
+			JsRawData cls = InternalTools::createClass(name, info.m_ctor, m_prototypeId, s_context->m_constructorId);
+			JsAddRef(cls.m_data, nullptr);
+
+			*m_classes.prepare(1) = cls;
+			*info.get() = cls;
 			if (info.m_isGlobal)
 			{
-				NOERR JsSetIndexedProperty(m_global, name.m_data, cls->m_data);
+				NOERR JsSetIndexedProperty(m_global, name.m_data, cls.m_data);
 			}
 
-			if (info.m_parentIndex != -1) InternalTools::extends(*cls, m_classes[info.m_parentIndex], m_prototypeId);
+			if (info.m_parentIndex != -1) InternalTools::extends(cls, m_classes[info.m_parentIndex], m_prototypeId);
 			info.m_initMethods();
 		}
 	}

@@ -224,7 +224,7 @@ namespace kr
 		template <typename T>
 		static void joinEx(T * dest, View<Text> texts, bool resolve, C seper = sep) noexcept
 		{
-			dest->clear();
+			static_assert(is_same<typename T::Component, C>::value, "Character type is not matched");
 			if (texts.empty()) return;
 
 			bool skip_sep;

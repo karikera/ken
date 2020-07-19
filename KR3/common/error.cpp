@@ -173,6 +173,10 @@ void kr::errorBox(pcstr16 str) noexcept
 			break;
 	}
 }
+HRESULT ErrorCode::getErrorCode() noexcept
+{
+	return m_error;
+}
 ErrorCode ErrorCode::getLast() noexcept
 {
 	return GetLastError();

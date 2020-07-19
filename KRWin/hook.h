@@ -206,6 +206,7 @@ namespace kr
 #endif
 			void push(Register r) noexcept;
 			void pop(Register r) noexcept;
+			void push(int32_t value) noexcept;
 			void mov(Register dest, Register src) noexcept;
 			void movb(Register dest, Register src) noexcept;
 			void movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) noexcept;
@@ -219,11 +220,14 @@ namespace kr
 			void sub(Register dest, int32_t chr) noexcept;
 			void add(Register dest, int32_t chr) noexcept;
 			void test(Register dest, Register src) noexcept;
+			void xor_(Register dest, int32_t chr) noexcept;
 			void jump(void* to, Register tmp) noexcept;
+			void jumpWithoutTemp(void* to) noexcept;
 			void call(void* to, Register tmp) noexcept;
 			void jz(int32_t offset) noexcept;
 			void jnz(int32_t offset) noexcept;
 			void ret() noexcept;
+			void debugBreak() noexcept;
 
 		};
 

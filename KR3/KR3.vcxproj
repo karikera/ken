@@ -384,6 +384,7 @@
     <ClInclude Include="util\scopeobserver.h" />
     <ClInclude Include="util\StackWalker.h" />
     <ClInclude Include="mt\criticalsection.h" />
+    <ClInclude Include="win\dynamic_dbghelp.h" />
     <ClInclude Include="win\eventhandle.h" />
     <ClInclude Include="win\fileinfo.h" />
     <ClInclude Include="win\minidef.h" />
@@ -536,6 +537,7 @@
     <ClCompile Include="util\StackWalker.cpp" />
     <ClCompile Include="util\time.cpp" />
     <ClCompile Include="mt\criticalsection.cpp" />
+    <ClCompile Include="win\dynamic_dbghelp.cpp" />
     <ClCompile Include="win\eventhandle.cpp" />
     <ClCompile Include="win\fileinfo.cpp" />
     <ClCompile Include="win\handle.cpp" />

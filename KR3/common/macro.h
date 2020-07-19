@@ -126,12 +126,6 @@ namespace kr
 
 }
 
-constexpr size_t operator ""_sz(unsigned long long n)
-{
-	return n <= ((size_t)-1) ? (size_t)n : (throw std::logic_error("number overflow"));
-}
-
-
 #define countof(x)	(::kr::meta::array_countof<decltype(x)>::value)
 #define endof(x)	((x) + countof(x))
 

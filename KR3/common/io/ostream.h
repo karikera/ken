@@ -42,7 +42,8 @@ namespace kr
 			}
 			inline void writeFill(const InternalComponent & data, size_t size) throws(NotEnoughSpaceException)
 			{
-				TmpArray<Component> arr(size);
+				TmpArray<Component> arr;
+				arr.resize(size);
 				arr.fill(data);
 				write(arr.data(), size);
 			}

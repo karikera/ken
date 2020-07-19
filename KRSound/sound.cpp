@@ -49,7 +49,9 @@ bool SoundNotify::makeEvent(EventHandle** out, View<dword> offsets) noexcept
 bool SoundNotify::registEvent(View<EventHandle*> events, View<dword> offsets) noexcept
 {
 	dword count = intact<dword>(offsets.size());
-	TmpArray<DSBPOSITIONNOTIFY> positionNotify(count);
+	TmpArray<DSBPOSITIONNOTIFY> positionNotify;
+	positionNotify.resize(count);
+
 	EventHandle* const* eventptr = events.begin();
 	for (dword offset : offsets)
 	{

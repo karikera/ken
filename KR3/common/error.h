@@ -22,6 +22,7 @@ namespace kr
 		TempSzText<C> getMessage() const noexcept;
 		template <typename C>
 		void getMessageTo(TempSzText<C>* dest) const noexcept;
+		HRESULT getErrorCode() noexcept;
 		static ErrorCode getLast() noexcept;
 
 	private:

@@ -327,7 +327,8 @@ Promise<void>* Client::download(Progressor * progressor, AText16 filename, size_
 			}
 
 			size_t sz = size;
-			TmpArray<char> buffer(TEMP_BUFFER);
+			TmpArray<char> buffer;
+			buffer.resize(TEMP_BUFFER);
 			while (sz != 0)
 			{
 				size_t r = m_socket->$read(buffer.data(), mint((size_t)TEMP_BUFFER, sz));

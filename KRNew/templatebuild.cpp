@@ -10,6 +10,7 @@
 #include <KR3/util/bufferqueue.h>
 #include <KR3/data/crypt.h>
 #include <KR3/util/process.h>
+#include <KR3/util/hashtester.h>
 
 #ifdef WIN32
 #include <KR3/win/windows.h>
@@ -35,12 +36,14 @@ inline void buildTest() noexcept
 	using Utf32ToAnsi = Utf32ToMultiByte<Charset::Default>;
 	using AnsiToUtf32 = MultiByteToUtf32<Charset::Default>;
 	LinkedList<Node<int>> test;
+	HashTester<char> hashtest("qaa");
 	test.create(10);
 	for (Node<int>& t : test.reverse())
 	{
 	}
 	Array<int> test2;
 	test2.resize(10);
+	test2.writeFill(10, 10);
 	for (int& t : test2.reverse())
 	{
 	}
@@ -53,6 +56,8 @@ inline void buildTest() noexcept
 	Charset cs = Charset::Default;
 	TText16 utf16;
 	TText _value = {'1', '\0'};
+	utf16.splitView('\0');
+
 	CHARSET_CONSTLIZE(cs, {
 		utf16 << (MultiByteToUtf16<cs>)_value;
 	});

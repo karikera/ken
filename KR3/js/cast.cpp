@@ -61,6 +61,10 @@ JsObjectRawData _pri_::JsCast::toInner(JsObject* object) noexcept
 {
 	return (JsRawData)object->m_data;
 }
+JsRawData _pri_::JsCast::toInner(const JsRawData& value) noexcept
+{
+	return value;
+}
 
 
 #define DEFAULT(type, v)	template <> type _pri_::JsCast::defaultValue<type>() noexcept { return v; }

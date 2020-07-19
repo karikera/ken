@@ -33,11 +33,11 @@ const autovar<sizeof(ptr)> Library::get(pcstr str) noexcept
 }
 template <> size_t Library::getFileName<char>(char* dest, size_t capacity) const noexcept
 {
-	return GetModuleFileNameA(const_cast<Library*>(this), dest, (DWORD)mint(capacity, MAX_PATH));
+	return GetModuleFileNameA(const_cast<Library*>(this), dest, (DWORD)mint(capacity, Path::MAX_LEN));
 }
 template <> size_t Library::getFileName<char16_t>(char16_t* dest, size_t capacity) const noexcept
 {
-	return GetModuleFileNameW(const_cast<Library*>(this), wide(dest), (DWORD)mint(capacity, MAX_PATH));
+	return GetModuleFileNameW(const_cast<Library*>(this), wide(dest), (DWORD)mint(capacity, Path::MAX_LEN));
 }
 
 void kr::_pri_::closeHandle(void * handle) noexcept

@@ -22,7 +22,8 @@ inline AText readWithHeader(Text header, pcstr16 path)
 	Must<File> file = File::open(path);
 	dword filesize = file->size32();
 	size_t headersize = header.size();
-	AText contents(headersize + filesize);
+	AText contents;
+	contents.resize(headersize + filesize);
 	contents.subcopy(header.begin(), headersize, 0);
 	file->$read(contents.begin() + headersize, filesize);
 	return contents;
@@ -350,7 +351,8 @@ void HttpClient::onSendDone() noexcept
 	{
 		try
 		{
-			TmpArray<char> buffer(8192);
+			TmpArray<char> buffer;
+			buffer.resize(8192);
 			buffer.resize(m_fp.file->$read(buffer.begin(), buffer.size()));
 
 			if (Lock _lock = lock())
@@ -548,7 +550,8 @@ void HttpServer::findPage(Text path, HttpFindPage * fp) noexcept
 	try
 	{
 		// simplize path
-		AText nurl((size_t)0, path.size() + 32);
+		AText nurl;
+		nurl.reserve(path.size() + 32);
 		for (Text name : path.splitIterable('/'))
 		{
 			if (name == "..")
@@ -697,7 +700,8 @@ void kr::TemplatePage::parseQuery(Array<Text> &arr, Text prefix, Text query) noe
 }
 void kr::TemplatePage::process(HttpClient * client)
 {
-	Array<Text> variables(m_keys.size());
+	Array<Text> variables;
+	variables.resize(m_keys.size());
 	// TODO: set variables
 	debug();
 	HttpClient::Lock _lock = client->lock();

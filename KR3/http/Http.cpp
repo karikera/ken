@@ -15,8 +15,8 @@ EMPTY_SOURCE
 #pragma comment(lib,"shell32.lib")
 
 kr::HttpHeaderBuilder::HttpHeaderBuilder() noexcept
-	:m_strHeaders((size_t)0, 1024)
 {
+	m_strHeaders.reserve(1024);
 }
 kr::HttpHeaderBuilder::HttpHeaderBuilder(HttpHeaderBuilder && data) noexcept
 {
@@ -40,9 +40,8 @@ kr::Text kr::HttpHeaderBuilder::data() const noexcept
 }
 
 kr::HttpDataBuilder::HttpDataBuilder() noexcept
-	:m_strData((size_t)0, 1024)
 {
-
+	m_strData.reserve(1024);
 }
 kr::HttpDataBuilder::HttpDataBuilder(HttpDataBuilder && data) noexcept
 {
@@ -113,7 +112,8 @@ kr::HttpStatus kr::HttpConnection::open(Text url, const HttpConnectionRequest * 
 	m_socket.resetIStream(Socket::create());
 	m_socket->connect(Socket::findIp(pstr(TSZ() << host)), port);
 
-	TText sendbuffer((size_t)0, 1024);
+	TText sendbuffer;
+	sendbuffer.reserve(1024);
 	if (request->contentData != nullptr)
 	{
 		sendbuffer << "POST"_tx;

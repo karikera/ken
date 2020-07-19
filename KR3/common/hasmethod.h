@@ -220,7 +220,8 @@ namespace kr
 		size_t writeTo(OutStream<_Derived, Component, StreamInfo<false, _Parent>>* os) const
 		{
 			size_t sz = this->template sizeAs<Component>();
-			TmpArray<Component> temp(sz + (szable ? 1 : 0));
+			TmpArray<Component> temp;
+			temp.resize(sz + (szable ? 1 : 0));
 			this->template copyTo<Component>(temp.data());
 			os->write(temp.data(), sz);
 			return sz;

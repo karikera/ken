@@ -345,6 +345,19 @@ void CodeWriter::call(Register r) noexcept
 	write(0xd0 | regidx(r));
 }
 #endif
+void CodeWriter::push(int32_t value) noexcept
+{
+	if (value == (int8_t)value)
+	{
+		write(0x6A);
+		writeas<int8_t>(value);
+	}
+	else
+	{
+		write(0x68);
+		writeas<int32_t>(value);
+	}
+}
 void CodeWriter::push(Register r) noexcept
 {
 	if (regex(r)) write(0x41);
@@ -474,6 +487,10 @@ void CodeWriter::test(Register dest, Register src) noexcept
 	write(0x85);
 	write(0xC0 | (src << 3) | dest);
 }
+void CodeWriter::xor_(Register dest, int32_t chr) noexcept
+{
+	operex(Operator::XOR, dest, chr);
+}
 void CodeWriter::jump(void* to, Register tmp) noexcept
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
@@ -487,6 +504,18 @@ void CodeWriter::jump(void* to, Register tmp) noexcept
 		rjump((int)rjumppos);
 	}
 #else
+	rjump((int)rjumppos);
+#endif
+}
+void CodeWriter::jumpWithoutTemp(void* to) noexcept
+{
+#ifdef _M_X64
+	push(RCX);
+	mov(DwordPtr, RSP, 4, (uint32_t)(((uint64_t)to) >> 32));
+	mov(DwordPtr, RSP, 0, (uint32_t)((uint64_t)to));
+	ret();
+#else
+	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
 	rjump((int)rjumppos);
 #endif
 }
@@ -537,6 +566,10 @@ void CodeWriter::jnz(int32_t offset) noexcept
 void CodeWriter::ret() noexcept
 {
 	write(0xc3);
+}
+void CodeWriter::debugBreak() noexcept
+{
+	write(0xcc);
 }
 
 void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)(), Register temp) noexcept

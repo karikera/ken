@@ -9,11 +9,8 @@
 #include <tchar.h>
 
 #include <KR3/win/windows.h>
+#include <KR3/win/dynamic_dbghelp.h>
 
-#pragma comment(lib, "dbghelp.lib")
-
-#pragma warning(disable:4091)
-#include <dbghelp.h>
 #include <TlHelp32.h>
 
 enum { STACKWALK_MAX_NAMELEN = 1024 };
@@ -214,13 +211,15 @@ kr::StackWalker::StackWalker() noexcept
 }
 kr::StackWalker::~StackWalker() noexcept
 {
-	SymCleanup(m_hProcess);
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	dbghelp->SymCleanup(m_hProcess);
 }
 
 bool kr::StackWalker::loadModules() noexcept
 {
+	DbgHelp* dbghelp = DbgHelp::getInstance();
 	// SymInitialize
-	if (SymInitialize(m_hProcess, nullptr, FALSE) == FALSE)
+	if (dbghelp->SymInitialize(m_hProcess, nullptr, FALSE) == FALSE)
 	{
 		onDbgHelpErr("SymInitialize", GetLastError(), 0);
 		SetLastError(ERROR_DLL_INIT_FAILED);
@@ -228,11 +227,11 @@ bool kr::StackWalker::loadModules() noexcept
 	}
 
 	// SymGetOptions
-	dword symOptions = SymGetOptions();
+	dword symOptions = dbghelp->SymGetOptions();
 	symOptions |= SYMOPT_LOAD_LINES;
 	symOptions |= SYMOPT_FAIL_CRITICAL_ERRORS;
 	//symOptions |= SYMOPT_NO_PROMPTS;
-	symOptions = SymSetOptions(symOptions);
+	symOptions = dbghelp->SymSetOptions(symOptions);
 
 	// load module
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, m_dwProcessId);
@@ -243,7 +242,7 @@ bool kr::StackWalker::loadModules() noexcept
 	me.dwSize = sizeof(me);
 	if (Module32FirstW(hSnap, &me)) do
 	{
-		if (SymLoadModuleExW(m_hProcess, 0, me.szExePath, me.szModule, (qword)me.modBaseAddr, me.modBaseSize, nullptr, 0) == 0) break;
+		if (dbghelp->SymLoadModuleExW(m_hProcess, 0, me.szExePath, me.szModule, (qword)me.modBaseAddr, me.modBaseSize, nullptr, 0) == 0) break;
 		info.name = unwide(me.szModule);
 		onLoadModule(&info);
 	}
@@ -260,6 +259,7 @@ bool kr::StackWalker::showCallstack() noexcept
 }
 bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 {
+	DbgHelp* dbghelp = DbgHelp::getInstance();
 	if (m_modulesLoaded == false) loadModules();  // ignore the result...
 	
 	HANDLE hThread = GetCurrentThread();
@@ -315,7 +315,7 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 
 	for (;;)
 	{
-		if (!StackWalk64(imageType, this->m_hProcess, hThread, &s, ctx,
+		if (!dbghelp->StackWalk64(imageType, this->m_hProcess, hThread, &s, ctx,
 			[](HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
 		{
 			SIZE_T size;
@@ -323,7 +323,7 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 			static_assert(sizeof(dword) == sizeof(DWORD), "dword size unmatch");
 			*lpNumberOfBytesRead = (dword)size;
 			return res;
-		}, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+		}, dbghelp->SymFunctionTableAccess64, dbghelp->SymGetModuleBase64, nullptr))
 		{
 			onDbgHelpErr("StackWalk64", GetLastError(), s.AddrPC.Offset);
 			break;
@@ -339,7 +339,7 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 		csEntry.address = (void*)s.AddrPC.Offset;
 
 		qword offsetFromSymbol;
-		if (SymGetSymFromAddr64(this->m_hProcess, s.AddrPC.Offset, &offsetFromSymbol, &sym) != FALSE)
+		if (dbghelp->SymGetSymFromAddr64(this->m_hProcess, s.AddrPC.Offset, &offsetFromSymbol, &sym) != FALSE)
 		{
 			csEntry.function = sym.Name;
 			//UnDecorateSymbolName(sym.Name, csEntry.undName, STACKWALK_MAX_NAMELEN, UNDNAME_NAME_ONLY);
@@ -363,7 +363,7 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 		}
 
 		DWORD offsetFromLine;
-		if (SymGetLineFromAddrW64(this->m_hProcess, s.AddrPC.Offset, &offsetFromLine, &Line) != FALSE)
+		if (dbghelp->SymGetLineFromAddrW64(this->m_hProcess, s.AddrPC.Offset, &offsetFromLine, &Line) != FALSE)
 		{
 			csEntry.line = Line.LineNumber;
 			csEntry.filename = unwide(Line.FileName);

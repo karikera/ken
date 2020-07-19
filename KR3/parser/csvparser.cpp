@@ -191,7 +191,8 @@ void kr::CSVParser::skip() throws(EofException, NoLineException, NextLineExcepti
 
 kr::TmpArray<char> kr::CSVParser::next() throws(EofException, NoLineException, NextLineException)
 {
-	TText tx((size_t)0, 1024);
+	TText tx;
+	tx.reserve(1024);
 	next(&tx);
 	return tx;
 }
