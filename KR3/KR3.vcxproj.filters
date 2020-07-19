@@ -708,11 +708,11 @@
     <ClInclude Include="meta\has_equals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="win\dynamic_dbghelp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="common\autovar\autoptr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="data\binarray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1065,6 +1065,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="win\devent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\autovar\autoptr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win\dynamic_dbghelp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

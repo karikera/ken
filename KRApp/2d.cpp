@@ -462,7 +462,8 @@ bool WebCanvas2D::putImageData(const image::ImageData& image, int x, int y) noex
 #elif defined(WIN32)
 	if (pitch % 4 != 0) return false;
 	s_g->needFlush = true;
-	TmpArray<dword> data(width*height);
+	TmpArray<dword> data;
+	data.resize(width * height);
 	
 	dword * dest = data.data();
 	dword * dest_end = data.end();

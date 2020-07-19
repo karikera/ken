@@ -731,7 +731,8 @@ void MTClient::_flush_wl() noexcept
 	if (m_writeQueue.empty()) return;
 	m_flushing = SState::Flushing;
 
-	TmpArray<WSABUF> wsabufs(0_sz, m_writeQueue.bufferCount());
+	TmpArray<WSABUF> wsabufs;
+	wsabufs.reserve(m_writeQueue.bufferCount());
 
 	for (Buffer buf : m_writeQueue)
 	{

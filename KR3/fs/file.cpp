@@ -149,7 +149,8 @@ bool File::createDirectory(pcstr16 str) noexcept
 }
 bool File::createFullDirectory(Text16 str) noexcept
 {
-	TText16 temp((size_t)0, 1024);
+	TText16 temp;
+	temp.reserve(1024);
 	Text16 nstr = str;
 #ifdef WIN32
 	size_t sz = nstr.size();

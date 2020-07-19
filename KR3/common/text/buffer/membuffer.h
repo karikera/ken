@@ -935,7 +935,8 @@ namespace kr
 			{
 				if (size() == 0) return nullptr;
 				size_t scolen = count(chr) + 1;
-				Array<Ref> arr(scolen);
+				Array<Ref> arr;
+				arr.resize(scolen);
 				Ref * scores = arr.begin();
 				Ref read(begin(), end());
 				Ref readi;

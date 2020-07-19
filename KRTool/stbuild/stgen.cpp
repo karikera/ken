@@ -739,8 +739,11 @@ File * Main::createFile(Text16 text) throws(Error)
 void Main::modifyTest(Text16 filename) noexcept
 {
 	constexpr size_t SIZE = 8192;
-	TmpArray<char> buffer1(SIZE);
-	TmpArray<char> buffer2(SIZE);
+	TmpArray<char> buffer1;
+	buffer1.resize(SIZE);
+
+	TmpArray<char> buffer2;
+	buffer2.resize(SIZE);
 
 	TSZ16 oldfile;
 	oldfile << filename << nullterm;

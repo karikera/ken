@@ -257,7 +257,8 @@ AText gl::Program::getInfoLog() noexcept
 {
 	GLsizei sz = getInfoLogLength();
 	if (sz <= 0) return AText();
-	AText text(sz - 1, sz);
+	AText text;
+	text.resize(sz - 1, sz);
 	getInfoLog(sz, nullptr, text.data());
 	return text;
 }

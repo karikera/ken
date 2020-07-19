@@ -455,7 +455,8 @@ TBuffer DrawContext::getGlyphOutlineA(
 )
 {
 	dword size = getGlyphOutlineA(uChar, fuFormat, lpgm, 0, nullptr, lpmat2);
-	TBuffer buffer(size);
+	TBuffer buffer;
+	buffer.resize(size);
 	getGlyphOutlineA(uChar, fuFormat, lpgm, size, buffer.begin(), lpmat2);
 	return buffer;
 }
@@ -467,7 +468,8 @@ TBuffer DrawContext::getGlyphOutline(
 )
 {
 	dword size = getGlyphOutline(uChar, fuFormat, lpgm, 0, nullptr, lpmat2);
-	TBuffer buffer(size);
+	TBuffer buffer;
+	buffer.resize(size);
 	getGlyphOutline(uChar, fuFormat, lpgm, size, buffer.begin(), lpmat2);
 	return buffer;
 }
@@ -579,7 +581,8 @@ void DrawContext::drawOutline(ivec2 wpt,char16 chr,const fixedmatrix2 &mat) noex
 	int fullsize;
 	fullsize = GetGlyphOutline(this, chr, GGO_BEZIER, &gm, 0, nullptr, (MAT2*)&mat);
 
-	TmpArray<byte> buff(fullsize);
+	TmpArray<byte> buff;
+	buff.resize(fullsize);
 	
 	GetGlyphOutline(this, chr, GGO_BEZIER, &gm, fullsize, buff.begin(), (MAT2*)&mat);
 

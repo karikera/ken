@@ -59,6 +59,9 @@ namespace kr
 		template <typename t> struct function<t&> :function<t>
 		{
 		};
+		template <typename t> struct function<t&&> :function<t>
+		{
+		};
 
 
 		template <typename func, size_t index>

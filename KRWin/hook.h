@@ -154,21 +154,25 @@ namespace kr
 
 		enum AddressPointerRule
 		{
+			BytePtr,
+			DwordPtr,
 			QwordPtr
 		};
 
-		enum class BitType
+		enum class RegSize
 		{
 			Byte,
-			Full,
+			Dword,
+			Qword,
 		};
 
 		enum class AccessType
 		{
-			Normal,
+			Register,
 			Write,
 			Read,
 			Lea,
+			WriteConst,
 		};
 
 		enum class Operator
@@ -202,9 +206,10 @@ namespace kr
 #endif
 			void push(Register r) noexcept;
 			void pop(Register r) noexcept;
+			void push(int32_t value) noexcept;
 			void mov(Register dest, Register src) noexcept;
 			void movb(Register dest, Register src) noexcept;
-			void movex(BitType bittype, Register reg1, Register reg2, AccessType atype, int32_t offset) noexcept;
+			void movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) noexcept;
 			void mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept;
 			void mov(AddressPointerRule address, Register dest, Register src) noexcept;
 			void mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept;
@@ -215,11 +220,14 @@ namespace kr
 			void sub(Register dest, int32_t chr) noexcept;
 			void add(Register dest, int32_t chr) noexcept;
 			void test(Register dest, Register src) noexcept;
+			void xor_(Register dest, int32_t chr) noexcept;
 			void jump(void* to, Register tmp) noexcept;
+			void jumpWithoutTemp(void* to) noexcept;
 			void call(void* to, Register tmp) noexcept;
 			void jz(int32_t offset) noexcept;
 			void jnz(int32_t offset) noexcept;
 			void ret() noexcept;
+			void debugBreak() noexcept;
 
 		};
 

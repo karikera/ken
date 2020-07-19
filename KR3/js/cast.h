@@ -105,6 +105,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static JsArrayBufferRawData toInner(JsNewArrayBuffer arr) noexcept;
 			static JsTypedArrayRawData toInner(JsNewTypedArray arr) noexcept;
 			static JsRawData toInner(const JsPersistent& value) noexcept;
+			static JsRawData toInner(const JsRawData& value) noexcept;
 			static void toInner(const void*) noexcept = delete;
 			template <size_t size>
 			static TText16 toInner(const char(&str)[size], Charset cs = Charset::Default) noexcept

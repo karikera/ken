@@ -402,7 +402,8 @@ dword EventPump::_tryProcess(EventHandle* const* events, dword count) throws(Qui
 TmpArray<EventHandle*> EventPump::_makeEventArray(View<EventHandle*> events) noexcept
 {
 	size_t sz = events.size();
-	TmpArray<EventHandle*> newevents(sz + 1);
+	TmpArray<EventHandle*> newevents;
+	newevents.resize(sz + 1);
 	newevents.subcopy(events.begin(), sz, 0);
 	newevents[sz] = m_msgevent;
 	return newevents;
@@ -410,7 +411,8 @@ TmpArray<EventHandle*> EventPump::_makeEventArray(View<EventHandle*> events) noe
 TmpArray<EventHandle*> EventPump::_makeEventArray(View<EventProcedure> proc) noexcept
 {
 	size_t sz = proc.size();
-	TmpArray<EventHandle*> events(sz + 1);
+	TmpArray<EventHandle*> events;
+	events.resize(sz + 1);
 	{
 		EventHandle** dest = events.begin();
 		for (const EventProcedure& p : proc)

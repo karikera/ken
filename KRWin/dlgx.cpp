@@ -10,9 +10,12 @@ using namespace win;
 
 bool kr::win::loadFileDialog(Window* hWnd, const char* Title, Text Type, Text TypeName, char* strFileName) noexcept
 {
-	TText pathes((size_t)0, MAX_PATH);
-	TText types((size_t)0, 512);
-	TText defext((size_t)0, 512);
+	TText pathes;
+	pathes.reserve(MAX_PATH);
+	TText types;
+	types.reserve(512);
+	TText defext;
+	defext.reserve(512);
 
 	pathes << currentDirectory;
 	types << TypeName << '\0' << Type << "\0葛电颇老\0*.*\0\0";
@@ -29,9 +32,12 @@ bool kr::win::loadFileDialog(Window* hWnd, const char* Title, Text Type, Text Ty
 }
 bool kr::win::saveFileDialog(Window* hWnd, const char* Title, Text Type, Text TypeName, char* strFileName) noexcept
 {
-	TText pathes((size_t)0, MAX_PATH);
-	TText types((size_t)0, 512);
-	TText defext((size_t)0, 512);
+	TText pathes;
+	pathes.reserve(MAX_PATH);
+	TText types;
+	types.reserve(512);
+	TText defext;
+	defext.reserve(512);
 
 	pathes << currentDirectory;
 	types << TypeName << '\0' << Type << "\0葛电颇老\0*.*\0\0";
@@ -49,9 +55,12 @@ bool kr::win::saveFileDialog(Window* hWnd, const char* Title, Text Type, Text Ty
 
 bool kr::win::loadFileDialog(Window* hWnd, const char16* Title, Text16 Type, Text16 TypeName, char16* strFileName) noexcept
 {
-	TText16 pathes((size_t)0, MAX_PATH);
-	TText16 types((size_t)0, 512);
-	TText16 defext((size_t)0, 512);
+	TText16 pathes;
+	pathes.reserve(MAX_PATH);
+	TText16 types;
+	types.reserve(512);
+	TText16 defext;
+	defext.reserve(512);
 
 	pathes << currentDirectory;
 	types << TypeName << u'\0' << Type << u"\0葛电颇老\0*.*\0\0";
@@ -69,9 +78,12 @@ bool kr::win::loadFileDialog(Window* hWnd, const char16* Title, Text16 Type, Tex
 }
 bool kr::win::saveFileDialog(Window* hWnd, const char16* Title, Text16 Type, Text16 TypeName, char16* strFileName) noexcept
 {
-	TText16 pathes((size_t)0, MAX_PATH);
-	TText16 types((size_t)0, 512);
-	TText16 defext((size_t)0, 512);
+	TText16 pathes;
+	pathes.reserve(MAX_PATH);
+	TText16 types;
+	types.reserve(512);
+	TText16 defext;
+	defext.reserve(512);
 
 	pathes << currentDirectory;
 	types << TypeName << u'\0' << Type << u"\0葛电颇老\0*.*\0\0";

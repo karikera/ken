@@ -201,7 +201,8 @@ namespace kr
 			}
 			void must(Ref comps) throws(InvalidSourceException)
 			{
-				TmpArray<Component> tmp((size_t)0, comps.size());
+				TmpArray<Component> tmp;
+				tmp.reserve(comps.size());
 				try
 				{
 					tmp << read(comps.size());

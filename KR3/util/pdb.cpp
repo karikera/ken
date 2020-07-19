@@ -2,14 +2,10 @@
 #include "pdb.h"
 
 #include <KR3/win/windows.h>
-
-#define _NO_CVCONST_H
-#include <DbgHelp.h>
+#include <KR3/win/dynamic_dbghelp.h>
 
 #include <KR3/fs/file.h>
 #include <KR3/data/map.h>
-
-#pragma comment(lib, "dbghelp.lib")
 
 
 using namespace kr;
@@ -52,108 +48,126 @@ inline Text tagToString(ULONG tag) noexcept
 	default: return "Unknown";
 	}
 }
-inline Text symToString(ULONG sym) noexcept
+inline Text16 symToString(ULONG sym) noexcept
 {
 	switch (sym)
 	{
-	case SymNone: return "None";
-	case SymExport: return "Exports";
-	case SymCoff: return "COFF";
-	case SymCv: return "CodeView";
-	case SymSym: return "SYM";
-	case SymVirtual: return "Virtual";
-	case SymPdb: return "PDB";
-	case SymDia: return "DIA";
-	case SymDeferred: return "Deferred";
-	default: return "Unknown";
+	case SymNone: return u"None";
+	case SymExport: return u"Exports";
+	case SymCoff: return u"COFF";
+	case SymCv: return u"CodeView";
+	case SymSym: return u"SYM";
+	case SymVirtual: return u"Virtual";
+	case SymPdb: return u"PDB";
+	case SymDia: return u"DIA";
+	case SymDeferred: return u"Deferred";
+	default: return u"Unknown";
 	}
 }
 
-PdbReader::PdbReader() noexcept
+PdbReader::PdbReader() throws(FunctionError)
 {
-	::SymInitialize(
-		GetCurrentProcess(),  // Process handle of the current process 
-		NULL,                 // No user-defined search path -> use default 
-		FALSE                 // Do not load symbols for modules in the current process 
-	);
-
-	TSZ16 moduleName;
-	moduleName << CurrentApplicationPath() << nullterm;
-
-	Must<File> file = File::open(moduleName.data());
-	dword filesize = file->size32();
+	TSZ16 programPath;
+	programPath << CurrentApplicationPath() << nullterm;
+	HANDLE handle = GetModuleHandleW(nullptr);
+	_load((uint64_t)handle, programPath.data());
+}
+PdbReader::PdbReader(uint64_t base, pcstr16 programPath) throws(FunctionError)
+{
+	_load(base, programPath);
+}
+void PdbReader::_load(uint64_t base, pcstr16 programPath) throws(FunctionError)
+{
+	DbgHelp* dbghelp = DbgHelp::getInstance();
 
 	m_process = GetCurrentProcess();
-	HANDLE handle = GetModuleHandleW(nullptr);
+	dbghelp->SymSetOptions(SYMOPT_UNDNAME);
+	if (!dbghelp->SymInitialize(
+		m_process,  // Process handle of the current process 
+		NULL,                 // No user-defined search path -> use default 
+		FALSE                 // Do not load symbols for modules in the current process 
+	))
+	{
+		int err = GetLastError();
+		throw FunctionError("SymInitialize", err);
+	}
 
-	m_base = ::SymLoadModuleExW(
-		m_process,
-		file,
-		wide(moduleName.data()),
-		nullptr,
-		(uintptr_t)handle,
-		filesize,
-		nullptr,
-		0
-	);
+	try
+	{
+		Must<File> file = File::open(programPath);
+		dword filesize = file->size32();
 
-	// Unload symbols for the module 
+		m_base = dbghelp->SymLoadModuleExW(
+			m_process,
+			file,
+			wide(programPath),
+			wide(path16.basename((Text16)programPath).data()),
+			base,
+			filesize,
+			nullptr,
+			0
+		);
+		if (!m_base)
+		{
+			int err = GetLastError();
+			throw FunctionError("SymLoadModuleEx", err);
+		}
+	}
+	catch (Error&)
+	{
+		int err = GetLastError();
+		throw FunctionError("CreateFile", err);
+	}
 }
 PdbReader::~PdbReader() noexcept
 {
-	::SymUnloadModule64(m_process, m_base);
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	dbghelp->SymUnloadModule64(m_process, m_base);
 }
 
 void* PdbReader::base() noexcept
 {
 	return (void*)m_base;
 }
-void PdbReader::showInfo(Lambda<sizeof(size_t), void(Text)> print) noexcept
+PdbReader::SymbolInfo PdbReader::getInfo() throws(FunctionError)
 {
-	IMAGEHLP_MODULEW64 ModuleInfo;
-	memset(&ModuleInfo, 0, sizeof(ModuleInfo));
-	ModuleInfo.SizeOfStruct = sizeof(ModuleInfo);
+	DbgHelp* dbghelp = DbgHelp::getInstance();
 
-	if (!SymGetModuleInfoW64(GetCurrentProcess(), m_base, &ModuleInfo))
+	SymbolInfo info;
+	static_assert(sizeof(IMAGEHLP_MODULEW64) == sizeof(SymbolInfo::buffer_for_IMAGEHLP_MODULEW64), "buffer size unmatch");
+
+	IMAGEHLP_MODULEW64* ModuleInfo = (IMAGEHLP_MODULEW64*)info.buffer_for_IMAGEHLP_MODULEW64;
+	memset(ModuleInfo, 0, sizeof(IMAGEHLP_MODULEW64));
+	ModuleInfo->SizeOfStruct = sizeof(IMAGEHLP_MODULEW64);
+
+	if (!dbghelp->SymGetModuleInfoW64(m_process, m_base, ModuleInfo))
 	{
-		print(TSZ() << "PdbReader: Error: SymGetModuleInfo64() failed. Error code: " << GetLastError() << '\n');
-		return;
+		int err = GetLastError();
+		throw FunctionError("SymGetModuleInfo64", err);
 	}
 
-	// Display information about symbols 
-	print(TSZ() << "PdbReader: Loaded symbols:" << symToString(ModuleInfo.SymType) << '\n');
-
-	Text16 imageName = (Text16)unwide(ModuleInfo.ImageName);
-	Text16 loadedImageName = (Text16)unwide(ModuleInfo.LoadedImageName);
-	Text16 loadedPdbName = (Text16)unwide(ModuleInfo.LoadedPdbName);
-
-	// Image name 
-	if (!imageName.empty()) print(TSZ() << "PdbReader: Image name: " << toAnsi(imageName) << '\n');
-
-	// Loaded image name 
-	if (!loadedImageName.empty()) print(TSZ() << "PdbReader: Loaded image name: " << toAnsi(loadedImageName) << '\n');
-
-	// Loaded PDB name 
-	if (!loadedPdbName.empty()) print(TSZ() << "PdbReader: Loaded image name: " << toAnsi(loadedPdbName) << '\n');
+	info.type = symToString(ModuleInfo->SymType);
+	info.imageName = (Text16)unwide(ModuleInfo->ImageName);
+	info.loadedImageName = (Text16)unwide(ModuleInfo->LoadedImageName);
+	info.loadedPdbName = (Text16)unwide(ModuleInfo->LoadedPdbName);
 
 	// Is debug information unmatched ? 
 	// (It can only happen if the debug information is contained 
 	// in a separate file (.DBG or .PDB) 
-
-	if (ModuleInfo.PdbUnmatched || ModuleInfo.DbgUnmatched)
-	{
-		print(TSZ() << "PdbReader: Warning: Unmatched symbols.\n");
-	}
+	info.unmatched = ModuleInfo->PdbUnmatched || ModuleInfo->DbgUnmatched;
 
 	// Contents 
-	//cout << "PdbReader: Line numbers: " << (ModuleInfo.LineNumbers ? "Available" : "Not available") << endl;
-	//cout << "PdbReader: Global symbols: " << (ModuleInfo.GlobalSymbols ? "Available" : "Not available") << endl;
-	//cout << "PdbReader: Type information: " << (ModuleInfo.TypeInfo ? "Available" : "Not available") << endl;
-	//cout << "PdbReader: Source indexing: " << (ModuleInfo.SourceIndexed ? "Yes" : "No") << endl;
-	//cout << "PdbReader: Public symbols: " << (ModuleInfo.Publics ? "Available" : "Not available") << endl;
+	info.lineNumbers = ModuleInfo->LineNumbers;
+	info.globalSymbols = ModuleInfo->GlobalSymbols;
+	info.typeInfo = ModuleInfo->TypeInfo;
+	info.sourceIndexed = ModuleInfo->SourceIndexed;
+	info.publics = ModuleInfo->Publics;
+	return info;
 }
 AText PdbReader::getTypeName(uint32_t typeId) noexcept
 {
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+
 	//switch (typeId)
 	//{
 	//case 0: return "[no type]";
@@ -177,7 +191,7 @@ AText PdbReader::getTypeName(uint32_t typeId) noexcept
 	//};
 
 	WCHAR* name = nullptr;
-	if (!SymGetTypeInfo(m_process, m_base, typeId, TI_GET_SYMNAME, &name))
+	if (!dbghelp->SymGetTypeInfo(m_process, m_base, typeId, TI_GET_SYMNAME, &name))
 	{
 		return AText() << "[invalid " << typeId << ']';
 	}
@@ -187,9 +201,11 @@ AText PdbReader::getTypeName(uint32_t typeId) noexcept
 
 	return out;
 }
-void PdbReader::search(const char* filter, Callback callback) noexcept
+bool PdbReader::search(const char* filter, SearchCallback callback) noexcept
 {
-	SymEnumSymbols(
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+
+	return dbghelp->SymEnumSymbols(
 		m_process,
 		m_base,
 		filter,
@@ -199,7 +215,7 @@ void PdbReader::search(const char* filter, Callback callback) noexcept
 				return true;
 			}
 			"std::basic_string<char,std::char_traits<char>,std::allocator<char> >";
-			return (*(Callback*)callback)(Text(symInfo->Name, symInfo->NameLen), (autoptr)symInfo->Address, symInfo->TypeIndex);
+			return (*(SearchCallback*)callback)(Text(symInfo->Name, symInfo->NameLen), (autoptr64)symInfo->Address, symInfo->TypeIndex);
 		},
 		(PVOID)&callback);
 }
@@ -404,11 +420,27 @@ public:
 };
 Map<Text, size_t> TemplateParser::s_lambdas;
 
-void PdbReader::getAll(GetAllCallback callback) noexcept
+bool PdbReader::getAllEx(GetAllExCallback callback) noexcept
 {
-	callback.reader = this;
+	DbgHelp* dbghelp = DbgHelp::getInstance();
 
-	SymEnumSymbols(
+	return dbghelp->SymEnumSymbols(
+		m_process,
+		m_base,
+		nullptr,
+		[](SYMBOL_INFO* symInfo, ULONG SymbolSize, void* callback)->BOOL {
+			GetAllExCallback* cb = (GetAllExCallback*)callback;
+
+			Text name = Text(symInfo->Name, symInfo->NameLen);
+			return (*cb)(name, symInfo);
+		},
+		(PVOID)&callback);
+}
+bool PdbReader::getAll(GetAllCallback callback) noexcept
+{
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+
+	return dbghelp->SymEnumSymbols(
 		m_process,
 		m_base,
 		nullptr,
@@ -434,23 +466,22 @@ void PdbReader::getAll(GetAllCallback callback) noexcept
 			{
 				parser.out << "..[eof]";
 			}
-			//out << cb->reader->getTypeName(symInfo->TypeIndex);
-			//out << ' ';
-
-			return (*cb)(parser.out, (autoptr)symInfo->Address);
+			return (*cb)(parser.out, (autoptr64)symInfo->Address);
 		},
 		(PVOID)&callback);
 }
-autoptr PdbReader::getFunctionAddress(const char* name) noexcept
+autoptr64 PdbReader::getFunctionAddress(const char* name) noexcept
 {
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+
 	byte buffer[sizeof(IMAGEHLP_SYMBOL64) + MAX_SYM_NAME];
 	IMAGEHLP_SYMBOL64& sym = *(IMAGEHLP_SYMBOL64*)buffer;
 	sym.SizeOfStruct = sizeof(sym);
 	sym.MaxNameLength = MAX_SYM_NAME;
-	if (!SymGetSymFromName64(m_process, name, &sym))
+	if (!dbghelp->SymGetSymFromName64(m_process, name, &sym))
 	{
 		return nullptr;
 	}
-	return (autoptr)sym.Address;
+	return (autoptr64)sym.Address;
 }
 

@@ -993,7 +993,8 @@ namespace
 			}
 
 			int required = WideCharToMultiByte(cp, 0, (LPCWSTR)text->data(), srclen, nullptr, 0, nullptr, nullptr);
-			TmpArray<char> temp(required);
+			TmpArray<char> temp;
+			temp.resize(required);
 			WideCharToMultiByte(cp, 0, (LPCWSTR)text->data(), srclen, temp.data(), required, nullptr, nullptr);
 
 			temp.cut_self(remaining);

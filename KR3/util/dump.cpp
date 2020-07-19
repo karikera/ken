@@ -4,12 +4,9 @@
 #ifdef WIN32
 
 #include "fs/file.h"
-#include <KR3/win/windows.h>
-#pragma warning(disable:4091)
-#include <DbgHelp.h>
+#include <KR3/win/dynamic_dbghelp.h>
 #include <ctime>
 #include <iomanip>
-#pragma comment(lib,"Dbghelp.lib")
 
 kr::SEHException::SEHException(PEXCEPTION_POINTERS exception) noexcept
 	:exception(exception)
@@ -65,7 +62,8 @@ int kr::dump(const SEHException& ex) noexcept
 		ExpParam.ExceptionPointers = ex.exception;
 		ExpParam.ClientPointers = TRUE;
 
-		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile,
+		DbgHelp* dbghelp = DbgHelp::getInstance();
+		dbghelp->MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile,
 			MiniDumpWithDataSegs, &ExpParam, nullptr ,nullptr);
 		delete hFile;
 	}

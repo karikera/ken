@@ -27,6 +27,7 @@ namespace kr
 
 namespace kr
 {
+
 	// 자바스크립트 예외 정보를 가지고 있는 클래스이다.
 	// 각 필드는 예외가 발생한 위치에 대한 정보이다.
 	class JsException
@@ -60,5 +61,17 @@ namespace kr
 		JsException() = default;
 
 		JsRawException m_exception;
+	};
+
+	class JsExceptionCatcher
+	{
+	public:
+		KRJS_EXPORT JsExceptionCatcher() noexcept;
+		KRJS_EXPORT ~JsExceptionCatcher() throws(kr::JsException);
+
+	private:
+#ifdef KRJS_USE_V8
+		v8::TryCatch* m_trycatch;
+#endif
 	};
 }

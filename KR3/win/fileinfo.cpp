@@ -35,7 +35,8 @@ kr::ProgramVersion kr::ProgramVersion::fromFile(pcstr16 filename) noexcept
 		return 0;
 	}
 
-	TmpArray<byte> filedata(size);
+	TmpArray<byte> filedata;
+	filedata.resize(size);
 	if (!GetFileVersionInfoW(wide(filename), handle, size, filedata.begin()))
 	{
 		return 0;

@@ -10,9 +10,9 @@ module.exports = {
 	],
 	each(krb)
 	{
-		krb.vsbuild('KEN.sln', krb.config.name, krb.platform.name);
+		krb.vsbuild('KEN.sln');
 		var bin;
-		if (krb.platform == js)
+		if (krb.platform.shortName === 'js')
 		{
 			bin = [
 				[['KR3.bc', 'KRNew.bc'], 'KR3.bc'],
@@ -22,8 +22,8 @@ module.exports = {
 		}
 		else
 		{
-			const libEGL = "../../../KRThird/angle/lib/"+krb.platform.name+"/"+krb.name+"/libEGL.lib";
-			const libGLESv2 = "../../../KRThird/angle/lib/"+krb.platform.name+"/"+krb.name+"/libGLESv2.lib";
+			const libEGL = `../../../KRThird/angle/lib/${krb.platform.name}/${krb.config.name}/libEGL.lib`;
+			const libGLESv2 = `../../../KRThird/angle/lib/${krb.platform.name}/${krb.config.name}/libGLESv2.lib`;
 
 			bin = [
 				[['KR3.lib', 'KRNew.lib'], 'KR3.lib'],
@@ -35,7 +35,7 @@ module.exports = {
 			];
 		}
 		krb.copy(
-			'bin/' + krb.platform.shortName + '/' + krb.name,
-			krb.libExportDir + '/' + krb.name, bin);
+			`bin/${krb.platform.shortName}/${krb.config.name}`,
+			`${krb.libExportDir}/${krb.config.name}`, bin);
 	}
 };

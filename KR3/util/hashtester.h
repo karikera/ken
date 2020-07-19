@@ -25,8 +25,9 @@ namespace kr
 #pragma warning(push)
 #pragma warning(disable:26495)
 		HashTester(View<C> needle, NoReset_t) noexcept
-			:m_needle(needle), m_src(needle.size())
+			:m_needle(needle)
 		{
+			m_src.resize(needle.size());
 			_assert(needle != nullptr && !needle.empty());
 			size_t tarhash = 0;
 			{

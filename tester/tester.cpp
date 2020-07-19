@@ -388,6 +388,9 @@ public:
 
 
 #include "webserver.h"
+#include <KRMySQL/db.h>
+
+kr::sql::MySQL sql("localhost", "root", "62312");
 
 int main()
 {

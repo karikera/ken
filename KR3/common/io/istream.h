@@ -506,9 +506,19 @@ namespace kr
 				readForce();
 				return true;
 			}
+			inline bool readIf(Ref ref) throws(EofException)
+			{
+				if (!buffer()->startsWith(ref)) return false;
+				derived()->addBegin(ref.size());
+				return true;
+			}
 			inline void must(const InternalComponent &chr) throws(InvalidSourceException, EofException)
 			{
 				if (!readIf(chr)) throw InvalidSourceException();
+			}
+			inline void must(Ref ref) throws(EofException)
+			{
+				if (!readIf(ref)) throw InvalidSourceException();
 			}
 		};
 

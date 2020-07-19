@@ -10,3 +10,6 @@
 [submodule "KRThird/zlib"]
 	path = KRThird/zlib
 	url = https://github.com/karikera/zlib-bin
+[submodule "KRThird/mariadb"]
+	path = KRThird/mariadb
+	url = https://github.com/karikera/mariadb-connector-c-bin.git

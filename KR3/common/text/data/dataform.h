@@ -303,7 +303,7 @@ namespace kr
 					if (old_end > new_end) mema::dtor(new_end, old_end);
 					return;
 				}
-				size_t ncap = maxt($size() * 3 / 2, nsize, 4_sz);
+				size_t ncap = maxt($size() * 3 / 2, nsize, (size_t)4);
 				_assert(nsize <= ncap);
 				if (m_begin == null)
 				{
@@ -425,16 +425,6 @@ namespace kr
 			AllocatedForm(nullptr_t) noexcept
 			{
 				m_begin = null;
-			}
-			explicit AllocatedForm(size_t $size) noexcept
-			{
-				_alloc($size, $size);
-				mema::ctor($begin(), $end());
-			}
-			AllocatedForm(size_t $size, size_t capacity) noexcept
-			{
-				_alloc($size, capacity);
-				mema::ctor($begin(), $end());
 			}
 			AllocatedForm(const AllocatedForm & _copy)
 			{

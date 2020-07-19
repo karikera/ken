@@ -19,7 +19,8 @@ void kr::extractEntryTo(pcstr16 dest, KrbCompressEntry* entry) noexcept
 	else
 	{
 		constexpr size_t BUF_SIZE = 8192;
-		TBuffer buffer(BUF_SIZE);
+		TBuffer buffer;
+		buffer.resize(BUF_SIZE);
 		void* buffer_ptr = buffer.data();
 
 		try

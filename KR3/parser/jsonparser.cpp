@@ -51,7 +51,8 @@ float JsonParser::floatNumber() throws(InvalidSourceException)
 	else
 		negative = false;
 
-	TText tx((size_t)0, 256);
+	TText tx;
+	tx.reserve(256);
 	m_is.readto_L(&tx, [&](Text text)->const char* {
 		const char * src = text.begin();
 		const char * esrc = text.end();
@@ -72,7 +73,8 @@ int JsonParser::integer() throws(InvalidSourceException)
 	uint radix;
 	bool negative;
 
-	TText tx((size_t)0, 256);
+	TText tx;
+	tx.reserve(256);
 	_readNumber(&tx, &radix, &negative);
 
 	if (negative)
@@ -89,7 +91,8 @@ int64_t JsonParser::integer64() throws(InvalidSourceException)
 	uint radix;
 	bool negative;
 
-	TText tx((size_t)0, 256);
+	TText tx;
+	tx.reserve(256);
 	_readNumber(&tx, &radix, &negative);
 
 	if (negative)
@@ -106,7 +109,8 @@ uint JsonParser::uinteger() throws(InvalidSourceException)
 	uint radix;
 	bool negative;
 
-	TText tx((size_t)0, 256);
+	TText tx;
+	tx.reserve(256);
 	_readNumber(&tx, &radix, &negative);
 	if (negative) return 0;
 
@@ -117,7 +121,8 @@ uint64_t JsonParser::uinteger64() throws(InvalidSourceException)
 	uint radix;
 	bool negative;
 
-	TText tx((size_t)0, 256);
+	TText tx;
+	tx.reserve(256);
 	_readNumber(&tx, &radix, &negative);
 	if (negative) return 0;
 

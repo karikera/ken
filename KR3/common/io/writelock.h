@@ -39,8 +39,8 @@ namespace kr
 
 		public:
 			WriteLockImpl(size_t sz) noexcept
-				: m_buffer(sz,sz +(nullterm ? 1 : 0))
 			{
+				m_buffer.resize(sz, sz + (nullterm ? 1 : 0));
 			}
 			T* lock(S* stream) noexcept
 			{
