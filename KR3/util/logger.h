@@ -15,7 +15,7 @@ namespace kr
 		void putch(char chr) noexcept;
 
 		Logger* pushStdOut() noexcept;
-		Logger* pushErrorOut() noexcept;
+		Logger* pushErrOut() noexcept;
 
 	private:
 	};

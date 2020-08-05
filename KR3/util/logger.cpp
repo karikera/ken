@@ -57,7 +57,7 @@ kr::Logger* kr::LogManager::pushStdOut() noexcept
 	kr::CsLock _lock = s_logLock;
 	return create(&kr::cout);
 }
-kr::Logger* kr::LogManager::pushErrorOut() noexcept
+kr::Logger* kr::LogManager::pushErrOut() noexcept
 {
 	kr::CsLock _lock = s_logLock;
 	return create(&kr::cerr);

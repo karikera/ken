@@ -96,7 +96,7 @@ Socket::Init::~Init() noexcept
 Socket* Socket::create() noexcept
 {
 	SOCKET sock;
-	sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	_assert(socket != nullptr);
 	return (Socket*)sock;
 }
