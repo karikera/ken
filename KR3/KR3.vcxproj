@@ -225,6 +225,7 @@
     <ClInclude Include="math\coord\const.h" />
     <ClInclude Include="meta\has_equals.h" />
     <ClInclude Include="msg\cascader.h" />
+    <ClInclude Include="util\statickeeper.h" />
     <ClInclude Include="win\devent.h" />
     <ClInclude Include="msg\minidb.h" />
     <ClInclude Include="msg\msgloop.h" />
