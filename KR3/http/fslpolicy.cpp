@@ -22,7 +22,7 @@ void FSLPolicyClient::onRead() noexcept
 
 		if (Lock _lock = lock())
 		{
-			_lock.write(text.cast<void>());
+			_lock.write(text);
 			_lock.flush();
 		}
 	}

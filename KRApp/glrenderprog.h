@@ -263,13 +263,24 @@ namespace kr
 			using Super::attribCount;
 			using Super::enable;
 			using Super::disable;
-			using Super::pointer;
 			void create(Shader vs, Shader fs, View<const char*> names) noexcept
 			{
 				_assert(names.size() == locationCount);
 
 				Super::create(vs, fs);
 				Super::set(names);
+			}
+			template <typename T = Vertex>
+			void pointer() const noexcept
+			{
+				Super::template pointer<T>();
+			}
+			template <typename T = Vertex>
+			void drawDynamic(GLenum mode, kr::Buffer data) const noexcept
+			{
+				arrayBuffer.dataDynamic(data);
+				pointer<T>();
+				glDrawArrays(mode, 0, intact<GLsizei>(data.size() / sizeof(T)));
 			}
 		};
 	}

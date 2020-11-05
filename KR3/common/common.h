@@ -108,7 +108,7 @@ namespace kr
 #ifdef _MSC_VER
 #define unpack(...)  (void)((__VA_ARGS__), ...)
 #else
-#define unpack(...)  do { int __dummy__[] = {(__VA_ARGS__, 0) ... , 0}; } while(0, 0)
+#define unpack(...)  do { int __dummy__[] = {(__VA_ARGS__, 0) ... , 0}; } while(false)
 #endif
 
 #define CHARSET_CONSTLIZE(charset, code) \

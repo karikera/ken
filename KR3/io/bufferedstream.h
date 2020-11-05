@@ -399,7 +399,8 @@ namespace kr
 			TSZ readto(const Component &chr) throws(EofException)
 			{
 				TSZ tsz;
-				return readto(&tsz, chr);
+				readto(&tsz, chr);
+				return move(tsz);
 			}
 			size_t skipto(const Component &needle) throws(EofException)
 			{

@@ -16,6 +16,8 @@ namespace kr
 			Object() = default;
 			void setId(GLuint id) noexcept;
 			GLuint getId() noexcept;
+			bool operator ==(const Object &other) noexcept;
+			bool operator !=(const Object &other) noexcept;
 
 		protected:
 			GLuint m_id;

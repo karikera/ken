@@ -10,6 +10,14 @@ GLuint gl::Object::getId() noexcept
 {
 	return m_id;
 }
+bool gl::Object::operator ==(const Object& other) noexcept
+{
+	return m_id == other.m_id;
+}
+bool gl::Object::operator !=(const Object& other) noexcept
+{
+	return m_id != other.m_id;
+}
 
 
 void gl::Buffer::generate() noexcept

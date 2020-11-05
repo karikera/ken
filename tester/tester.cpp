@@ -394,8 +394,8 @@ kr::sql::MySQL sql("localhost", "root", "62312");
 
 int main()
 {
-	webServerMain();
-	// MainWindow wnd;
-	// main_loop(&wnd);
+	// webServerMain();
+	MainWindow wnd;
+	main_loop(&wnd);
 	return 0;
 }

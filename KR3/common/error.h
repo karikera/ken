@@ -59,3 +59,33 @@ namespace kr
 	void errorBox(pcstr16 str) noexcept;
 
 }
+
+#ifdef NDEBUG
+#define hrmustbe(x) {HRESULT __hr; if((__hr = (x)) < 0) exit(__hr); } while(false)
+#define hrshouldbe(x) ((x) >= 0)
+#define hrexcept(x)	{HRESULT __hr; if((__hr = (x)) < 0) throw ::kr::ErrorCode(__hr); } while(false)
+#else
+#define hrmustbe(x) {\
+	HRESULT __hr = (x);\
+	if((__hr) < 0) { ::kr::error(#x "\r\nHRESULT: 0x%08X\r\nMessage: %s",__hr, ErrorCode(__hr).getMessage<char>()); } \
+} while(false)
+#define hrshouldbe(x) ([&]{\
+	HRESULT __hr = (x);\
+	if((__hr) < 0){\
+		::kr::dout << #x << ::kr::endl; \
+		::kr::dout << __FILE__ << '(' << __LINE__ << ')' << ::kr::endl; \
+		::kr::dout << "HRESULT: 0x" << ::kr::hexf((uint32_t)__hr, 8) << ::kr::endl; \
+		::kr::dout << "Message: " << ErrorCode(__hr).getMessage<char>() << ::kr::endl; \
+		return false; \
+	}\
+	return true;}())
+
+#define hrexcept(x) {\
+HRESULT __hr = (x);\
+ if((__hr < 0)) {\
+	::kr::dout << #x << ::kr::endl; \
+	::kr::dout << __FILE__ << '(' << __LINE__ << ')' << ::kr::endl; \
+	::kr::dout << "HRESULT: 0x" << ::kr::hexf((uint32_t)__hr, 8) << ::kr::endl; \
+	throw ::kr::ErrorCode(__hr);\
+ } } while(false)
+#endif

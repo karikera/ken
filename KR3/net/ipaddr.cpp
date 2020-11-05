@@ -17,11 +17,11 @@ kr::Ipv4Address::Ipv4Address(byte a, byte b, byte c, byte d) noexcept
 kr::Ipv4Address::Ipv4Address(kr::Text str) noexcept
 {
 	uintptr_t num;
-	num = str.readwith('.').to_uint();
+	num = str.readwith_e('.').to_uint();
 	a = (byte)num;
-	num = str.readwith('.').to_uint();
+	num = str.readwith_e('.').to_uint();
 	b = (byte)num;
-	num = str.readwith('.').to_uint();
+	num = str.readwith_e('.').to_uint();
 	c = (byte)num;
 	num = str.to_uint();
 	d = (byte)num;

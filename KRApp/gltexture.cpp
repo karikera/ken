@@ -22,7 +22,7 @@ Promise<void>* gl::Texture::load(Text16 filename) noexcept
 {
 	krb::Extension ext = krb::makeExtensionFromPath(filename);
 	return fetchAsText(filename)->then([this, ext](AText & data) {
-		kr::Buffer databuf = data.cast<void>();
+		kr::Buffer databuf = data;
 		image::ImageData image;
 		if (image.load(&databuf, ext, nullptr))
 		{

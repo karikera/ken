@@ -747,49 +747,49 @@ Window * Window::getForeground() noexcept
 {
 	return (Window*)GetForegroundWindow();
 }
-Window* Window::createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window* Window::createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu, void * pProgram) noexcept
 {
 	return createPrimaryEx(0, pszClass, pszTitle, style, hMenu, pProgram);
 }
-Window* Window::createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window* Window::createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu, void * pProgram) noexcept
 {
 	return createPrimaryEx(0, pszClass, pszTitle, style, width, height, hMenu, pProgram);
 }
-Window * kr::win::Window::createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window * kr::win::Window::createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu, void * pProgram) noexcept
 {
 	return createPrimaryEx(0, pszClass, pszTitle, style, rect, hMenu, pProgram);
 }
-Window* Window::createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window* Window::createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu, void * pProgram) noexcept
 {
 	return g_mainWindow = (Window*)createEx(nExStyle, pszClass, pszTitle, style, { { CW_USEDEFAULT,CW_USEDEFAULT },{ CW_USEDEFAULT,CW_USEDEFAULT } }, nullptr, hMenu, pProgram);
 }
-Window* Window::createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window* Window::createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu, void * pProgram) noexcept
 {
 	irectwh irect = calculateWindowPos(style, width, height);
 	return g_mainWindow = (Window*)createEx(nExStyle, pszClass, pszTitle, style, irect, nullptr, hMenu, pProgram);
 }
-Window * kr::win::Window::createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window * kr::win::Window::createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu, void * pProgram) noexcept
 {
 	return g_mainWindow = (Window*)createEx(nExStyle, pszClass, pszTitle, style, rect, nullptr, hMenu, pProgram);
 }
-Window* Window::createPrimaryAsFull(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window* Window::createPrimaryAsFull(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu, void * pProgram) noexcept
 {
 	irectwh irect = (irectwh)getMonitorRectFromCursor();
 	return g_mainWindow = (Window*)create(pszClass, pszTitle, style, irect, nullptr, hMenu, pProgram);
 }
-Window* Window::createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc, Window* pParent, intptr_t nID, WindowProgram * pProgram) noexcept
+Window* Window::createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc, Window* pParent, intptr_t nID, void * pProgram) noexcept
 {
 	return (Window*)CreateWindowExW(nExStyle, wide(pszClass), wide(pszTitle), nStyle, rc.x, rc.y, rc.width, rc.height, pParent, (HMENU)nID, g_instance, pProgram);
 }
-Window* Window::createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc, Window* pParent, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window* Window::createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc, Window* pParent, HMENU hMenu, void * pProgram) noexcept
 {
 	return (Window*)CreateWindowExW(nExStyle, wide(pszClass), wide(pszTitle), nStyle, rc.x, rc.y, rc.width, rc.height, pParent, hMenu, g_instance, pProgram);
 }
-Window* Window::create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh irect, Window* pParent, intptr_t nID, WindowProgram * pProgram) noexcept
+Window* Window::create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh irect, Window* pParent, intptr_t nID, void * pProgram) noexcept
 {
 	return createEx(0, pszClass, pszTitle, nStyle, irect, pParent, nID, pProgram);
 }
-Window* Window::create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh irect, Window* pParent, HMENU hMenu, WindowProgram * pProgram) noexcept
+Window* Window::create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh irect, Window* pParent, HMENU hMenu, void * pProgram) noexcept
 {
 	return createEx(0, pszClass, pszTitle, nStyle, irect, pParent, hMenu, pProgram);
 }

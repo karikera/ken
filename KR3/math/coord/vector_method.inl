@@ -148,7 +148,7 @@ namespace kr
 			vec4a cs = { angle.cos, angle.sin, 1, 0 };
 			const vec4a &_this = *(vec4a*)this;
 			vec4a out = _this.shuffle<0, 0, 2, 3>() * cs;
-			out += _this.shuffle<1, 1, 2, 3>() * cs.shuffle<1, 0, 3, 2>() * CV_MINUS_Z;
+			out += _this.shuffle<1, 1, 2, 3>() * cs.shuffle<1, 0, 3, 2>() * CV_MINUS_X;
 			return out;
 		}
 	}

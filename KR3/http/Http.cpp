@@ -197,7 +197,7 @@ void kr::HttpConnection::download(pcstr16 filename) throws(Error)
 	Must<File> file = File::create(filename);
 	do
 	{
-		Buffer buffer = get().cast<void>();
+		Buffer buffer = get();
 		file->$write(buffer.data(), buffer.size());
 	}
 	while (next());

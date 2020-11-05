@@ -20,6 +20,8 @@ namespace kr
 			template attach<ary::IStreamMethod, Data::movable>::
 			template attach<ary::IRStreamMethod, Data::movable>::
 			template attach<ary::BufferIMethod, Data::readable>::
+			template attach<ary::BufferIConstructor, Data::readable && !is_same_v<C, void> >::
+			template attach<ary::BufferIVoidConstructor, Data::readable && is_same_v<C, void> >::
 			template attach<ary::BufferWMethod, Data::writable && Data::readable>::
 			template attach<ary::BufferIOMethod, Data::extendable && Data::readable>::
 			type
@@ -31,6 +33,8 @@ namespace kr
 				template attach<ary::IStreamMethod, Data::movable>::
 				template attach<ary::IRStreamMethod, Data::movable>::
 				template attach<ary::BufferIMethod, Data::readable>::
+				template attach<ary::BufferIConstructor, Data::readable && !is_same_v<C, void> >::
+				template attach<ary::BufferIVoidConstructor, Data::readable && is_same_v<C, void> >::
 				template attach<ary::BufferWMethod, Data::writable && Data::readable>::
 				template attach<ary::BufferIOMethod, Data::extendable && Data::readable>::
 				type);

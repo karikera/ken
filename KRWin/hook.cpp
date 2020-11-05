@@ -383,6 +383,10 @@ void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalu
 	Register reg2 = (Register)reg2_or_constvalue;
 	bool is_const = atype == AccessType::WriteConst;
 
+	if (bittype == RegSize::Word)
+	{
+		write(0x66);
+	}
 	byte rex = 0x40;
 	if (bittype == RegSize::Qword) rex |= 0x08;
 	if (regex(reg1)) rex |= 0x01;
@@ -392,9 +396,15 @@ void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalu
 
 	if (atype == AccessType::WriteConst)
 	{
-		_assert(bittype == RegSize::Dword || bittype == RegSize::Qword);
-
-		write(0xc7);
+		if (bittype == RegSize::Byte)
+		{
+			write(0xc6);
+		}
+		else
+		{
+			_assert(bittype == RegSize::Word || bittype == RegSize::Dword || bittype == RegSize::Qword);
+			write(0xc7);
+		}
 	}
 	else
 	{
@@ -430,7 +440,22 @@ void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalu
 		else if (offsettype == 0x80) writeas<int32_t>(offset);
 	}
 
-	if (is_const) writeas<int32_t>(reg2_or_constvalue);
+	if (is_const)
+	{
+		if (bittype == RegSize::Byte)
+		{
+			writeas<int8_t>((int8_t)reg2_or_constvalue);
+		}
+		else if (bittype == RegSize::Word)
+		{
+			writeas<int16_t>((int16_t)reg2_or_constvalue);
+		}
+		else
+		{
+			_assert(bittype == RegSize::Dword || bittype == RegSize::Qword);
+			writeas<int32_t>(reg2_or_constvalue);
+		}
+	}
 }
 void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept
 {

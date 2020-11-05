@@ -87,7 +87,10 @@ void ErrorCode::getMessageTo<char>(TSZ* dest) const noexcept
 			dest->padding(cap);
 			continue;
 		}
-		dest->prepare(res - 2);
+		dest->prepare(res);
+		pcstr last = dest->find_nry(Text::WHITE_SPACE);
+		if (last != nullptr) dest->cut_self(last + 1);
+		else dest->clear();
 		break;
 	}
 }
@@ -105,14 +108,17 @@ void ErrorCode::getMessageTo<char16>(TSZ16* dest) const noexcept
 			if (err != ERROR_INSUFFICIENT_BUFFER)
 			{
 				_assert(err == ERROR_MR_MID_NOT_FOUND);
-				*dest << u"Unknown Error";
+				*dest << u"Error Code: 0x" << hexf((uintptr_t)m_error, 8);
 				break;
 			}
 			cap *= 2;
 			dest->padding(cap);
 			continue;
 		}
-		dest->prepare(res - 2);
+		dest->prepare(res);
+		pcstr16 last = dest->find_nry(Text16::WHITE_SPACE);
+		if (last != nullptr) dest->cut_self(last + 1);
+		else dest->clear();
 		break;
 	}
 }

@@ -11,6 +11,7 @@
 #include <KR3/data/crypt.h>
 #include <KR3/util/process.h>
 #include <KR3/util/hashtester.h>
+#include <KR3/data/idmap.h>
 
 #ifdef WIN32
 #include <KR3/win/windows.h>
@@ -35,6 +36,8 @@ inline void buildTest() noexcept
 	using AnsiToUtf16 = MultiByteToUtf16<Charset::Default>;
 	using Utf32ToAnsi = Utf32ToMultiByte<Charset::Default>;
 	using AnsiToUtf32 = MultiByteToUtf32<Charset::Default>;
+
+	SortedArray<int> sarrtest(10);
 	LinkedList<Node<int>> test;
 	HashTester<char> hashtest("qaa");
 	test.create(10);
@@ -65,12 +68,15 @@ inline void buildTest() noexcept
 	Text stream = _value;
 	stream.readwith_e('*');
 	stream.readwith_L(path.isSeperator);
+	stream++;
+	memt<4>::find_callback([]() { return (int*)0;  }, (int*)0, 0);
 
 	static const auto filter = meta::literal_as<char>("\"\'\n\r,");
 	static const auto from = meta::literal_as<char>("\"");
 	static const auto to = meta::literal_as<char>("\"\"");
 
 	View<char> a = (View<char>)from;
+	a.split('a', 'b');
 	
 	TSZ dest;
 	dest << currentDirectory;

@@ -345,7 +345,8 @@ inline auto kr::memt<BASE>::find_callback(const READCB &read, T* _tar, size_t _t
 	}
 
 	using unconstT = remove_const_t<T>;
-	Array<unconstT> tmp(_tarlen);
+	Array<unconstT> tmp;
+	tmp.reserve(_tarlen);
 	unconstT * tmpbeg = tmp.data();
 	unconstT * tmpend = tmpbeg + _tarlen;
 	unconstT * tmpiter = tmpbeg;
@@ -1241,7 +1242,7 @@ void kr::_pri_::ARRCOPY<true, false>::assign_fill(T* dest, const T& src, size_t 
 {
 	if (sizeof(T) == 1)
 	{
-		memset(dest, src, size);
+		memset(dest, (uint8_t&)src, size);
 	}
 	else
 	{
@@ -1502,27 +1503,27 @@ template <typename T> void kr::mema::assign_move(T* dest, T* src, size_t size) n
 }
 template <typename T> void kr::mema::ctor_fill(T* dest, const T& src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_copy_constructible<T>::value, std::is_void<T>::value>::template ctor_fill<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_copy_constructible<T>::value, std::is_void<T>::value>::template ctor_fill<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_copy(T* dest, const T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_copy_constructible<T>::value, std::is_void<T>::value>::template ctor_copy<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_copy_constructible<T>::value, std::is_void<T>::value>::template ctor_copy<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move_r(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_r<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_r<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move_d(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_d<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_d<T>(dest, src, size);
 }
 template <typename T> void kr::mema::ctor_move_rd(T* dest, T* src, size_t size) noexcept
 {
-	_pri_::ARRCOPY<!std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_rd<T>(dest, src, size);
+	_pri_::ARRCOPY<std::is_trivially_move_constructible<T>::value, std::is_void<T>::value>::template ctor_move_rd<T>(dest, src, size);
 }
 template <typename T, size_t size> void kr::mema::assign_copy(T(&dest)[size], const T(&src)[size]) noexcept
 {

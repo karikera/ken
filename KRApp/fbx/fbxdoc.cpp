@@ -256,7 +256,7 @@ Promise<FBXDoc>* FBXDoc::load(Text16 url) noexcept
 {
 	return fetchAsText(url)->then([](AText & data) {
 		FBXDoc model;
-		Buffer stream = data.cast<void>();
+		Buffer stream = data;
 		model.read(&stream);
 		data = nullptr;
 		return model;

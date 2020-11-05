@@ -320,9 +320,9 @@ void Model::gen(const FBXDoc & doc) noexcept
 void Model::genSingleMesh(View<MeshVertex> vb, View<index_t> ib) noexcept
 {
 	if (m_vb.getId()) m_vb.remove();
-	m_vb.generate(vb.cast<void>(), GL_ARRAY_BUFFER);
+	m_vb.generate(vb, GL_ARRAY_BUFFER);
 	if (m_ib.getId()) m_ib.remove();
-	m_ib.generate(ib.cast<void>(), GL_ELEMENT_ARRAY_BUFFER);
+	m_ib.generate(ib, GL_ELEMENT_ARRAY_BUFFER);
 	m_mesh = nullptr;
 	Mesh * mesh = m_mesh.prepare(1);
 	mesh->ioff = 0;
@@ -367,8 +367,8 @@ void ModelBuilder::reserveMesh(size_t size) noexcept
 Model ModelBuilder::build() noexcept
 {
 	Model model;
-	model.m_vb.generate(m_vbuf.cast<void>(), GL_ARRAY_BUFFER);
-	model.m_ib.generate(m_ibuf.cast<void>(), GL_ELEMENT_ARRAY_BUFFER);
+	model.m_vb.generate(m_vbuf, GL_ARRAY_BUFFER);
+	model.m_ib.generate(m_ibuf, GL_ELEMENT_ARRAY_BUFFER);
 	model.m_mesh = move(m_mesh);
 	m_vbuf = nullptr;
 	m_ibuf = nullptr;

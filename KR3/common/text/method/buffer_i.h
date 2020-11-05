@@ -18,31 +18,6 @@ namespace kr
 			using Super::end;
 			using Super::empty;
 
-			constexpr BufferIMethod()  noexcept = default;
-			constexpr BufferIMethod(const BufferIMethod&) = default;
-			constexpr BufferIMethod(BufferIMethod&&) = default;
-
-			template <class _Derived, bool a, bool b, class _Parent>
-			BufferIMethod(buffer::Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> & data) noexcept
-				:Super(data.begin(), data.end())
-			{
-			}
-			template <class _Derived, bool a, bool b, class _Parent>
-			BufferIMethod(const buffer::Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>> & data) noexcept
-				:Super(data.begin(), data.end())
-			{
-			}
-			template <typename _Traits, typename _Alloc>
-			BufferIMethod(std::basic_string<Component, _Traits, _Alloc> & str) noexcept
-				: Super(str.data(), str.size())
-			{
-			}
-			template <typename _Traits, typename _Alloc>
-			BufferIMethod(const std::basic_string<Component, _Traits, _Alloc> & str) noexcept
-				:Super(str.data(), str.size())
-			{
-			}
-
 			Ref operator +(intptr_t n) const noexcept
 			{
 				return Ref(begin() + n, end());
@@ -62,6 +37,74 @@ namespace kr
 			template <typename _Parent> intptr_t operator -(const BufferIMethod<_Parent>& ptr) const noexcept
 			{
 				return begin() - (internal_component_t<typename _Parent::Component>*)ptr.begin();
+			}
+		};
+		template <class Parent> class BufferIConstructor :
+			public Parent
+		{
+			CLASS_HEADER(BufferIConstructor, Parent);
+		public:
+			INHERIT_ARRAY();
+
+			using Super::Super;
+
+			constexpr BufferIConstructor()  noexcept = default;
+			constexpr BufferIConstructor(const BufferIConstructor&) = default;
+			constexpr BufferIConstructor(BufferIConstructor&&) = default;
+
+			template <class _Derived, bool a, bool b, class _Parent>
+			BufferIConstructor(buffer::Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>>& data) noexcept
+				:Super(data.begin(), data.end())
+			{
+			}
+			template <class _Derived, bool a, bool b, class _Parent>
+			BufferIConstructor(const buffer::Memory<_Derived, BufferInfo<Component, method::Memory, a, b, _Parent>>& data) noexcept
+				:Super(data.begin(), data.end())
+			{
+			}
+			template <typename _Traits, typename _Alloc>
+			BufferIConstructor(std::basic_string<Component, _Traits, _Alloc>& str) noexcept
+				: Super(str.data(), str.size())
+			{
+			}
+			template <typename _Traits, typename _Alloc>
+			BufferIConstructor(const std::basic_string<Component, _Traits, _Alloc>& str) noexcept
+				:Super(str.data(), str.size())
+			{
+			}
+		};
+		template <class Parent> class BufferIVoidConstructor :
+			public Parent
+		{
+			CLASS_HEADER(BufferIVoidConstructor, Parent);
+		public:
+			INHERIT_ARRAY();
+
+			using Super::Super;
+
+			constexpr BufferIVoidConstructor()  noexcept = default;
+			constexpr BufferIVoidConstructor(const BufferIVoidConstructor&) = default;
+			constexpr BufferIVoidConstructor(BufferIVoidConstructor&&) = default;
+
+			template <class _Derived, typename C, bool a, bool b, class _Parent>
+			BufferIVoidConstructor(buffer::Memory<_Derived, BufferInfo<C, method::Memory, a, b, _Parent>>& data) noexcept
+				:Super(data.begin(), data.end())
+			{
+			}
+			template <class _Derived, typename C, bool a, bool b, class _Parent>
+			BufferIVoidConstructor(const buffer::Memory<_Derived, BufferInfo<C, method::Memory, a, b, _Parent>>& data) noexcept
+				:Super(data.begin(), data.end())
+			{
+			}
+			template <typename _Traits, typename C, typename _Alloc>
+			BufferIVoidConstructor(std::basic_string<C, _Traits, _Alloc>& str) noexcept
+				: Super(str.data(), str.size())
+			{
+			}
+			template <typename _Traits, typename C, typename _Alloc>
+			BufferIVoidConstructor(const std::basic_string<C, _Traits, _Alloc>& str) noexcept
+				:Super(str.data(), str.size())
+			{
 			}
 		};
 	}

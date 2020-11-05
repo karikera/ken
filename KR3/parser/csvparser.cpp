@@ -156,6 +156,17 @@ int kr::CSVParser::getLine() noexcept
 	return m_line;
 }
 
+bool kr::CSVParser::hasNext() noexcept
+{
+	switch (m_nLast)
+	{
+	case eof: return false;
+	case '\n': return false;
+	case ',': break;
+	}
+	return true;
+}
+
 void kr::CSVParser::skip() throws(EofException, NoLineException, NextLineException)
 {
 	switch (m_nLast)

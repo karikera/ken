@@ -952,7 +952,8 @@ namespace kr
 				using C2 = typename Converter::Component;
 				if (size() == 0) return nullptr;
 				size_t scolen = count(chr) + 1;
-				Array<Array<C2>> arr(scolen);
+				Array<Array<C2>> arr;
+				arr.resize(scolen);
 				Array<C2>* scores = arr.begin();
 				Ref read(begin(), end());
 				Ref readi;
@@ -968,7 +969,8 @@ namespace kr
 				using C2 = typename Converter::Component;
 				if (size() == 0) return nullptr;
 				size_t ylen = count(chr);
-				Array2D<Array<C2>> arr(ylen + 1);
+				Array2D<Array<C2>> arr;
+				arr.resize(ylen + 1);
 
 				Array<Array<C2>>* inarray = arr.begin();
 				Ref read(begin(), end());

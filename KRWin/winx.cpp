@@ -16,7 +16,7 @@ kr::WndProcWrapper::WndProcWrapper(WndProc pProc)
 {
 	m_pNextProc = pProc;
 }
-void kr::WndProcWrapper::wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lParam)
+void kr::WndProcWrapper::wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lParam) throws(LRESULT)
 {
 	throw CallWindowProcW((WNDPROC)m_pNextProc, pWindow, Msg, wParam, lParam);
 }
@@ -98,6 +98,9 @@ ATOM kr::WindowProgram::registerClass(pcstr16 className, HICON icon, uint style)
 ATOM kr::WindowProgram::registerClass(pcstr16 className, int icon, uint style) noexcept
 {
 	return WindowClass(className, _wndProc, icon, style).registerClass();
+}
+void kr::WindowProgram::wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lParam) throws(LRESULT)
+{
 }
 LRESULT kr::WindowProgram::_wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lParam) noexcept
 {

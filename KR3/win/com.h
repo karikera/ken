@@ -177,6 +177,9 @@ namespace kr
 		}
 	};
 
+	template <>
+	class ComPointer<IUnknown>;
+
 	template <typename T>
 	class Com : public ComMethod<T>
 	{
@@ -357,34 +360,29 @@ namespace kr
 	T * const & ComMethodBasic<T>::ptr() const noexcept {
 		return (T*&)m_ptr;
 	}
-}
 
-#ifdef NDEBUG
-#define hrmustbe(x) {HRESULT __hr; if(FAILED(__hr = (x))) exit(__hr); }
-#define hrshouldbe(x) (SUCCEEDED(x))
-#define hrexcept(x)	{HRESULT __hr; if(FAILED(__hr = (x))) throw ::kr::ErrorCode(__hr); }
-#else
-#define hrmustbe(x) {\
-	HRESULT hr = (x);\
-	if(FAILED(hr)) { ::kr::error(#x "\r\nHRESULT: 0x%08X\r\nMessage: %s",hr, ErrorCode(hr).getMessage<char>()); }\
-}
-#define hrshouldbe(x) ([&]{\
-	HRESULT hr = (x);\
-	if(FAILED(hr)){\
-		::kr::dout << #x << ::kr::endl; \
-		::kr::dout << __FILE__ << '(' << __LINE__ << ')' << ::kr::endl; \
-		::kr::dout << "HRESULT: 0x" << ::kr::hexf((uint32_t)hr, 8) << ::kr::endl; \
-		::kr::dout << "Message: " << ErrorCode(hr).getMessage<char>() << ::kr::endl; \
-		return false; \
-	}\
-	return true;}())
+	template <>
+	class ComPointer<IUnknown>
+	{
+	private:
+		Com<IUnknown>* m_pptr;
 
-#define hrexcept(x) {\
-HRESULT hr = (x);\
- if(FAILED(hr)) {\
-	::kr::dout << #x << ::kr::endl; \
-	::kr::dout << __FILE__ << '(' << __LINE__ << ')' << ::kr::endl; \
-	::kr::dout << "HRESULT: 0x" << ::kr::hexf((uint32_t)hr, 8) << ::kr::endl; \
-	throw ::kr::ErrorCode(hr);\
- } }
-#endif
+	public:
+		ComPointer(Com<IUnknown>* pptr) noexcept
+			:m_pptr(pptr)
+		{
+		}
+		operator Com<IUnknown>* () const
+		{
+			return m_pptr;
+		}
+		operator void** () const noexcept
+		{
+			return (void**)&m_pptr->m_ptr;
+		}
+		operator IUnknown** () const noexcept
+		{
+			return (IUnknown**)&m_pptr->m_ptr;
+		}
+	};
+}

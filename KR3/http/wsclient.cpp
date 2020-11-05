@@ -123,7 +123,7 @@ void WebSocketClient::_sendRequest(Text16 url, View<Text> protocols) noexcept
 
 	tsz << "Sec-WebSocket-Version: 13\r\n"
 		"\r\n";
-	write(tsz.cast<void>());
+	write(tsz);
 	flush();
 }
 void WebSocketClient::onReadWith(Connecting& obj) throws(...)

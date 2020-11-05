@@ -149,7 +149,7 @@ void IRC::ircConnect(pcstr16 url, word port, Text name, Text real, Text nick) no
 
 void IRC::ircSend(Text str) noexcept
 {
-	write(str.cast<void>());
+	write(str);
 	flush();
 }
 void IRC::ircNick(Text name) noexcept

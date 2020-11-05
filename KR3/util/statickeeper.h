@@ -8,7 +8,7 @@ namespace kr
 	{
 		template <size_t value>
 		using fit_uint_t = meta::if_t<
-			(value <= (uint_8_t)-1), uint8_t,
+			(value <= (uint8_t)-1), uint8_t,
 			meta::if_t<
 			(value <= (uint16_t)-1), uint16_t,
 			meta::if_t<
@@ -23,7 +23,7 @@ namespace kr
 	private:
 		static_assert(SIZE < sizeof(uint16_t), "");
 		using IDX = _pri_::fit_uint_t<SIZE>;
-		struct { byte buffer[sizeof(T)]; } alignas(alignof(T)) Buffer;
+		struct Buffer { byte buffer[sizeof(T)]; } alignas(alignof(T));
 
 		Buffer buffers[SIZE];
 		IDX unusing[SIZE];
@@ -62,7 +62,7 @@ namespace kr
 		{
 			size_t idx = (Buffer*)freed - buffers;
 			_assert(idx < SIZE);
-			unusing[usingCount++] = (IDX)idx;
+			unusing[unusingCount++] = (IDX)idx;
 			ondebug(
 				_assert(allocated[idx] == true);
 			allocated[idx] = false;

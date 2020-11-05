@@ -85,11 +85,11 @@ void vem__debug_break() noexcept;
 #define debug() debug_force()
 #define _assert(x)	do { if(!(x)) { \
 	fputs("Assertion failed\nOperation:" #x "\n", stderr);\
-	debug_force(); } } while(0)
+	debug_force(); } } while(false)
 #else
 #define ondebug(code)
-#define debug()	do {} while(0)
-#define _assert(x)	do { if (!(x)) __builtin_unreachable(); } while (0)
+#define debug()	do {} while(false)
+#define _assert(x)	do { if (!(x)) __builtin_unreachable(); } while (false)
 #endif
 
 #else
@@ -117,7 +117,7 @@ void vem__debug_break() noexcept;
 		if (::kr::requestDebugger())\
 			debug();\
 		::kr::terminate(-1);\
-	} while(0)
+	} while(false)
 
 #define notImplementedYet()	debugOrDie()
 #define unreachable()		debugOrDie()

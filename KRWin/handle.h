@@ -314,17 +314,17 @@ namespace kr
 				all(&call);
 			}
 			static Window * getForeground() noexcept;
-			static Window* createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu = nullptr, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu = nullptr, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu = nullptr, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu = nullptr, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu = nullptr, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu = nullptr, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createPrimaryAsFull(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu = nullptr, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc = { { 0, 0 },{ 0, 0 } }, Window* pParent = nullptr, intptr_t nID = 0, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc , Window* pParent, HMENU hMenu, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc = { {0, 0},{ 0, 0 } }, Window* pParent = nullptr, intptr_t nID = 0, WindowProgram * pProgram = nullptr) noexcept;
-			static Window* create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc, Window* pParent, HMENU hMenu, WindowProgram * pProgram = nullptr) noexcept;
+			static Window* createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu = nullptr, void * pProgram = nullptr) noexcept;
+			static Window* createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu = nullptr, void * pProgram = nullptr) noexcept;
+			static Window* createPrimary(pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu = nullptr, void * pProgram = nullptr) noexcept;
+			static Window* createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu = nullptr, void * pProgram = nullptr) noexcept;
+			static Window* createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, dword width, dword height, HMENU hMenu = nullptr, void * pProgram = nullptr) noexcept;
+			static Window* createPrimaryEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword style, irectwh rect, HMENU hMenu = nullptr, void * pProgram = nullptr) noexcept;
+			static Window* createPrimaryAsFull(pcstr16 pszClass, pcstr16 pszTitle, dword style, HMENU hMenu = nullptr, void * pProgram = nullptr) noexcept;
+			static Window* createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc = { { 0, 0 },{ 0, 0 } }, Window* pParent = nullptr, intptr_t nID = 0, void * pProgram = nullptr) noexcept;
+			static Window* createEx(dword nExStyle, pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc , Window* pParent, HMENU hMenu, void * pProgram = nullptr) noexcept;
+			static Window* create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc = { {0, 0},{ 0, 0 } }, Window* pParent = nullptr, intptr_t nID = 0, void * pProgram = nullptr) noexcept;
+			static Window* create(pcstr16 pszClass, pcstr16 pszTitle, dword nStyle, irectwh rc, Window* pParent, HMENU hMenu, void * pProgram = nullptr) noexcept;
 		};
 
 		class Dialog :public Window

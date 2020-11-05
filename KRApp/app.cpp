@@ -216,9 +216,11 @@ void Application::create(int width, int height) noexcept
 
 	static const char16 WC_CANVAS[] = u"KRCANVAS";
 	WindowClass wndcls(WC_CANVAS, [](win::Window* wnd, UINT msg, WPARAM wParam, LPARAM lParam)->LRESULT {
-
 		switch (msg)
 		{
+		case WM_NCCREATE:
+			wnd->setLongPtr(GWLP_USERDATA, (intptr_t)((CREATESTRUCTW*)lParam)->lpCreateParams);
+			return DefWindowProcW(wnd, msg, wParam, lParam);
 		case WM_KEYDOWN: {
 			Application* app = ((Application*)wnd->getLongPtr(GWLP_USERDATA));
 			app->onKeyDown((int)wParam, (HIWORD(lParam) & KF_REPEAT) != 0);
@@ -286,14 +288,14 @@ void Application::create(int width, int height) noexcept
 			app->onResize(LOWORD(lParam), HIWORD(lParam));
 			break;
 		}
-		default: return DefWindowProc(wnd, msg, wParam, lParam);
+		default: return DefWindowProcW(wnd, msg, wParam, lParam);
 		}
 		return 0;
 	}, (HICON)nullptr);
 	wndcls.registerClass();
 
-	win::Window * wnd = win::Window::createPrimary(WC_CANVAS, u"", WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_DLGFRAME);
-	wnd->setLongPtr(GWLP_USERDATA, (intptr_t)this);
+	win::Window * wnd = win::Window::createPrimary(WC_CANVAS, u"", 
+		WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_DLGFRAME, nullptr, this);
 	wnd->resizeToCenter(width, height);
 	wnd->show(SW_SHOW);
 

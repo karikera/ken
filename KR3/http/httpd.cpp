@@ -103,8 +103,8 @@ void MultipartFormData::readHeader(HttpClient* client) throws(ThrowRetry, HttpSt
 void MultipartFormData::read(HttpClient* client, BufferQueue* receive) throws(ThrowRetry, HttpStatus)
 {
 	readHeader(client);
-	HashTester<void> boundary(m_boundary.cast<void>(), HashTester<void>::NoReset);
-	HashTester<void> lineend("\r\n"_tx.cast<void>(), HashTester<void>::NoReset);
+	HashTester<void> boundary(m_boundary, HashTester<void>::NoReset);
+	HashTester<void> lineend("\r\n"_tx, HashTester<void>::NoReset);
 	for (;;)
 	{
 		switch (m_state)
@@ -161,7 +161,7 @@ HttpClient::Lock::~Lock() noexcept
 }
 void HttpClient::Lock::write(Text buffer) noexcept
 {
-	Super::write(buffer.cast<void>());
+	Super::write(buffer);
 }
 void HttpClient::Lock::writes(View<Text> buffers) noexcept
 {
@@ -446,7 +446,7 @@ HeaderView* HttpClient::requestHeaders() noexcept
 {
 	if (!m_headerParsed)
 	{
-		HashTester<void> needle = "\r\n\r\n"_tx.cast<void>();
+		HashTester<void> needle = (Buffer)"\r\n\r\n"_tx;
 		m_receive.readto(needle).readAllTo((ABuffer*)&m_headerBuffers, HEADER_LENGTH_LIMIT);
 		m_receive.skip(needle.size());
 		m_requestHeaders.setAll(m_headerBuffers);
@@ -457,7 +457,7 @@ HeaderView* HttpClient::requestHeaders() noexcept
 
 void HttpClient::_readHeadLine() throws(ThrowRetry, NotEnoughSpaceException)
 {
-	HashTester<void> needle = "\r\n"_tx.cast<void>();
+	HashTester<void> needle = (Buffer)"\r\n"_tx;
 	m_receive.readto(needle).readAllTo((ABuffer*)&m_headLine, HEADER_LENGTH_LIMIT);
 	m_receive.skip(needle.size());
 }

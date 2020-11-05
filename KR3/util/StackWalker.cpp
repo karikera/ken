@@ -30,7 +30,7 @@ enum { STACKWALK_MAX_NAMELEN = 1024 };
     __asm    mov c.Eip, eax \
     __asm    mov c.Ebp, ebp \
     __asm    mov c.Esp, esp \
-      } while(0);
+      } while(false);
 #else
 
 // The following is defined for x86 (XP and higher), x64 and IA64:
@@ -39,7 +39,7 @@ enum { STACKWALK_MAX_NAMELEN = 1024 };
     memset(&c, 0, sizeof(CONTEXT)); \
     c.ContextFlags = contextFlags; \
     RtlCaptureContext(&c); \
-    } while(0);
+    } while(false);
 #endif
 
 namespace

@@ -117,7 +117,7 @@ namespace kr
 			if (Lock _lock = lock())
 			{
 				_lock.write({ &frame, frame.getSize() });
-				_lock.write(data.cast<void>());
+				_lock.write(data);
 			}
 		}
 		void sendPong(Buffer buffer) noexcept

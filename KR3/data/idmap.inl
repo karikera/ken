@@ -169,8 +169,8 @@ kr::map::SortedArray<Parent, Cmp>::SortedArray() noexcept
 }
 template <typename Parent, typename Cmp> 
 kr::map::SortedArray<Parent, Cmp>::SortedArray(size_t capacity) noexcept
-	: Parent((size_t)0, capacity)
 {
+	Parent::reserve(capacity);
 }
 template <typename Parent, typename Cmp> 
 kr::map::SortedArray<Parent, Cmp>::~SortedArray() noexcept
@@ -259,7 +259,7 @@ void kr::map::SortedArray<Parent, Cmp>::rankingLoop(LAMBDA &&lambda) noexcept
 
 	auto iter = begin();
 	auto iterend = end();
-	size_t ranking = 0;
+	size_t ranking = 1;
 	K key;
 	{
 		Component& c = *iter;
@@ -291,7 +291,7 @@ void kr::map::SortedArray<Parent, Cmp>::rankingLoop_u(LAMBDA &&lambda) noexcept
 
 	auto iter = begin();
 	auto iterend = end();
-	size_t ranking = 0;
+	size_t ranking = 1;
 	K key;
 	{
 		Component& c = *iter;

@@ -162,6 +162,7 @@ namespace kr
 		enum class RegSize
 		{
 			Byte,
+			Word,
 			Dword,
 			Qword,
 		};

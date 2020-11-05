@@ -13,7 +13,7 @@ namespace kr
 	class WndProcedure:public Node<WndProcedure, true>
 	{
 	public:
-		virtual void wndProc(win::Window* wnd, uint Msg, WPARAM wParam, LPARAM lParam) =0;
+		virtual void wndProc(win::Window* wnd, uint Msg, WPARAM wParam, LPARAM lParam) throws(LRESULT) =0;
 
 	};
 
@@ -23,7 +23,7 @@ namespace kr
 		WndProcWrapper();
 		WndProcWrapper(WndProc pProc);
 
-		virtual void wndProc(win::Window* wnd, uint Msg, WPARAM wParam, LPARAM lParam) override;
+		virtual void wndProc(win::Window* wnd, uint Msg, WPARAM wParam, LPARAM lParam) throws(LRESULT) override;
 
 	private:
 		WndProc m_pNextProc;
@@ -66,6 +66,7 @@ namespace kr
 	protected:
 		Keep<win::Window> m_window;
 
+		virtual void wndProc(win::Window* wnd, uint Msg, WPARAM wParam, LPARAM lParam) throws(LRESULT) override;
 		static LRESULT CALLBACK _wndProc(win::Window* pWindow, uint Msg, WPARAM wParam, LPARAM lParam) noexcept;
 	};
 

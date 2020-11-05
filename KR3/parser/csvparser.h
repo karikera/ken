@@ -35,6 +35,7 @@ namespace kr
 		void mustLine() throws(EofException, NoLineException);
 		bool nextLine() noexcept;
 		int getLine() noexcept;
+		bool hasNext() noexcept;
 
 	private:
 		io::SelfBufferedIStream<io::VIStream<char>, true> m_stream;
