@@ -181,6 +181,25 @@ void kr::GDIReUnit::text(Text16 text) noexcept
 			return x + m_width;
 		});
 		break;
+	case Mode::Stretch:
+		_textLoop(text, [this](Text16 str, ivec2 pt) {
+			int x;
+			switch (m_align)
+			{
+			case Align::Left:	x = pt.x; break;
+			case Align::Center:	x = pt.x - m_width / 2; break;
+			case Align::Right:	x = pt.x - m_width; break;
+			}
+			m_pDC->setSBL(0);
+			int width = m_pDC->getTextWidth(str);
+			int sbl;
+			if (m_width <= width) sbl = 0;
+			else sbl = (int)((m_width - width) / (intptr_t)(str.size() - 1));
+			m_pDC->setSBL(sbl);
+			m_pDC->textOut<char16>(str, { x, pt.y });
+			return x + m_width;
+			});
+		break;
 	}
 }
 template <typename LAMBDA>

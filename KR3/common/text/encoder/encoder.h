@@ -160,7 +160,11 @@ namespace kr
 				size_t _nsize = Encoder::length(View<Component>(_data, _size));
 				WriteLock<Base> lockData(_nsize);
 				Component * dest = lockData.lock(base());
-				Encoder::encode(&ArrayWriter<Component>(dest, _nsize), &View<Component>(_data, _size));
+				{
+					ArrayWriter<Component> writer(dest, _nsize);
+					View<Component> view(_data, _size);
+					Encoder::encode(&writer, &view);
+				}
 				lockData.unlock(base());
 			}
 		};

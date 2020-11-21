@@ -32,7 +32,8 @@ namespace kr
 		{
 			Spacing,
 			Fill,
-			Limit
+			Limit,
+			Stretch
 		};
 
 		static win::Window* createPreview(dword style, int x,int y, vec2 paper, int width, PreviewCallback ondraw, void * param = nullptr) noexcept;

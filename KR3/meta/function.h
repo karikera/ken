@@ -35,6 +35,7 @@ namespace kr
 		{
 			using return_t = ret;
 			using lambda_t = ret(*)(ARGS ...);
+			using function_t = ret(*)(ARGS ...);
 			using args_t = types<ARGS ...>;
 		};;
 		template <typename ret, typename ... ARGS> struct function<ret(*)(ARGS ...)>:function<ret(ARGS ...)>
@@ -45,6 +46,7 @@ namespace kr
 			using return_t = ret;
 			using class_t = cls;
 			using lambda_t = ret(cls::*)(ARGS ...);
+			using function_t = ret(*)(ARGS ...);
 			using args_t = types<ARGS ...>;
 			static constexpr bool has_class = true;
 		};;

@@ -43,7 +43,8 @@ kr::GdiPlus::Init::Init() noexcept
 {
 	static_assert(sizeof(token) == sizeof(ULONG_PTR), "token size unmatch");
 	Gdiplus::GdiplusStartupOutput output;
-	Gdiplus::GdiplusStartup((ULONG_PTR*)&token, &Gdiplus::GdiplusStartupInput(), &output);
+	Gdiplus::GdiplusStartupInput input;
+	Gdiplus::GdiplusStartup((ULONG_PTR*)&token, &input, &output);
 }
 kr::GdiPlus::Init::~Init() noexcept
 {

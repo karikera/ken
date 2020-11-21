@@ -69,7 +69,7 @@ inline void buildTest() noexcept
 	stream.readwith_e('*');
 	stream.readwith_L(path.isSeperator);
 	stream++;
-	memt<4>::find_callback([]() { return (int*)0;  }, (int*)0, 0);
+	int* res = memt<4>::find_callback([]() { return (int*)0;  }, (int*)0, 0);
 
 	static const auto filter = meta::literal_as<char>("\"\'\n\r,");
 	static const auto from = meta::literal_as<char>("\"");

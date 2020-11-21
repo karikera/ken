@@ -255,8 +255,15 @@ void* ExecutableAllocator::alloc(size_t size) noexcept
 		}
 	}
 	void* out = m_page;
+	ondebug(m_alloc_begin = m_page);
 	m_page += size;
 	return out;
+}
+void ExecutableAllocator::shrink(void* end) noexcept
+{
+	ondebug(_assert(m_alloc_begin <= (byte*)end));
+	_assert((byte*)end <= m_page);
+	m_page = (byte*)end;
 }
 ExecutableAllocator* ExecutableAllocator::getInstance() noexcept
 {
@@ -284,18 +291,25 @@ namespace
 	}
 }
 
-CodeWriter::CodeWriter(ExecutableAllocator* alloc, size_t size) noexcept
-	:ArrayWriter<byte>((byte*)alloc->alloc(size), size)
+CodeWriter::CodeWriter(void* dest, void* dest_end) noexcept
+	:ArrayWriter<byte>((byte*)dest, (byte*)dest_end)
 {
 }
-CodeWriter::CodeWriter(void * dest, size_t size) noexcept
+CodeWriter::CodeWriter(void* dest, size_t size) noexcept
 	:ArrayWriter<byte>((byte*)dest, size)
+{
+}
+CodeWriter::~CodeWriter() noexcept
 {
 }
 
 void CodeWriter::fillNop() noexcept
 {
 	writeFill(0x90, remaining());
+}
+void CodeWriter::fillDebugBreak() noexcept
+{
+	writeFill(0xcc, remaining());
 }
 void CodeWriter::rjump(int32_t rpos) noexcept
 {
@@ -313,8 +327,7 @@ void CodeWriter::mov(Register r, dword to) noexcept
 	write(regex(r) ? 0x49 : 0x48);
 	write(0xc7);
 	write(0xC0 | regidx(r));
-	write(to);
-
+	writeas(to);
 }
 void CodeWriter::mov(Register r, qword to) noexcept
 {
@@ -597,6 +610,119 @@ void CodeWriter::debugBreak() noexcept
 	write(0xcc);
 }
 
+bool kr::hook::CodeDiff::succeeded() noexcept
+{
+	return empty();
+}
+
+CodeDiff CodeWriter::check(void* code, Buffer originalCode, View<pair<size_t, size_t>> skip) noexcept
+{
+	CodeDiff diff = memdiff(code, originalCode.data(), originalCode.size());
+	if (skip != nullptr)
+	{
+		if (memdiff_contains(skip, diff)) diff.truncate();
+	}
+	return diff;
+}
+CodeDiff CodeWriter::hook(void* from, void* to, kr::View<uint8_t> originalCode, View<std::pair<size_t, size_t>> skip) noexcept
+{
+	size_t size = originalCode.size();
+	Unprotector unpro(from, size);
+	CodeDiff diff = check(from, originalCode, skip);
+	if (diff.succeeded())
+	{
+		JitFunction hooker(64 + size);
+		void* code = hooker.end();
+		hooker.push(RCX);
+		hooker.push(RDX);
+		hooker.push(R8);
+		hooker.push(R9);
+		hooker.sub(RSP, 0x28);
+		hooker.call(to, RAX);
+		hooker.add(RSP, 0x28);
+		hooker.pop(R9);
+		hooker.pop(R8);
+		hooker.pop(RDX);
+		hooker.pop(RCX);
+		hooker.write(originalCode.cast<byte>());
+		hooker.jumpWithoutTemp((byte*)from + size);
+
+		{
+			CodeWriter writer((void*)unpro, size);
+			writer.jump(code, RAX);
+			writer.fillDebugBreak();
+		}
+	}
+	return diff;
+}
+CodeDiff CodeWriter::nopping(void* base, kr::View<uint8_t> originalCode, kr::View<std::pair<size_t, size_t>> skip) noexcept
+{
+	size_t codeSize = originalCode.size();
+	Unprotector unpro((byte*)base, codeSize);
+	CodeDiff diff = check(base, originalCode, skip);
+	if (diff.succeeded())
+	{
+		CodeWriter code((void*)unpro, codeSize);
+		code.fillNop();
+	}
+	return diff;
+}
+
+JitFunction::JitFunction(size_t size) noexcept
+	:JitFunction(ExecutableAllocator::getInstance(), size)
+{
+	m_ptr = end();
+}
+JitFunction::JitFunction(ExecutableAllocator* alloc, size_t size) noexcept
+	:CodeWriter((byte*)alloc->alloc(size), size), m_alloc(alloc)
+{
+}
+JitFunction::~JitFunction() noexcept
+{
+	if (m_alloc == nullptr) return;
+	m_alloc->shrink(end());
+}
+void JitFunction::commit() noexcept
+{
+	_assert(m_alloc != nullptr); // already commited
+	m_alloc->shrink(end());
+	m_alloc = nullptr;
+}
+void* JitFunction::pointer() noexcept
+{
+	return m_ptr;
+}
+
+CodeDiff JitFunction::patchTo(void* base, Buffer originalCode, kr::hook::Register tempregister, bool jump, View<pair<size_t, size_t>> skip) noexcept
+{
+	size_t size = originalCode.size();
+	Unprotector unpro(base, size);
+	CodeDiff diff = check(base, originalCode, skip);
+	if (diff.succeeded())
+	{
+		CodeWriter writer((void*)unpro, size);
+		if (jump) writer.jump(m_ptr, tempregister);
+		else writer.call(m_ptr, tempregister);
+		writer.fillNop();
+	}
+	return diff;
+}
+CodeDiff JitFunction::patchToBoolean(void* base, kr::hook::Register testregister, void* jumpPoint, Buffer originalCode, kr::hook::Register tempregister) noexcept
+{
+	size_t size = originalCode.size();
+	Unprotector unpro(base, size);
+	CodeDiff diff = check(base, originalCode);
+	if (diff.succeeded())
+	{
+		CodeWriter writer((void*)unpro, size);
+		writer.call(m_ptr, tempregister);
+		writer.test(testregister, testregister);
+		writer.jz(intact<int32_t>((byte*)jumpPoint - (byte*)writer.end() - 6));
+		writer.fillNop();
+	}
+	return diff;
+}
+
 void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)(), Register temp) noexcept
 {
 	ExecutableAllocator * alloc = ExecutableAllocator::getInstance();
@@ -617,4 +743,57 @@ void * kr::hook::createCodeJunction(void* dest, size_t size, void (*func)(), Reg
 	}
 
 	return code;
+}
+
+CodeDiff kr::hook::memdiff(const void* _src, const void* _dst, size_t size) noexcept
+{
+	byte* src = (byte*)_src;
+	byte* src_end = (byte*)_src + size;
+	byte* dst = (byte*)_dst;
+
+	CodeDiff diff;
+	pair<size_t, size_t>* last = nullptr;
+
+	for (; src != src_end; src++, dst++)
+	{
+		if (*src == *dst)
+		{
+			if (last == nullptr) continue;
+			last->second = src - (byte*)_src;
+			last = nullptr;
+		}
+		else
+		{
+			if (last != nullptr) continue;
+			last = diff.prepare(1);
+			last->first = src - (byte*)_src;
+		}
+	}
+	if (last != nullptr) last->second = size;
+	return diff;
+}
+bool kr::hook::memdiff_contains(View<pair<size_t, size_t>> larger, View<pair<size_t, size_t>> smaller) noexcept
+{
+	auto* small = smaller.begin();
+	auto* small_end = smaller.end();
+
+	for (auto large : larger)
+	{
+		for (;;)
+		{
+			if (small == small_end) return true;
+
+			if (small->first < large.first) return false;
+			if (small->first > large.second) break;
+			if (small->first == large.second) return false;
+			if (small->second > large.second) return false;
+			if (small->second == large.second)
+			{
+				small++;
+				break;
+			}
+			small++;
+		}
+	}
+	return true;
 }

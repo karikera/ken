@@ -212,7 +212,8 @@ namespace
 		m_oleInPlaceObject->GetWindow(&hControl);
 		::ShowWindow(hControl, SW_SHOW);
 
-		m_webBrowser->Navigate(const_cast<BSTR>(L"about:blank"), &variant_t((UINT)0), nullptr, nullptr, nullptr);
+		variant_t flags = 0u;
+		m_webBrowser->Navigate(const_cast<BSTR>(L"about:blank"), &flags, nullptr, nullptr, nullptr);
 		return true;
 	}
 	EmbeddedBrowserImpl::~EmbeddedBrowserImpl()
@@ -249,7 +250,8 @@ namespace
 	void EmbeddedBrowserImpl::navigate(Text16 _url)
 	{
 		BSTR url = SysAllocStringLen(wide(_url.data()), kr::intact<UINT>(_url.size()));
-		HRESULT hr = m_webBrowser->Navigate(url, &variant_t(0x02u), nullptr, nullptr, nullptr);
+		variant_t flags = 0x02u;
+		HRESULT hr = m_webBrowser->Navigate(url, &flags, nullptr, nullptr, nullptr);
 		SysFreeString(url);
 	}
 	void EmbeddedBrowserImpl::setRect(const irect & _rc)

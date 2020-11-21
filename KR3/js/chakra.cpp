@@ -980,7 +980,14 @@ kr::JsValue kr::JsRuntime::run(Text16 fileName, Text16 source) throws(JsExceptio
 	ondebug(_assert(s_scopeStackCounter != 0));
 
 	JsRawData result;
-	ERRCT JsRunScript(szlize(source, &TText16()), s_sourceContextCounter++, szlize(fileName, &TText16()), &result.m_data);
+	TText16 buf2;
+	TText16 buf;
+	LPCWSTR source_sz = szlize(source, &buf2);
+	LPCWSTR fileName_sz = szlize(fileName, &buf);
+	ERRCT JsRunScript(
+		source_sz,
+		s_sourceContextCounter++, fileName_sz,
+		&result.m_data);
 	return result;
 }
 kr::JsValue kr::JsRuntime::run(Text16 fileName, Text16 source, uintptr_t sourceContext) throws(JsException)
@@ -988,7 +995,11 @@ kr::JsValue kr::JsRuntime::run(Text16 fileName, Text16 source, uintptr_t sourceC
 	ondebug(_assert(s_scopeStackCounter != 0));
 
 	JsRawData result;
-	ERRCT JsRunScript(szlize(source, &TText16()), sourceContext, szlize(fileName, &TText16()), &result.m_data);
+	TText16 buf2;
+	TText16 buf;
+	LPCWSTR source_sz = szlize(source, &buf2);
+	LPCWSTR fileName_sz = szlize(fileName, &buf);
+	ERRCT JsRunScript(source_sz, sourceContext, fileName_sz, &result.m_data);
 	return result;
 }
 kr::JsValue kr::JsRuntime::global() noexcept

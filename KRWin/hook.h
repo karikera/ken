@@ -122,10 +122,12 @@ namespace kr
 		public:
 			ExecutableAllocator() noexcept;
 			void* alloc(size_t size) noexcept;
+			void shrink(void* end) noexcept;
 
 			static ExecutableAllocator* getInstance() noexcept;
 
 		private:
+			ondebug(byte* m_alloc_begin);
 			byte* m_page;
 			byte* m_page_end;
 
@@ -187,14 +189,21 @@ namespace kr
 			XOR,
 			CMP,
 		};
-		
+
+		struct CodeDiff :TmpArray<pair<size_t, size_t>>
+		{
+			bool succeeded() noexcept;
+		};
+
 		class CodeWriter :public ArrayWriter<byte>
 		{
 		public:
-			CodeWriter(ExecutableAllocator* alloc, size_t size) noexcept;
 			CodeWriter(void* dest, size_t size) noexcept;
+			CodeWriter(void* dest, void* dest_end) noexcept;
+			~CodeWriter() noexcept;
 
 			void fillNop() noexcept;
+			void fillDebugBreak() noexcept;
 			void rjump(int32_t rpos) noexcept;
 			void rcall(int32_t rpos) noexcept;
 #ifdef _M_X64
@@ -230,9 +239,32 @@ namespace kr
 			void ret() noexcept;
 			void debugBreak() noexcept;
 
+			static CodeDiff check(void* code, Buffer originalCode, View<pair<size_t, size_t> > skip = nullptr) noexcept;
+			static CodeDiff hook(void* from, void* to, View<uint8_t> originalCode, View<pair<size_t, size_t>> skip = nullptr) noexcept;
+			static CodeDiff nopping(void* base, View<uint8_t> originalCode, View<pair<size_t, size_t>> skip = nullptr) noexcept;
+		};
+
+		class JitFunction: public CodeWriter
+		{
+		public:
+			JitFunction(size_t size) noexcept;
+			JitFunction(ExecutableAllocator* alloc, size_t size) noexcept;
+			~JitFunction() noexcept;
+			void commit() noexcept;
+
+			void* pointer() noexcept;
+			CodeDiff patchTo(void* base, Buffer originalCode, Register tempregister, bool jump, View<std::pair<size_t, size_t>> skip = nullptr) noexcept;
+			CodeDiff patchToBoolean(void* base, Register testregister, void* jumpPoint, Buffer originalCode, Register tempregister) noexcept;
+
+		private:
+			ExecutableAllocator* m_alloc;
+			void* m_ptr;
 		};
 
 		void* createCodeJunction(void* dest, size_t size, void (*func)(), Register temp) noexcept;
+
+		CodeDiff memdiff(const void* _src, const void* _dst, size_t size) noexcept;
+		bool memdiff_contains(View<pair<size_t, size_t>> larger, View<pair<size_t, size_t>> smaller) noexcept;
 
 	}
 
