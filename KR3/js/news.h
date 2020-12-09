@@ -5,7 +5,7 @@
 
 namespace kr
 {
-	size_t getElementSize(JsTypedArrayType type) noexcept;
+	size_t getElementSize(JsTypedType type) noexcept;
 
 	class JsNewArray
 	{
@@ -25,10 +25,10 @@ namespace kr
 	class JsNewTypedArray
 	{
 	public:
-		JsNewTypedArray(JsRawData arrayBuffer, JsTypedArrayType type, size_t size = 0) noexcept;
-		JsNewTypedArray(JsTypedArrayType type, size_t size = 0) noexcept;
+		JsNewTypedArray(JsRawData arrayBuffer, JsTypedType type, size_t size = 0) noexcept;
+		JsNewTypedArray(JsTypedType type, size_t size = 0) noexcept;
 		JsRawData arrayBuffer;
-		JsTypedArrayType type;
+		JsTypedType type;
 		const size_t size;
 	};
 }

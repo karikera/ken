@@ -438,9 +438,9 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept
 {
 	TSZ16 buf;
-	buf << u"ERROR: " << (Utf8ToUtf16)(Text)function << u", Error: ";
+	buf << (Utf8ToUtf16)(Text)function << u":0x" << hexf(gle, 8) << u' ';
 	ErrorCode(gle).getMessageTo<char16>(&buf);
-	buf << u"(0x" << hexf(gle, 8) << u')' << u" (Address: " << (void*)(uintptr_t)addr << u')';
+	buf << u" (Address: " << (void*)(uintptr_t)addr << u')';
 	onOutput(buf);
 }
 

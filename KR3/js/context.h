@@ -79,5 +79,12 @@ namespace kr
 		JsRawPropertyId m_getId;
 		JsRawPropertyId m_setId;
 		Array<JsRawData> m_classes;
+
+	public:
+
+		inline const JsRawContext& getRaw() const noexcept
+		{
+			return m_context;
+		}
 	};
 }

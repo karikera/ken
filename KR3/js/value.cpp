@@ -63,7 +63,7 @@ bool JsValue::operator !=(const JsValue& value) const noexcept
 }
 WBuffer JsValue::getBuffer() const noexcept
 {
-	JsTypedArrayType type;
+	JsTypedType type;
 	switch (getType())
 	{
 	case JsType::ArrayBuffer: return getArrayBuffer();

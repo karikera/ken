@@ -56,7 +56,7 @@ namespace kr
 
 	class JsNewArray;
 	class JsNewArrayBuffer;
-	enum class JsTypedArrayType
+	enum class JsTypedType
 	{
 		Int8,
 		Uint8,

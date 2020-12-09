@@ -46,18 +46,20 @@ namespace kr
 		KRJS_EXPORT void setByProperty(const JsPropertyId &name, const JsRawData& value) const noexcept;
 		KRJS_EXPORT JsRawData getByIndex(const JsRawData& name) const noexcept;
 		KRJS_EXPORT JsRawData getByProperty(const JsPropertyId& name) const noexcept;
+		KRJS_EXPORT bool prototypeOf(const JsRawData& value) const noexcept;
 		KRJS_EXPORT bool instanceOf(const JsRawData& value) const noexcept;
 		KRJS_EXPORT void* getExternalData() const noexcept;
 		KRJS_EXPORT WBuffer getArrayBuffer() const noexcept;
 		KRJS_EXPORT WBuffer getDataViewBuffer() const noexcept;
-		KRJS_EXPORT WBuffer getTypedArrayBuffer(JsTypedArrayType * type) const noexcept;
+		KRJS_EXPORT WBuffer getTypedArrayBuffer(JsTypedType * type) const noexcept;
 		WBuffer getTypedArrayBuffer() const noexcept;
-		KRJS_EXPORT size_t getArrayLength() const throws(JsException);
+		KRJS_EXPORT int32_t getArrayLength() const throws(JsException);
 		KRJS_EXPORT void setArrayLength(size_t length) const throws(JsException);
 		KRJS_EXPORT JsRawData call(JsRawData _this, JsArgumentsIn arguments) const throws(JsException);
 		KRJS_EXPORT bool equals(const JsRawData & other) const noexcept;
 		KRJS_EXPORT bool abstractEquals(const JsRawData& other) const noexcept;
 		KRJS_EXPORT JsRawData toString() const throws(JsException);
+		KRJS_EXPORT JsRawData valueOf() const throws(JsException);
 		KRJS_EXPORT void freeze() noexcept;
 		KRJS_EXPORT bool isFreezed() noexcept;
 
@@ -70,6 +72,12 @@ namespace kr
 
 	private:
 		JsRawDataValue m_data;
+
+	public:
+		const JsRawDataValue& getRaw() const noexcept
+		{
+			return m_data;
+		}
 	};
 
 	template <JsType type>
@@ -114,19 +122,19 @@ T kr::JsRawData::as() const noexcept
 template <typename LAMBDA>
 void kr::JsRawData::getTypedArrayBufferL(LAMBDA&& onBuffer) noexcept
 {
-	JsTypedArrayType type;
+	JsTypedType type;
 	Buffer buffer = getTypedArrayBuffer(&type);
 	switch (type)
 	{
-	case JsTypedArrayType::Int8: onBuffer(buffer.cast<int8_t>()); break;
-	case JsTypedArrayType::Uint8: 
-	case JsTypedArrayType::Uint8Clamped: onBuffer(buffer.cast<uint8_t>()); break;
-	case JsTypedArrayType::Int16: onBuffer(buffer.cast<int16_t>()); break;
-	case JsTypedArrayType::Uint16: onBuffer(buffer.cast<uint16_t>()); break;
-	case JsTypedArrayType::Int32: onBuffer(buffer.cast<int32_t>()); break;
-	case JsTypedArrayType::Uint32: onBuffer(buffer.cast<uint32_t>()); break;
-	case JsTypedArrayType::Float32: onBuffer(buffer.cast<float>()); break;
-	case JsTypedArrayType::Float64: onBuffer(buffer.cast<double>()); break;
+	case JsTypedType::Int8: onBuffer(buffer.cast<int8_t>()); break;
+	case JsTypedType::Uint8: 
+	case JsTypedType::Uint8Clamped: onBuffer(buffer.cast<uint8_t>()); break;
+	case JsTypedType::Int16: onBuffer(buffer.cast<int16_t>()); break;
+	case JsTypedType::Uint16: onBuffer(buffer.cast<uint16_t>()); break;
+	case JsTypedType::Int32: onBuffer(buffer.cast<int32_t>()); break;
+	case JsTypedType::Uint32: onBuffer(buffer.cast<uint32_t>()); break;
+	case JsTypedType::Float32: onBuffer(buffer.cast<float>()); break;
+	case JsTypedType::Float64: onBuffer(buffer.cast<double>()); break;
 	default: unreachable();
 	}
 }

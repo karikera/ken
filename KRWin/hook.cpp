@@ -1,3 +1,4 @@
+
 #include "stdafx.h"
 #include "hook.h"
 #include "handle.h"
@@ -274,9 +275,17 @@ ExecutableAllocator* ExecutableAllocator::getInstance() noexcept
 
 namespace
 {
+	bool regex(int r) noexcept
+	{
+		return r >= 8;
+	}
 	bool regex(Register r) noexcept
 	{
 		return r >= R8;
+	}
+	bool regex(FloatRegister r) noexcept
+	{
+		return r >= XMM8;
 	}
 	byte regidx(Register r) noexcept
 	{
@@ -303,6 +312,17 @@ CodeWriter::~CodeWriter() noexcept
 {
 }
 
+void CodeWriter::_writeRegEx(int r1, int r2, RegSize size) noexcept
+{
+	if (size == RegSize::Word) write(0x66);
+
+	byte rex = 0x40;
+	if (size == RegSize::Qword) rex |= 0x08;
+	if (regex(r1)) rex |= 0x01;
+	if (regex(r2)) rex |= 0x04;
+	if (rex != 0x40) write(rex);
+}
+
 void CodeWriter::fillNop() noexcept
 {
 	writeFill(0x90, remaining());
@@ -324,40 +344,60 @@ void CodeWriter::rcall(int32_t rpos) noexcept
 #ifdef _M_X64
 void CodeWriter::mov(Register r, dword to) noexcept
 {
-	write(regex(r) ? 0x49 : 0x48);
+	_writeRegEx(r, 0, RegSize::Qword);
 	write(0xc7);
 	write(0xC0 | regidx(r));
 	writeas(to);
 }
 void CodeWriter::mov(Register r, qword to) noexcept
 {
-	write(regex(r) ? 0x49 : 0x48);
+	if ((dword)to == to) return mov(r, (dword)to);
+	_writeRegEx(r, 0, RegSize::Qword);
 	write(0xb8 | regidx(r));
 	writeas(to);
 }
-void CodeWriter::jump64(void* to, Register r) noexcept
+void CodeWriter::jump64ex(void* to, Register r, bool isCall) noexcept
 {
 	mov(r, (uintptr_t)to);
-	jump(r);
+	jumpex(r, isCall);
+}
+void CodeWriter::jump64(void* to, Register r) noexcept
+{
+	jump64ex(to, r, false);
 }
 void CodeWriter::call64(void* to, Register r) noexcept
 {
-	mov(r, (uintptr_t)to);
-	call(r);
+	jump64ex(to, r, true);
+}
+void CodeWriter::jumpex(Register r, bool isCall) noexcept
+{
+	if (regex(r)) write(0x41);
+	write(0xff);
+	write((isCall ? 0xd0 : 0xe0) | regidx(r));
 }
 void CodeWriter::jump(Register r) noexcept
 {
-	if (regex(r)) write(0x41);
-	write(0xff);
-	write(0xe0 | regidx(r));
+	jumpex(r, false);
 }
 void CodeWriter::call(Register r) noexcept
 {
-	if (regex(r)) write(0x41);
-	write(0xff);
-	write(0xd0 | regidx(r));
+	jumpex(r, true);
 }
 #endif
+void CodeWriter::jumpex(AddressPointerRule address, Register r, int32_t offset, bool isCall) noexcept
+{
+	if (regex(r)) write(0x41);
+	write(0xff);
+	_writeOffset((isCall ? 0x10 : 0x20) | regidx(r), r, offset, false);
+}
+void CodeWriter::jump(AddressPointerRule address, Register r, int32_t offset) noexcept
+{
+	jumpex(address, r, offset, false);
+}
+void CodeWriter::call(AddressPointerRule address, Register r, int32_t offset) noexcept
+{
+	jumpex(address, r, offset, true);
+}
 void CodeWriter::push(int32_t value) noexcept
 {
 	if (value == (int8_t)value)
@@ -389,22 +429,29 @@ void CodeWriter::movb(Register dest, Register src) noexcept
 {
 	movex(RegSize::Byte, dest, src, AccessType::Register, 0);
 }
+void CodeWriter::movsxd(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
+{
+	_assert(address == DwordPtr);
+	_writeRegEx(src, dest, RegSize::Qword);
+	write(0x63);
+	_writeOffset((dest << 3) | src, src, 0, false);
+}
+void CodeWriter::movzx(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
+{
+	_assert(address == BytePtr);
+	_writeRegEx(src, dest, RegSize::Qword);
+	write(0x0f);
+	write(0xb6);
+	_writeOffset((dest << 3) | src, src, offset, false);
+}
 void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) noexcept
 {
 	// reg1 is memory address
 
 	Register reg2 = (Register)reg2_or_constvalue;
-	bool is_const = atype == AccessType::WriteConst;
+	bool reg2_is_constvalue = atype == AccessType::WriteConst;
 
-	if (bittype == RegSize::Word)
-	{
-		write(0x66);
-	}
-	byte rex = 0x40;
-	if (bittype == RegSize::Qword) rex |= 0x08;
-	if (regex(reg1)) rex |= 0x01;
-	if (!is_const && regex(reg2)) rex |= 0x04;
-	if (rex != 0x40) write(rex);
+	_writeRegEx(reg1, reg2_is_constvalue ? 0 : reg2, bittype);
 
 
 	if (atype == AccessType::WriteConst)
@@ -425,35 +472,17 @@ void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalu
 
 		byte memorytype = 0x88;
 		if (atype == AccessType::Lea) memorytype |= 0x05;
-		if (atype == AccessType::Read) memorytype |= 0x02;
+		else if (atype == AccessType::Read) memorytype |= 0x02;
 		if (bittype != RegSize::Byte) memorytype |= 0x01;
 		write(memorytype);
 	}
 
-	byte offsettype;
-	if (atype != AccessType::Register)
-	{
-		if (offset == 0) offsettype = 0x00;
-		else if ((int8_t)offset == offset) offsettype = 0x40;
-		else offsettype = 0x80;
-	}
-	else
-	{
-		offsettype = 0xc0;
-	}
+	byte opcode = regidx(reg1);
+	if (!reg2_is_constvalue) opcode |= (regidx(reg2) << 3);
 
-	byte opcode = offsettype | regidx(reg1);
-	if (!is_const) opcode |= (regidx(reg2) << 3);
-	write(opcode);
+	_writeOffset(opcode, reg1, offset, atype == AccessType::Register);
 
-	if (atype != AccessType::Register)
-	{
-		if (reg1 == RSP) write(0x24);
-		if (offsettype == 0x40) writeas<int8_t>(offset);
-		else if (offsettype == 0x80) writeas<int32_t>(offset);
-	}
-
-	if (is_const)
+	if (reg2_is_constvalue)
 	{
 		if (bittype == RegSize::Byte)
 		{
@@ -470,9 +499,22 @@ void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalu
 		}
 	}
 }
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t value) noexcept
+{
+	movex(ptr_to_size(address), dest, value, AccessType::WriteConst, 0);
+}
 void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept
 {
 	movex(ptr_to_size(address), dest, value, AccessType::WriteConst, offset);
+}
+void CodeWriter::mov(AddressPointerRule address, Register dest, RegisterLow src) noexcept
+{
+	mov(address, dest, 0, src);
+}
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, RegisterLow src) noexcept
+{
+	_assert(address == BytePtr);
+	movex(ptr_to_size(address), dest, src, AccessType::Write, offset);
 }
 void CodeWriter::mov(AddressPointerRule address, Register dest, Register src) noexcept
 {
@@ -490,10 +532,10 @@ void CodeWriter::lea(Register dest, Register src, int32_t offset) noexcept
 {
 	movex(RegSize::Qword, src, dest, AccessType::Lea, offset);
 }
-void CodeWriter::operex(Operator oper, Register dest, int32_t chr) noexcept
+void CodeWriter::operex(bool memoryAccess, Operator oper, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	write(0x48);
-	bool is32bits = (int8_t)chr != chr;
+	_writeRegEx(dest, 0, RegSize::Qword);
+	int is32bits = (int8_t)chr != chr;
 	if (is32bits && dest == RAX)
 	{
 		write(0x05 | ((int)oper << 3));
@@ -502,33 +544,85 @@ void CodeWriter::operex(Operator oper, Register dest, int32_t chr) noexcept
 	else
 	{
 		write(0x83 ^ (is32bits << 1));
-		write(0xc0 | ((int)oper << 3) | dest);
+		_writeOffset(((int)oper << 3) | regidx(dest), dest, offset, !memoryAccess);
+
 		if (is32bits) writeas<int32_t>(chr);
 		else write((int8_t)chr);
 	}
 }
-void CodeWriter::cmp(Register dest, int32_t chr) noexcept
-{
-	operex(Operator::CMP, dest, chr);
-}
-void CodeWriter::sub(Register dest, int32_t chr) noexcept
-{
-	operex(Operator::SUB, dest, chr);
-}
-void CodeWriter::add(Register dest, int32_t chr) noexcept
-{
-	operex(Operator::ADD, dest, chr);
-}
 void CodeWriter::test(Register dest, Register src) noexcept
 {
-	write(0x48);
+	_writeRegEx(src, dest, RegSize::Qword);
 	write(0x85);
 	write(0xC0 | (src << 3) | dest);
 }
+
+void CodeWriter::cmp(Register dest, int32_t chr) noexcept
+{
+	operex(false, Operator::CMP, dest, 0, chr);
+}
+void CodeWriter::sub(Register dest, int32_t chr) noexcept
+{
+	operex(false, Operator::SUB, dest, 0, chr);
+}
+void CodeWriter::add(Register dest, int32_t chr) noexcept
+{
+	operex(false, Operator::ADD, dest, 0, chr);
+}
+void CodeWriter::sbb(Register dest, int32_t chr) noexcept
+{
+	operex(false, Operator::SBB, dest, 0, chr);
+}
+void CodeWriter::adc(Register dest, int32_t chr) noexcept
+{
+	operex(false, Operator::ADC, dest, 0, chr);
+}
 void CodeWriter::xor_(Register dest, int32_t chr) noexcept
 {
-	operex(Operator::XOR, dest, chr);
+	operex(false, Operator::XOR, dest, 0, chr);
 }
+void CodeWriter::or_(Register dest, int32_t chr) noexcept
+{
+	operex(false, Operator::OR, dest, 0, chr);
+}
+void CodeWriter::and_(Register dest, int32_t chr) noexcept
+{
+	operex(false, Operator::AND, dest, 0, chr);
+}
+
+void CodeWriter::cmp(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::CMP, dest, offset, chr);
+}
+void CodeWriter::sub(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::SUB, dest, offset, chr);
+}
+void CodeWriter::add(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::ADD, dest, offset, chr);
+}
+void CodeWriter::sbb(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::SBB, dest, offset, chr);
+}
+void CodeWriter::adc(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::ADC, dest, offset, chr);
+}
+void CodeWriter::xor_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::XOR, dest, offset, chr);
+}
+void CodeWriter::or_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::OR, dest, offset, chr);
+}
+void CodeWriter::and_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+{
+	operex(true, Operator::AND, dest, offset, chr);
+}
+
 void CodeWriter::jump(void* to, Register tmp) noexcept
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
@@ -610,6 +704,147 @@ void CodeWriter::debugBreak() noexcept
 	write(0xcc);
 }
 
+void CodeWriter::_writeOffset(uint8_t opcode, Register r, int32_t offset, bool registerOperation) noexcept
+{
+	if (registerOperation)
+	{
+		_assert(offset == 0);
+		write(opcode | 0xc0);
+		return;
+	}
+	if (offset == 0 && r != RBP) {}
+	else if (offset == (int8_t)offset)
+	{
+		opcode |= 0x40;
+	}
+	else
+	{
+		opcode |= 0x80;
+	}
+	write(opcode);
+
+	if (r == RSP) write(0x24);
+	if (opcode & 0x40) write((int8_t)offset);
+	else if (opcode & 0x80) writeas<int32_t>(offset);
+}
+void CodeWriter::movss(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) noexcept
+{
+	write(0xf3);
+	write(0x0f);
+	write(0x11);
+	_writeOffset(0x04 | (r << 3) | dest, dest, offset, false);
+}
+void CodeWriter::movsd(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) noexcept
+{
+	write(0xf2);
+	write(0x0f);
+	write(0x11);
+	_writeOffset(0x04 | (r << 3) | dest, dest, offset, false);
+}
+void CodeWriter::movss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+{
+	write(0xf3);
+	write(0x0f);
+	write(0x10);
+	_writeOffset(0x04 | (dest << 3) | r, r, offset, false);
+}
+void CodeWriter::movsd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+{
+	write(0xf2);
+	write(0x0f);
+	write(0x10);
+	_writeOffset(0x04 | (dest << 3) | r, r, offset, false);
+}
+void CodeWriter::movsd(FloatRegister dest, FloatRegister src) noexcept
+{
+	write(0xf2);
+	if (regex(src) || regex(dest)) write(0x48 | (regex(src) ? 1 : 0) | (regex(dest) ? 4 : 0));
+	write(0x0f);
+	write(0x10);
+	write(0xc0 | (dest << 3) | src);
+}
+void CodeWriter::movss(FloatRegister dest, FloatRegister src) noexcept
+{
+	write(0xf3);
+	if (regex(src) || regex(dest)) write(0x48 | (regex(src) ? 1 : 0) | (regex(dest) ? 4 : 0));
+	write(0x0f);
+	write(0x10);
+	write(0xc0 | (dest << 3) | src);
+}
+void CodeWriter::cvttsd2ss(FloatRegister dest, Register r) noexcept
+{
+	write(0xf3);
+	_writeRegEx(r, dest, RegSize::Qword);
+	write(0x0f);
+	write(0x2a);
+	write(0xc0 | r | (dest << 3));
+}
+void CodeWriter::cvttsd2sd(FloatRegister dest, Register r) noexcept
+{
+	write(0xf2);
+	_writeRegEx(r, dest, RegSize::Qword);
+	write(0x0f);
+	write(0x2a);
+	write(0xc0 | r | (dest << 3));
+}
+void CodeWriter::cvttsd2ss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+{
+	write(0xf3);
+	if (atype == QwordPtr || regex(r) || regex(dest)) _writeRegEx(r, dest, RegSize::Qword);
+	write(0x0f);
+	write(0x2a);
+	_writeOffset(r | (dest << 3), r, offset, false);
+}
+void CodeWriter::cvttsd2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+{
+	write(0xf2);
+	if (atype == QwordPtr || regex(r) || regex(dest)) _writeRegEx(r, dest, RegSize::Qword);
+	write(0x0f);
+	write(0x2a);
+	_writeOffset(r | (dest << 3), r, offset, false);
+}
+void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, int32_t value) noexcept
+{
+	write(0xf2);
+	if (atype == QwordPtr || regex(dest)) _writeRegEx(0, dest, RegSize::Qword);
+	write(0x0f);
+	write(0x2c);
+
+	write(0x04 | (dest << 3));
+	write(0x25);
+	writeas<int32_t>(value);
+}
+void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+{
+	write(0xf2);
+	if (atype == QwordPtr || regex(dest)) _writeRegEx(r, dest, RegSize::Qword);
+	write(0x0f);
+	write(0x2c);
+	_writeOffset((dest << 3) | r, r, offset, false);
+}
+void CodeWriter::cvttsd2si(Register dest, FloatRegister xmm) noexcept
+{
+	write(0xf2);
+	_writeRegEx(xmm, dest, RegSize::Qword);
+	write(0x0f);
+	write(0x2c);
+	write(0xc0 | (dest << 3) | xmm);
+}
+void CodeWriter::cmovz(Register a, Register b) noexcept
+{
+	_writeRegEx(b, a, RegSize::Qword);
+	write(0x0f);
+	write(0x44);
+	write(0xc0 | (a << 3) | b);
+}
+void CodeWriter::cmovnz(Register a, Register b) noexcept
+{
+	_writeRegEx(b, a, RegSize::Qword);
+	write(0x0f);
+	write(0x45);
+	write(0xc0 | (a << 3) | b);
+}
+
 bool kr::hook::CodeDiff::succeeded() noexcept
 {
 	return empty();
@@ -682,9 +917,13 @@ JitFunction::~JitFunction() noexcept
 	if (m_alloc == nullptr) return;
 	m_alloc->shrink(end());
 }
-void JitFunction::commit() noexcept
+bool JitFunction::shrinked() noexcept
 {
-	_assert(m_alloc != nullptr); // already commited
+	return m_alloc == nullptr;
+}
+void JitFunction::shrink() noexcept
+{
+	_assert(!shrinked());
 	m_alloc->shrink(end());
 	m_alloc = nullptr;
 }
@@ -707,7 +946,7 @@ CodeDiff JitFunction::patchTo(void* base, Buffer originalCode, kr::hook::Registe
 	}
 	return diff;
 }
-CodeDiff JitFunction::patchToBoolean(void* base, kr::hook::Register testregister, void* jumpPoint, Buffer originalCode, kr::hook::Register tempregister) noexcept
+CodeDiff JitFunction::patchTo_jz(void* base, kr::hook::Register testregister, void* jumpPoint, Buffer originalCode, kr::hook::Register tempregister) noexcept
 {
 	size_t size = originalCode.size();
 	Unprotector unpro(base, size);

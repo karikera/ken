@@ -3,7 +3,7 @@
 
 using namespace kr;
 
-size_t kr::getElementSize(JsTypedArrayType type) noexcept
+size_t kr::getElementSize(JsTypedType type) noexcept
 {
 	static const size_t SIZES[] = {
 		1,1,1,
@@ -24,11 +24,11 @@ JsNewArrayBuffer::JsNewArrayBuffer(size_t bytes) noexcept
 	:bytes(bytes)
 {
 }
-JsNewTypedArray::JsNewTypedArray(JsRawData arrayBuffer, JsTypedArrayType type, size_t size) noexcept
+JsNewTypedArray::JsNewTypedArray(JsRawData arrayBuffer, JsTypedType type, size_t size) noexcept
 	:arrayBuffer(arrayBuffer), type(type), size(size)
 {
 }
-JsNewTypedArray::JsNewTypedArray(JsTypedArrayType type, size_t size) noexcept
+JsNewTypedArray::JsNewTypedArray(JsTypedType type, size_t size) noexcept
 	:arrayBuffer(JsNewArrayBuffer(getElementSize(type) * size)), type(type), size(size)
 {
 }

@@ -415,6 +415,10 @@ namespace kr
 	{
 		return (Utf16ToNone)tx;
 	}
+	inline Utf32ToNone toNone(Text32 tx) noexcept
+	{
+		return (Utf32ToNone)tx;
+	}
 
 	inline Text toUtf8(Text tx) noexcept
 	{
@@ -423,6 +427,10 @@ namespace kr
 	inline Utf16ToUtf8 toUtf8(Text16 tx) noexcept
 	{
 		return (Utf16ToUtf8)tx;
+	}
+	inline Utf32ToUtf8 toUtf8(Text32 tx) noexcept
+	{
+		return (Utf32ToUtf8)tx;
 	}
 	
 	inline Text toAnsi(Text tx) noexcept

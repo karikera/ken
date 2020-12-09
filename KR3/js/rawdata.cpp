@@ -39,7 +39,7 @@ JsRawData::JsRawData(Text text, Charset cs) noexcept
 }
 WBuffer JsRawData::getTypedArrayBuffer() const noexcept
 {
-	JsTypedArrayType type;
+	JsTypedType type;
 	return getTypedArrayBuffer(&type);
 }
 

@@ -133,6 +133,27 @@ namespace kr
 
 		};
 
+		enum RegisterLow
+		{
+			AL,
+			DL,
+			CL,
+			BL,
+			AH,
+			DH,
+			CH,
+			BH,
+
+			R8B,
+			R9B,
+			R10B,
+			R11B,
+			R12B,
+			R13B,
+			R14B,
+			R15B
+		};
+
 		enum Register
 		{
 			RAX,
@@ -152,6 +173,27 @@ namespace kr
 			R13,
 			R14,
 			R15
+		};
+
+		enum FloatRegister
+		{
+			XMM0,
+			XMM1,
+			XMM2,
+			XMM3,
+			XMM4,
+			XMM5,
+			XMM6,
+			XMM7,
+
+			XMM8,
+			XMM9,
+			XMM10,
+			XMM11,
+			XMM12,
+			XMM13,
+			XMM14,
+			XMM15,
 		};
 
 		enum AddressPointerRule
@@ -209,28 +251,53 @@ namespace kr
 #ifdef _M_X64
 			void mov(Register r, dword to) noexcept;
 			void mov(Register r, qword to) noexcept;
+			void jump64ex(void* to, Register r, bool isCall) noexcept;
 			void jump64(void* to, Register r) noexcept;
 			void call64(void* to, Register r) noexcept;
+			void jumpex(Register r, bool isCall) noexcept;
 			void jump(Register r) noexcept;
 			void call(Register r) noexcept;
 #endif
+			void jumpex(AddressPointerRule address, Register r, int32_t offset, bool isCall) noexcept;
+			void jump(AddressPointerRule address, Register r, int32_t offset) noexcept;
+			void call(AddressPointerRule address, Register r, int32_t offset) noexcept;
 			void push(Register r) noexcept;
 			void pop(Register r) noexcept;
 			void push(int32_t value) noexcept;
 			void mov(Register dest, Register src) noexcept;
 			void movb(Register dest, Register src) noexcept;
+			void movsxd(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept;
+			void movzx(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept;
 			void movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) noexcept;
+			void mov(AddressPointerRule address, Register dest, int32_t value) noexcept;
 			void mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept;
+			void mov(AddressPointerRule address, Register dest, RegisterLow src) noexcept;
+			void mov(AddressPointerRule address, Register dest, int32_t offset, RegisterLow src) noexcept;
 			void mov(AddressPointerRule address, Register dest, Register src) noexcept;
 			void mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept;
 			void mov(Register dest, AddressPointerRule address, Register src, int32_t offset = 0) noexcept;
 			void lea(Register dest, Register src, int32_t offset = 0) noexcept;
-			void operex(Operator oper, Register dest, int32_t chr) noexcept;
+			void operex(bool memoryAccess, Operator oper, Register dest, int32_t offset, int32_t chr) noexcept;
+			void test(Register dest, Register src) noexcept;
+
 			void cmp(Register dest, int32_t chr) noexcept;
 			void sub(Register dest, int32_t chr) noexcept;
 			void add(Register dest, int32_t chr) noexcept;
-			void test(Register dest, Register src) noexcept;
+			void sbb(Register dest, int32_t chr) noexcept;
+			void adc(Register dest, int32_t chr) noexcept;
 			void xor_(Register dest, int32_t chr) noexcept;
+			void or_(Register dest, int32_t chr) noexcept;
+			void and_(Register dest, int32_t chr) noexcept;
+
+			void cmp(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+			void sub(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+			void add(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+			void sbb(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+			void adc(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+			void xor_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+			void or_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+			void and_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept;
+
 			void jump(void* to, Register tmp) noexcept;
 			void jumpWithoutTemp(void* to) noexcept;
 			void call(void* to, Register tmp) noexcept;
@@ -238,10 +305,29 @@ namespace kr
 			void jnz(int32_t offset) noexcept;
 			void ret() noexcept;
 			void debugBreak() noexcept;
+			void movss(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) noexcept;
+			void movsd(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) noexcept;
+			void movss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
+			void movsd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
+			void movsd(FloatRegister dest, FloatRegister src) noexcept;
+			void movss(FloatRegister dest, FloatRegister src) noexcept;
+			void cvttsd2ss(FloatRegister dest, Register r) noexcept;
+			void cvttsd2sd(FloatRegister dest, Register r) noexcept;
+			void cvttsd2ss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
+			void cvttsd2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
+			void cvttsd2si(Register dest, AddressPointerRule atype, int32_t value) noexcept;
+			void cvttsd2si(Register dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
+			void cvttsd2si(Register dest, FloatRegister xmm) noexcept;
+			void cmovz(Register a, Register b) noexcept;
+			void cmovnz(Register a, Register b) noexcept;
 
 			static CodeDiff check(void* code, Buffer originalCode, View<pair<size_t, size_t> > skip = nullptr) noexcept;
 			static CodeDiff hook(void* from, void* to, View<uint8_t> originalCode, View<pair<size_t, size_t>> skip = nullptr) noexcept;
 			static CodeDiff nopping(void* base, View<uint8_t> originalCode, View<pair<size_t, size_t>> skip = nullptr) noexcept;
+
+		private:
+			void _writeRegEx(int r, int r2, RegSize size) noexcept;
+			void _writeOffset(uint8_t opcode, Register r, int32_t offset, bool registerOperation) noexcept;
 		};
 
 		class JitFunction: public CodeWriter
@@ -250,11 +336,12 @@ namespace kr
 			JitFunction(size_t size) noexcept;
 			JitFunction(ExecutableAllocator* alloc, size_t size) noexcept;
 			~JitFunction() noexcept;
-			void commit() noexcept;
+			bool shrinked() noexcept;
+			void shrink() noexcept;
 
 			void* pointer() noexcept;
 			CodeDiff patchTo(void* base, Buffer originalCode, Register tempregister, bool jump, View<std::pair<size_t, size_t>> skip = nullptr) noexcept;
-			CodeDiff patchToBoolean(void* base, Register testregister, void* jumpPoint, Buffer originalCode, Register tempregister) noexcept;
+			CodeDiff patchTo_jz(void* base, Register testregister, void* jumpPoint, Buffer originalCode, Register tempregister) noexcept;
 
 		private:
 			ExecutableAllocator* m_alloc;

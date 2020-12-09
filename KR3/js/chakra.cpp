@@ -11,7 +11,6 @@
 
 #define USE_EDGEMODE_JSRT
 #include <jsrt.h>
-#pragma comment(lib, "chakrart.lib")
 
 #pragma warning(disable:4073)
 #pragma warning(disable:26812)
@@ -81,6 +80,11 @@ namespace kr
 					JsSetException(e.m_exception);
 					return JS_INVALID_REFERENCE;
 				}
+				catch (JsValue& value)
+				{
+					JsSetException(value.m_data);
+					return JS_INVALID_REFERENCE;
+				}
 				catch (SEHException & e)
 				{
 					JsSetException(createError(TSZ16() << u"Structured Exception: " << e.getErrorText() << u"(0x" << hexf(e.getErrorCode(), 8) << u')').m_data);
@@ -111,18 +115,18 @@ namespace kr
 				int ref = getRef(out.m_data);
 				return out;
 			}
-			static JsTypedArrayType typedArrayTypeToKr(::JsTypedArrayType type) noexcept
+			static JsTypedType typedArrayTypeToKr(::JsTypedArrayType type) noexcept
 			{
 				static_assert(
-					(int)JsTypedArrayType::Int8 == JsArrayTypeInt8 &&
-					(int)JsTypedArrayType::Uint8 == JsArrayTypeUint8 &&
-					(int)JsTypedArrayType::Uint8Clamped == JsArrayTypeUint8Clamped &&
-					(int)JsTypedArrayType::Int16 == JsArrayTypeInt16 &&
-					(int)JsTypedArrayType::Uint16 == JsArrayTypeUint16 &&
-					(int)JsTypedArrayType::Int32 == JsArrayTypeInt32 &&
-					(int)JsTypedArrayType::Uint32 == JsArrayTypeUint32 &&
-					(int)JsTypedArrayType::Float32 == JsArrayTypeFloat32 &&
-					(int)JsTypedArrayType::Float64 == JsArrayTypeFloat64, "Enum not match");
+					(int)JsTypedType::Int8 == JsArrayTypeInt8 &&
+					(int)JsTypedType::Uint8 == JsArrayTypeUint8 &&
+					(int)JsTypedType::Uint8Clamped == JsArrayTypeUint8Clamped &&
+					(int)JsTypedType::Int16 == JsArrayTypeInt16 &&
+					(int)JsTypedType::Uint16 == JsArrayTypeUint16 &&
+					(int)JsTypedType::Int32 == JsArrayTypeInt32 &&
+					(int)JsTypedType::Uint32 == JsArrayTypeUint32 &&
+					(int)JsTypedType::Float32 == JsArrayTypeFloat32 &&
+					(int)JsTypedType::Float64 == JsArrayTypeFloat64, "Enum not match");
 				//static const JsTypedArrayType retype[] = {
 				//	JsTypedArrayType::Int8,
 				//	JsTypedArrayType::Uint8,
@@ -136,20 +140,20 @@ namespace kr
 				//};
 				//_assert(arrayType < countof(retype) && arrayType >= 0);
 				//*type = retype[arrayType];
-				return (JsTypedArrayType)type;
+				return (JsTypedType)type;
 			}
-			static ::JsTypedArrayType typedArrayTypeToJsrt(JsTypedArrayType type) noexcept
+			static ::JsTypedArrayType typedArrayTypeToJsrt(JsTypedType type) noexcept
 			{
 				static_assert(
-					(int)JsTypedArrayType::Int8 == JsArrayTypeInt8 &&
-					(int)JsTypedArrayType::Uint8 == JsArrayTypeUint8 &&
-					(int)JsTypedArrayType::Uint8Clamped == JsArrayTypeUint8Clamped &&
-					(int)JsTypedArrayType::Int16 == JsArrayTypeInt16 &&
-					(int)JsTypedArrayType::Uint16 == JsArrayTypeUint16 &&
-					(int)JsTypedArrayType::Int32 == JsArrayTypeInt32 &&
-					(int)JsTypedArrayType::Uint32 == JsArrayTypeUint32 &&
-					(int)JsTypedArrayType::Float32 == JsArrayTypeFloat32 &&
-					(int)JsTypedArrayType::Float64 == JsArrayTypeFloat64, "Enum not match");
+					(int)JsTypedType::Int8 == JsArrayTypeInt8 &&
+					(int)JsTypedType::Uint8 == JsArrayTypeUint8 &&
+					(int)JsTypedType::Uint8Clamped == JsArrayTypeUint8Clamped &&
+					(int)JsTypedType::Int16 == JsArrayTypeInt16 &&
+					(int)JsTypedType::Uint16 == JsArrayTypeUint16 &&
+					(int)JsTypedType::Int32 == JsArrayTypeInt32 &&
+					(int)JsTypedType::Uint32 == JsArrayTypeUint32 &&
+					(int)JsTypedType::Float32 == JsArrayTypeFloat32 &&
+					(int)JsTypedType::Float64 == JsArrayTypeFloat64, "Enum not match");
 				//static const JsTypedArrayType retype[] = {
 				//	JsTypedArrayType::Int8,
 				//	JsTypedArrayType::Uint8,
@@ -366,7 +370,7 @@ _ErrorCatchThrow::_ErrorCatchThrow(JsErrorCode err) throws(kr::JsException)
 	}
 	else
 	{
-		throw kr::JsException((kr::Text16)(kr::TSZ16() << u"JsErrorCode: 0x" << kr::hexf((int)err)));
+		throw kr::JsException(kr::TSZ16() << u"JsErrorCode: 0x" << kr::hexf((int)err));
 	}
 }
 
@@ -526,11 +530,19 @@ kr::JsRawData kr::JsRawData::getByProperty(const JsPropertyId& name) const noexc
 	NOERR JsGetProperty(m_data, name.m_data, &out.m_data);
 	return out;
 }
-bool kr::JsRawData::instanceOf(const JsRawData& value) const noexcept
+bool kr::JsRawData::prototypeOf(const JsRawData& value) const noexcept
 {
-	JsValueType a, b;
-	JsGetValueType(m_data, &a);
-	JsGetValueType(value.m_data, &b);
+
+	JsValueRef proto = m_data;
+	for (;;)
+	{
+		if (proto == value.m_data) return true;
+		JsErrorCode err = JsGetPrototype(proto, &proto);
+		if (err != JsNoError) return false;
+	}
+}
+bool kr::JsRawData::instanceOf(const JsRawData& value) const noexcept
+{	
 	bool res;
 	NOERR JsInstanceOf(m_data, value.m_data, &res);
 	return res;
@@ -559,7 +571,7 @@ kr::WBuffer kr::JsRawData::getDataViewBuffer() const noexcept
 	return WBuffer(out, length);
 
 }
-kr::WBuffer kr::JsRawData::getTypedArrayBuffer(JsTypedArrayType* type) const noexcept
+kr::WBuffer kr::JsRawData::getTypedArrayBuffer(JsTypedType* type) const noexcept
 {
 	_assert(getType() == JsType::TypedArray);
 	BYTE* out;
@@ -570,13 +582,18 @@ kr::WBuffer kr::JsRawData::getTypedArrayBuffer(JsTypedArrayType* type) const noe
 	*type = InternalTools::typedArrayTypeToKr(arrayType);
 	return WBuffer(out, length);
 }
-size_t kr::JsRawData::getArrayLength() const throws(JsException)
+int32_t kr::JsRawData::getArrayLength() const throws(JsException)
 {
 	JsValueRef jslength;
 	NOERR JsGetProperty(m_data, s_context->m_lengthId, &jslength);
 	int length;
 	ERRCT JsNumberToInt(jslength, &length);
-	if (length < 0) throw JsException(TSZ16() << u"length is " << length);
+	if (length < 0)
+	{
+		TText16 text;
+		text << u"length is " << length;
+		throw JsException((Text16)text);
+	}
 	return length;
 }
 void kr::JsRawData::setArrayLength(size_t length) const throws(JsException)
@@ -618,6 +635,14 @@ kr::JsRawData kr::JsRawData::toString() const throws(JsException)
 
 	JsRawData value;
 	NOERR JsConvertValueToString(m_data, &value.m_data);
+	return value;
+}
+kr::JsRawData kr::JsRawData::valueOf() const throws(JsException)
+{
+	ondebug(_assert(s_scopeStackCounter != 0));
+
+	JsRawData value;
+	NOERR JsConvertValueToNumber(m_data, &value.m_data);
 	return value;
 }
 
@@ -1083,6 +1108,7 @@ kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 	s_context = this;
 
 	JsSetPromiseContinuationCallback([](JsValueRef value, void* state) {
+		JsScope scope;
 		JsRawData(value).call((JsRawData)undefined, {});
 		}, nullptr);
 

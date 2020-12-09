@@ -35,18 +35,7 @@ namespace kr
 				}
 				static To toOuter(From&& _value) noexcept
 				{
-					return To(move(_value));
-				}
-			};
-			template <typename ToData, typename FromData>
-			struct ToOuter<ary::WrapImpl<ToData, char>, ary::WrapImpl<FromData, char16> >
-			{
-				using XText = ary::WrapImpl<ToData, char>;
-				static XText toOuter(Text16 _value) noexcept
-				{
-					XText text;
-					text << toUtf8(_value);
-					return text;
+					return To(_value);
 				}
 			};
 			template <typename To>
@@ -62,7 +51,7 @@ namespace kr
 			template <typename T, typename TI>
 			static T toOuter(TI&& _value) noexcept
 			{
-				return ToOuter<T, TI>::toOuter(move(_value));
+				return ToOuter<T, decay_t<TI> >::toOuter(move(_value));
 			}
 
 #define CASTER(from, to) \
@@ -123,6 +112,28 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static T defaultValue() noexcept;
 		};
 
+		template <typename T> struct OuterBridge
+		{
+			using type = decltype(JsCast::toInner(declval<T>()));
+		};
+		template <class Data, typename C> struct OuterBridge<ary::WrapImpl<Data, C> >
+		{
+			using type = Array<C>;
+		};
+		template <typename C> struct OuterBridge<View<C> >
+		{
+			using type = View<char16_t>;
+		};
+
+		template <typename T> struct InnerBridge
+		{
+			using type = decltype(JsCast::toInner(declval<T>()));
+		};
+		template <class Data, typename C> struct InnerBridge<ary::WrapImpl<Data, C> >
+		{
+			using type = View<C>;
+		};
+
 #define DEFDECL(type) template <> type JsCast::defaultValue<type>() noexcept
 		DEFDECL(int);
 		DEFDECL(double);
@@ -140,7 +151,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 		template <typename T>
 		T JsCast::defaultValue() noexcept
 		{
-			using type = decltype(toInner(declval<T>()));
+			using type = typename InnerBridge<T>::type;
 			return toOuter<T>(defaultValue<type>());
 		}
 
@@ -228,88 +239,126 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 		template <> struct ComputeCast<AText16, int> :ComputeCast<Text16, int> {};
 		template <> struct ComputeCast<AText16, double> :ComputeCast<Text16, double> {};
 
-		template <class Data> struct ComputeCast<nullptr_t, ary::WrapImpl<Data, char16_t> >
+#define RETURN_STR(...) static const C str[] = {__VA_ARGS__, (C)'\0'}; return View<C>(str, countof(str)-1);
+		template <class Data, typename C> struct ComputeCast<nullptr_t, ary::WrapImpl<Data, C> >
 		{
-			static Text16 cast(nullptr_t) noexcept {
-				return u"null";
+			static View<C> cast(nullptr_t) noexcept {
+				RETURN_STR('n', 'u', 'l', 'l');
 			}
 		};
-		template <class Data> struct ComputeCast<undefined_t, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<undefined_t, ary::WrapImpl<Data, C> >
 		{
-			static Text16 cast(undefined_t) noexcept {
-				return u"undefined";
+			static View<C> cast(undefined_t) noexcept {
+				RETURN_STR('u', 'n', 'd', 'e', 'f', 'i', 'n', 'e', 'd');
 			}
 		};
-		template <class Data> struct ComputeCast<JsFunctionRawData, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<JsFunctionRawData, ary::WrapImpl<Data, C> >
 		{
-			static Text16 cast(const JsFunctionRawData&) noexcept {
-				return u"[object Function]";
+			static View<C> cast(const JsFunctionRawData&) noexcept {
+				RETURN_STR('[', 'o', 'b', 'j', 'e', 'c', 't', ' ', 'F', 'u', 'n', 'c', 'u', 't', 'i', 'o', 'n', ']');
 			}
 		};
-		template <class Data> struct ComputeCast<JsObjectRawData, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<JsObjectRawData, ary::WrapImpl<Data, C> >
 		{
-			static Text16 cast(const JsObjectRawData&) noexcept {
-				return u"[object Object]";
+			static View<C> cast(const JsObjectRawData&) noexcept {
+				RETURN_STR('[', 'o', 'b', 'j', 'e', 'c', 't', ' ', 'O', 'b', 'j', 'e', 'c', 't', ']');
 			}
 		};
-		template <class Data> struct ComputeCast<JsArrayBufferRawData, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<JsArrayBufferRawData, ary::WrapImpl<Data, C> >
 		{
-			static Text16 cast(const JsArrayBufferRawData&) noexcept {
-				return u"[object ArrayBuffer]";
-			}
-		};		
-		template <class Data> struct ComputeCast<JsTypedArrayRawData, ary::WrapImpl<Data, char16_t> >
-		{
-			static Text16 cast(const JsTypedArrayRawData&) noexcept {
-				return u"[object TypedArrayBuffer]";
+			static View<C> cast(const JsArrayBufferRawData&) noexcept {
+				RETURN_STR('[', 'o', 'b', 'j', 'e', 'c', 't', ' ',
+					'A', 'r', 'r', 'a', 'y', 'B', 'u', 'f', 'f', 'e', 'r', ']');
 			}
 		};
-		template <class Data> struct ComputeCast<JsDataViewRawData, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<JsTypedArrayRawData, ary::WrapImpl<Data, C> >
 		{
-			static Text16 cast(const JsDataViewRawData&) noexcept {
-				return u"[object DataView]";
+			static View<C> cast(const JsTypedArrayRawData&) noexcept {
+				RETURN_STR('[', 'o', 'b', 'j', 'e', 'c', 't', ' ',
+					'T', 'y', 'p', 'e', 'd', 'A', 'r', 'r', 'a', 'y', 'B', 'u', 'f', 'f', 'e', 'r', ']');
 			}
 		};
-		template <class Data> struct ComputeCast<bool, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<JsDataViewRawData, ary::WrapImpl<Data, C> >
 		{
-			static Text16 cast(bool v) noexcept {
-				return v ? (Text16)u"true" : (Text16)u"false";
+			static View<C> cast(const JsDataViewRawData&) noexcept {
+				RETURN_STR('[', 'o', 'b', 'j', 'e', 'c', 't', ' ',
+					'D', 'a', 't', 'a', 'V', 'i', 'e', 'w', ']');
 			}
 		};
-		template <class Data> struct ComputeCast<int, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<bool, ary::WrapImpl<Data, C> >
 		{
-			using XText16 = ary::WrapImpl<Data, char16_t>;
+			static View<C> cast(bool v) noexcept {
+				if (v)
+				{
+					RETURN_STR('t', 'r', 'u', 'e');
+				}
+				else
+				{
+					RETURN_STR('f', 'a', 'l', 's', 'e');
+				}
+			}
+		};
+		template <class Data, typename C> struct ComputeCast<int, ary::WrapImpl<Data, C> >
+		{
+			using XText16 = ary::WrapImpl<Data, C>;
 			static XText16 cast(int v) noexcept {
 				return XText16::concat(v);
 			}
 		};
-		template <> struct ComputeCast<int, Text16>
+		template <typename C> View<C> __number_str() noexcept
 		{
-			static Text16 cast(int) noexcept {
-				return u"[number]";
+			RETURN_STR('[', 'n', 'u', 'm', 'b', 'e', 'r', ']');
+		}
+		template <typename C> struct ComputeCast<int, View<C>>
+		{
+			static View<C> cast(int) noexcept {
+				return __number_str<C>();
 			}
 		};
-		template <class Data> struct ComputeCast<double, ary::WrapImpl<Data, char16_t> >
+		template <class Data, typename C> struct ComputeCast<double, ary::WrapImpl<Data, C> >
 		{
-			using XText16 = ary::WrapImpl<Data, char16_t>;
+			using XText16 = ary::WrapImpl<Data, C>;
 			static XText16 cast(double v) noexcept {
 				return XText16::concat(v);
 			}
 		};
-		template <> struct ComputeCast<double, Text16>
+		template <typename C> struct ComputeCast<double, View<C>>
 		{
-			static Text16 cast(double) noexcept {
-				return u"[number]";
+			static View<C> cast(double) noexcept {
+				return __number_str<C>();
 			}
 		};
-
-		template <typename T> struct GetBridgeType
+		template <class Data> struct ComputeCast<Text16, ary::WrapImpl<Data, char>>
 		{
-			using type = decltype(_pri_::JsCast::toInner(declval<T>()));
+			using XText = ary::WrapImpl<Data, char>;
+			static XText cast(Text16 text) noexcept
+			{
+				XText out;
+				out << toUtf8(text);
+				return move(out);
+			}
 		};
-		template <> struct GetBridgeType<AText16>
+		template <class Data> struct ComputeCast<Text16, ary::WrapImpl<Data, char32_t>>
 		{
-			using type = AText16;
+			using XText = ary::WrapImpl<Data, char>;
+			static XText cast(Text16 text) noexcept
+			{
+				XText out;
+				out << toUtf32(text);
+				return move(out);
+			}
+		};
+		template <typename C> struct ComputeCast<Text16, View<C>>
+		{
+			static View<C> cast(Text16 text) noexcept = delete;
+		};
+
+		template <> struct ComputeCast<Text16, Text16>
+		{
+			static Text16 cast(Text16 text) noexcept
+			{
+				return text;
+			}
 		};
 	}
 }

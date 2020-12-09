@@ -30,6 +30,8 @@ namespace kr
 				template <typename ret_t, bool is_class, typename ... args_t> struct CastWrapReturn
 					:LambdaContainer<lambda_t>
 				{
+					using LambdaContainer<lambda_t>::m_lambda;
+
 					using LambdaContainer<lambda_t>::LambdaContainer;
 					cast_t operator()(args_t ... args)
 					{
@@ -43,6 +45,8 @@ namespace kr
 				template <typename ... args_t> struct CastWrapReturn<void, true, args_t ...>
 					:LambdaContainer<lambda_t>
 				{
+					using LambdaContainer<lambda_t>::m_lambda;
+
 					using LambdaContainer<lambda_t>::LambdaContainer;
 					cast_t operator()(args_t ... args)
 					{
@@ -57,6 +61,8 @@ namespace kr
 				template <typename ... args_t> struct CastWrapReturn<void, false, args_t ...>
 					:LambdaContainer<lambda_t>
 				{
+					using LambdaContainer<lambda_t>::m_lambda;
+
 					using LambdaContainer<lambda_t>::LambdaContainer;
 					cast_t operator()(args_t ... args)
 					{
