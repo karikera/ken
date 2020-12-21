@@ -1031,7 +1031,10 @@ kr::JsValue kr::JsRuntime::global() noexcept
 {
 	return (JsRawData)s_context->m_global;
 }
-
+const kr::JsRawRuntime& kr::JsRuntime::getRaw() noexcept
+{
+	return s_runtime;
+}
 void kr::JsRuntime::setRuntime(const JsRawRuntime &runtime) noexcept
 {
 	if (s_runtime)
@@ -1156,6 +1159,10 @@ kr::JsContext::~JsContext() noexcept
 	JsAssertRelease(m_context);
 }
 
+const kr::JsRawContext& kr::JsContext::getRaw() noexcept
+{
+	return m_context;
+}
 void kr::JsContext::enter() noexcept
 {
 	ondebug(_assert(s_scopeStackCounter == 0));
@@ -1189,10 +1196,9 @@ void kr::JsContext::_exit() noexcept
 }
 #pragma warning(pop)
 
-void kr::JsContext::_cleanForce() noexcept
+void kr::JsContext::_cleanStackCounter() noexcept
 {
 	ondebug(s_scopeStackCounter = 0);
-	_exit();
 }
 
 

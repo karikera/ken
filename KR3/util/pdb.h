@@ -27,25 +27,29 @@ namespace kr
 		};
 
 		PdbReader() throws(FunctionError);
+		PdbReader(PdbReader&& _move) noexcept;
 		PdbReader(uint64_t base, pcstr16 programPath) throws(FunctionError);
 		~PdbReader() noexcept;
+		void load() throws(FunctionError);
+		void load(uint64_t base, pcstr16 programPath) throws(FunctionError);
 		void* base() noexcept;
+		void close() noexcept;
 		SymbolInfo getInfo() throws(FunctionError);
 		AText getTypeName(uint32_t typeId) noexcept;
 
-		using SearchCallback = Lambda<sizeof(void*) * 3, bool(Text name, autoptr64 address, uint32_t typeId)>;
+		using SearchCallback = Lambda<sizeof(void*) * 4, bool(Text name, autoptr64 address, uint32_t typeId)>;
 		bool search(const char* filter, SearchCallback callback) noexcept;
 
-		using GetAllExCallback = Lambda<sizeof(void*) * 3, bool(Text name, SYMBOL_INFO* info)>;
+		using GetAllExCallback = Lambda<sizeof(void*) * 4, bool(Text name, SYMBOL_INFO* info)>;
 		bool getAllEx(GetAllExCallback callback) noexcept;
 
-		using GetAllCallback = Lambda<sizeof(void*) * 3, bool(Text name, autoptr64 address)>;
+		using GetAllCallback = Lambda<sizeof(void*) * 4, bool(Text name, autoptr64 address)>;
 		bool getAll(GetAllCallback callback) noexcept;
 
 		autoptr64 getFunctionAddress(const char* name) noexcept;
 
 	private:
-		void _load(uint64_t base, pcstr16 programPath) throws(FunctionError);
+
 		void* m_process;
 		uint64_t m_base;
 	};

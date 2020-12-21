@@ -315,7 +315,7 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 
 	for (;;)
 	{
-		if (!dbghelp->StackWalk64(imageType, this->m_hProcess, hThread, &s, ctx,
+		if (!dbghelp->StackWalk64(imageType, m_hProcess, hThread, &s, ctx,
 			[](HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
 		{
 			SIZE_T size;

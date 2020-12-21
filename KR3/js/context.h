@@ -17,6 +17,7 @@ namespace kr
 		KRJS_EXPORT static JsValue run(Text16 fileName, Text16 source, uintptr_t sourceContext) throws(JsException);
 		static JsValue run(Text16 source) throws(JsException);
 
+		KRJS_EXPORT static const JsRawRuntime& getRaw() noexcept;
 		KRJS_EXPORT static void setRuntime(const JsRawRuntime& runtime) noexcept;
 		KRJS_EXPORT static void dispose() noexcept;
 		KRJS_EXPORT static void gc() noexcept;
@@ -60,11 +61,12 @@ namespace kr
 		KRJS_EXPORT JsContext(const JsRawContext &ctx) noexcept;
 		KRJS_EXPORT ~JsContext() noexcept;
 
+		KRJS_EXPORT const JsRawContext& getRaw() noexcept;
 		KRJS_EXPORT void enter() noexcept;
 		KRJS_EXPORT void exit() noexcept;
 		KRJS_EXPORT static void exitCurrent() noexcept;
 		KRJS_EXPORT static void _exit() noexcept;
-		KRJS_EXPORT static void _cleanForce() noexcept;
+		KRJS_EXPORT static void _cleanStackCounter() noexcept;
 
 	private:
 		JsRawContext m_context;

@@ -779,7 +779,7 @@ void CodeWriter::cvttsd2ss(FloatRegister dest, Register r) noexcept
 	write(0x2a);
 	write(0xc0 | r | (dest << 3));
 }
-void CodeWriter::cvttsd2sd(FloatRegister dest, Register r) noexcept
+void CodeWriter::cvttsi2sd(FloatRegister dest, Register r) noexcept
 {
 	write(0xf2);
 	_writeRegEx(r, dest, RegSize::Qword);
@@ -795,7 +795,7 @@ void CodeWriter::cvttsd2ss(FloatRegister dest, AddressPointerRule atype, Registe
 	write(0x2a);
 	_writeOffset(r | (dest << 3), r, offset, false);
 }
-void CodeWriter::cvttsd2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+void CodeWriter::cvttsi2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
 {
 	write(0xf2);
 	if (atype == QwordPtr || regex(r) || regex(dest)) _writeRegEx(r, dest, RegSize::Qword);

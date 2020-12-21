@@ -67,17 +67,31 @@ inline Text16 symToString(ULONG sym) noexcept
 
 PdbReader::PdbReader() throws(FunctionError)
 {
-	TSZ16 programPath;
-	programPath << CurrentApplicationPath() << nullterm;
-	HANDLE handle = GetModuleHandleW(nullptr);
-	_load((uint64_t)handle, programPath.data());
+	m_base = 0;
+	m_process = nullptr;
+}
+PdbReader::PdbReader(PdbReader&& _move) noexcept
+{
+	m_base = _move.m_base;
+	m_process = _move.m_process;
+	_move.m_base = 0;
+	_move.m_process = nullptr;
 }
 PdbReader::PdbReader(uint64_t base, pcstr16 programPath) throws(FunctionError)
 {
-	_load(base, programPath);
+	load(base, programPath);
 }
-void PdbReader::_load(uint64_t base, pcstr16 programPath) throws(FunctionError)
+void PdbReader::load() throws(FunctionError)
 {
+	TSZ16 programPath;
+	programPath << CurrentApplicationPath() << nullterm;
+	HANDLE handle = GetModuleHandleW(nullptr);
+	load((uint64_t)handle, programPath.data());
+}
+void PdbReader::load(uint64_t base, pcstr16 programPath) throws(FunctionError)
+{
+	_assert(m_base == 0 && m_process == nullptr);
+
 	DbgHelp* dbghelp = DbgHelp::getInstance();
 
 	m_process = GetCurrentProcess();
@@ -121,13 +135,20 @@ void PdbReader::_load(uint64_t base, pcstr16 programPath) throws(FunctionError)
 }
 PdbReader::~PdbReader() noexcept
 {
-	DbgHelp* dbghelp = DbgHelp::getInstance();
-	dbghelp->SymUnloadModule64(m_process, m_base);
+	close();
 }
 
 void* PdbReader::base() noexcept
 {
 	return (void*)m_base;
+}
+void PdbReader::close() noexcept
+{
+	if (m_process == nullptr && m_base == 0) return;
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	dbghelp->SymUnloadModule64(m_process, m_base);
+	m_process = nullptr;
+	m_base = 0;
 }
 PdbReader::SymbolInfo PdbReader::getInfo() throws(FunctionError)
 {

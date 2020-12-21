@@ -1,0 +1,1 @@
+call %KR_KEY_DIR%\cert-sign.cmd %*

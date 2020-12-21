@@ -31,7 +31,7 @@
     <ConfigDir>Debug</ConfigDir>
     <_debug>_debug</_debug>
   </PropertyGroup>
-  <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' != 'Debug'">
+  <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' != 'Debug' And '$(Configuration)' != 'DebugStatic'">
     <d></d>
     <ConfigDir>Release</ConfigDir>
     <_debug></_debug>

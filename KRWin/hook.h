@@ -312,9 +312,9 @@ namespace kr
 			void movsd(FloatRegister dest, FloatRegister src) noexcept;
 			void movss(FloatRegister dest, FloatRegister src) noexcept;
 			void cvttsd2ss(FloatRegister dest, Register r) noexcept;
-			void cvttsd2sd(FloatRegister dest, Register r) noexcept;
+			void cvttsi2sd(FloatRegister dest, Register r) noexcept;
 			void cvttsd2ss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
-			void cvttsd2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
+			void cvttsi2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
 			void cvttsd2si(Register dest, AddressPointerRule atype, int32_t value) noexcept;
 			void cvttsd2si(Register dest, AddressPointerRule atype, Register r, int32_t offset = 0) noexcept;
 			void cvttsd2si(Register dest, FloatRegister xmm) noexcept;
