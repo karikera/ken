@@ -8,6 +8,7 @@
 
 #include <KR3/util/wide.h>
 #include <KR3/util/dump.h>
+#include <KR3/data/set.h>
 
 #define USE_EDGEMODE_JSRT
 #include <jsrt.h>
@@ -16,15 +17,13 @@
 #pragma warning(disable:26812)
 #pragma init_seg(lib)
 
-
-using JsClassList = kr::LinkedList<kr::_pri_::JsClassInfo>;
+kr::InitPack kr::JsRuntime::initpack;
 
 using kr::_pri_::InternalTools;
 
 namespace
 {	
 	kr::JsContext * s_context;
-	JsClassList s_classList;
 
 	kr::JsClassT<kr::JsObject> * s_nativeClass;
 	JsRuntimeHandle s_runtime;
@@ -192,7 +191,7 @@ namespace kr
 				JsRawData _thisref;
 				NOERR JsCreateExternalObject(nullptr, [](void * data) {
 					if (data == nullptr) return;
-					((JsObject*)data)->finallize();
+					((JsObject*)data)->finalize();
 				}, & _thisref.m_data);
 
 				JsRawData prototype;
@@ -257,11 +256,11 @@ namespace kr
 				return out;
 			}
 			
-			static JsRawData createClass(JsRawData name, JsClass::CTOR ctor, JsPropertyIdRef prototypeId, JsPropertyIdRef constructorId) noexcept
+			static JsRawData createClass(JsRawData name, JsClassInfo::CTOR info, JsPropertyIdRef prototypeId, JsPropertyIdRef constructorId) noexcept
 			{
 				ondebug(_assert(s_scopeStackCounter != 0));
 				JsRawData cls;
-				NOERR JsCreateNamedFunction(name.m_data, InternalTools::nativeConstructorCallback, ctor, &cls.m_data);
+				NOERR JsCreateNamedFunction(name.m_data, InternalTools::nativeConstructorCallback, info, &cls.m_data);
 
 				JsRawData prototype;
 				NOERR JsCreateObject(&prototype.m_data);
@@ -454,6 +453,11 @@ kr::JsRawData::JsRawData(JsNewObject_t) noexcept
 	ondebug(_assert(s_scopeStackCounter != 0));
 	NOERR JsCreateObject(&m_data);
 }
+kr::JsRawData::JsRawData(JsNewSymbol symbol) noexcept
+{
+	ondebug(_assert(s_scopeStackCounter != 0));
+	NOERR JsCreateSymbol(symbol.description.getRaw(), &m_data);
+}
 kr::JsRawData::JsRawData(JsNewArray arr) noexcept
 {
 	ondebug(_assert(s_scopeStackCounter != 0));
@@ -489,7 +493,7 @@ kr::JsType kr::JsRawData::getType() const noexcept
 	case ::JsFunction: return JsType::Function;
 	case JsError:
 	case JsArray:
-	case JsSymbol:
+	case ::JsSymbol:
 		return JsType::Object;
 	case JsArrayBuffer: return JsType::ArrayBuffer;
 	case JsTypedArray: return JsType::TypedArray;
@@ -512,6 +516,10 @@ kr::JsRawData kr::JsRawData::getByIndex(const JsRawData& name) const noexcept
 	JsRawData out;
 	NOERR JsGetIndexedProperty(m_data, name.m_data, &out.m_data);
 	return out;
+}
+kr::JsRawData kr::JsRawData::getConstructor() const noexcept
+{
+	return getByProperty((JsPropertyId)s_context->m_constructorId);
 }
 void kr::JsRawData::freeze() noexcept
 {
@@ -792,11 +800,18 @@ kr::JsException::JsException(JsException&& _move) noexcept
 	m_exception = _move.m_exception;
 	_move.m_exception = JS_INVALID_REFERENCE;
 }
-kr::Text16 kr::JsException::toString() noexcept
+kr::Text16 kr::JsException::toString() const noexcept
 {
-	return JsRawData(m_exception).toString().as<Text16>();
+	try
+	{
+		return JsRawData(m_exception).toString().as<Text16>();
+	}
+	catch (JsException&)
+	{
+		return u"Error.toString failed";
+	}
 }
-kr::JsValue kr::JsException::getValue() noexcept
+kr::JsValue kr::JsException::getValue() const noexcept
 {
 	return JsRawData(m_exception);
 }
@@ -844,6 +859,13 @@ kr::JsPropertyId::~JsPropertyId() noexcept
 {
 	JsAssertRelease(m_data);
 }
+kr::JsPropertyId kr::JsPropertyId::fromSymbol(JsRawData value) noexcept
+{
+	JsPropertyIdRef prop;
+	JsGetPropertyIdFromSymbol(value.getRaw(), &prop);
+	return kr::JsPropertyId(prop);
+}
+
 
 // native function
 kr::JsValue kr::JsFunction::Data::create() noexcept
@@ -852,18 +874,44 @@ kr::JsValue kr::JsFunction::Data::create() noexcept
 }
 
 // class info
-kr::_pri_::JsClassInfo::JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, void (*initMethods)(), void (*clearMethods)(), bool global) noexcept
+kr::_pri_::JsClassInfo::JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, ClearMethods(*initMethods)(), bool global) noexcept
 {
 	static size_t s_indexCounter = 0;
 	
 	m_index = s_indexCounter++;
-	s_classList.attach(this);
 	m_name = name;
 	m_parentIndex = parentIdx;
 	m_ctor = ctor;
 	m_initMethods = initMethods;
-	m_clearMethods = clearMethods;
 	m_isGlobal = global;
+#ifndef NDEBUG
+	static Set<JsClassInfo*> inited;
+	_assert(inited.insert(this).second == true);
+	m_inited = false;
+#endif
+	_assert(m_index != 0 || this == &JsObject::s_classInfo);
+
+	JsRuntime::initpack.add<JsClassInfo>([](JsClassInfo* _this){
+#ifndef NDEBUG
+		_assert(!_this->m_inited);
+		_this->m_inited = true;
+#endif
+
+		JsRawData name(_this->m_name);
+		JsRawData cls = InternalTools::createClass(name, _this->m_ctor, s_context->m_prototypeId, s_context->m_constructorId);
+		JsAddRef(cls.getRaw(), nullptr);
+
+		*s_context->m_classes.prepare(1) = cls;
+		*_this->get() = cls;
+
+		if (_this->m_isGlobal)
+		{
+			NOERR JsSetIndexedProperty(s_context->m_global, name.getRaw(), cls.getRaw());
+		}
+
+		if (_this->m_parentIndex != -1) InternalTools::extends(cls, s_context->m_classes[_this->m_parentIndex], s_context->m_prototypeId);
+		return _this->m_initMethods();
+		}, this);
 }
 
 // class
@@ -1037,14 +1085,8 @@ const kr::JsRawRuntime& kr::JsRuntime::getRaw() noexcept
 }
 void kr::JsRuntime::setRuntime(const JsRawRuntime &runtime) noexcept
 {
-	if (s_runtime)
-	{
-		((JsRuntime*)nullptr)->~JsRuntime();
-	}
 	s_runtime = runtime;
-	_pri_::JsClassInfo* info = s_classList.front();
-	s_nativeClass = info->get<JsObject>();
-	_assert(info->m_name == u"NativeObject");
+	s_nativeClass = &JsObject::classObject;
 }
 void kr::JsRuntime::dispose() noexcept
 {
@@ -1069,6 +1111,10 @@ void kr::JsRuntime::test() noexcept
 kr::JsContext::JsContext() noexcept
 	:JsContext(InternalTools::createContext())
 {
+	JsSetPromiseContinuationCallback([](JsValueRef value, void* state) {
+		JsScope scope;
+		JsRawData(value).call((JsRawData)undefined, {});
+		}, nullptr);
 }
 kr::JsContext::JsContext(const JsContext& _ctx) noexcept
 {
@@ -1081,6 +1127,7 @@ kr::JsContext::JsContext(const JsContext& _ctx) noexcept
 	JsAddRef(m_setId = _ctx.m_setId, nullptr);
 	
 	m_classes = _ctx.m_classes;
+	JsRawData* clsptr = m_classes.data();
 	for (JsRawData cls : m_classes)
 	{
 		JsAddRef(cls.m_data, nullptr);
@@ -1110,30 +1157,9 @@ kr::JsContext::JsContext(const JsRawContext& ctx) noexcept
 	JsAddRef(m_setId, nullptr);
 	s_context = this;
 
-	JsSetPromiseContinuationCallback([](JsValueRef value, void* state) {
-		JsScope scope;
-		JsRawData(value).call((JsRawData)undefined, {});
-		}, nullptr);
-
 	{
 		JsScope scope;
-
-		for (auto & info : s_classList)
-		{
-			JsRawData name(info.m_name);
-			JsRawData cls = InternalTools::createClass(name, info.m_ctor, m_prototypeId, s_context->m_constructorId);
-			JsAddRef(cls.m_data, nullptr);
-
-			*m_classes.prepare(1) = cls;
-			*info.get() = cls;
-			if (info.m_isGlobal)
-			{
-				NOERR JsSetIndexedProperty(m_global, name.m_data, cls.m_data);
-			}
-
-			if (info.m_parentIndex != -1) InternalTools::extends(cls, m_classes[info.m_parentIndex], m_prototypeId);
-			info.m_initMethods();
-		}
+		JsRuntime::initpack.init();
 	}
 	JsSetCurrentContext(oldctx);
 }
@@ -1141,9 +1167,9 @@ kr::JsContext::~JsContext() noexcept
 {
 	JsContextRef oldctx = InternalTools::getCurrentContext();
 	JsSetCurrentContext(m_context);
-	for (auto& info : s_classList.reverse())
 	{
-		info.m_clearMethods();
+		JsScope scope;
+		JsRuntime::initpack.clear();
 	}
 	for (JsRawData value : m_classes.reverse())
 	{
@@ -1169,12 +1195,6 @@ void kr::JsContext::enter() noexcept
 	s_context = this;
 	JsSetCurrentContext(m_context);
 	ondebug(s_scopeStackCounter++);
-	JsRawData* clsptr = m_classes.data();
-
-	for (_pri_::JsClassInfo& info : s_classList)
-	{
-		*info.get() = *clsptr++;
-	}
 }
 
 #pragma warning(push)
@@ -1200,7 +1220,6 @@ void kr::JsContext::_cleanStackCounter() noexcept
 {
 	ondebug(s_scopeStackCounter = 0);
 }
-
 
 #else
 

@@ -195,6 +195,20 @@ void kr::RWLock::leaveRead() noexcept
 		m_cond.set();
 	}
 }
+void kr::RWLock::changeToWrite() noexcept
+{
+	int v;
+	for (;;)
+	{
+		v = m_reading;
+		if (v != 1)
+		{
+			m_cond.wait();
+			continue;
+		}
+		if (m_reading.compare_exchange_weak(v, -1)) break;
+	}
+}
 void kr::RWLock::enterWrite() noexcept
 {
 	int v;
@@ -213,6 +227,21 @@ void kr::RWLock::leaveWrite() noexcept
 {
 	m_reading.store(0, std::memory_order_release);
 	m_cond.set();
+}
+void kr::RWLock::leaveAnyway() noexcept
+{
+	int expected = -1;
+	if (m_reading.compare_exchange_strong(expected, 0))
+	{
+		m_cond.set();
+	}
+	else
+	{
+		if (--m_reading == 0)
+		{
+			m_cond.set();
+		}
+	}
 }
 
 kr::Semaphore::Semaphore(int init) noexcept

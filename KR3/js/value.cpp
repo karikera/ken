@@ -49,6 +49,10 @@ JsValue JsValue::get(const JsPropertyId& name) const noexcept
 {
 	return getByProperty(name);
 }
+JsValue JsValue::getConstructor() const noexcept
+{
+	return JsRawData::getConstructor();
+}
 JsValue JsValue::callRaw(JsValue _this, JsArgumentsIn arguments) const throws(JsException)
 {
 	return JsRawData::call(_this, arguments);

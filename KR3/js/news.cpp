@@ -16,6 +16,13 @@ size_t kr::getElementSize(JsTypedType type) noexcept
 	return SIZES[(int)type];
 }
 
+JsNewSymbol::JsNewSymbol() noexcept
+{
+}
+JsNewSymbol::JsNewSymbol(JsRawData desc) noexcept
+	:description(move(desc))
+{
+}
 JsNewArray::JsNewArray(size_t size) noexcept
 	:size(size)
 {
@@ -25,7 +32,7 @@ JsNewArrayBuffer::JsNewArrayBuffer(size_t bytes) noexcept
 {
 }
 JsNewTypedArray::JsNewTypedArray(JsRawData arrayBuffer, JsTypedType type, size_t size) noexcept
-	:arrayBuffer(arrayBuffer), type(type), size(size)
+	:arrayBuffer(move(arrayBuffer)), type(type), size(size)
 {
 }
 JsNewTypedArray::JsNewTypedArray(JsTypedType type, size_t size) noexcept

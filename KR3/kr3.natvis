@@ -43,12 +43,6 @@
       <ExpandedItem>m_ptr</ExpandedItem>
     </Expand>
   </Type>
-  <Type Name="kr::Deferred&lt;*&gt;">
-    <DisplayString>deferred {*($T1*)this}</DisplayString>
-    <Expand>
-      <ExpandedItem>*($T1*)this</ExpandedItem>
-    </Expand>
-  </Type>
   <Type Name="kr::io::BufferedIStream&lt;*,*,*&gt;">
     <StringView>m_read,[m_filled-m_read]</StringView>
     <Expand HideRawView="true">

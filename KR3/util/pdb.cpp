@@ -95,7 +95,6 @@ void PdbReader::load(uint64_t base, pcstr16 programPath) throws(FunctionError)
 	DbgHelp* dbghelp = DbgHelp::getInstance();
 
 	m_process = GetCurrentProcess();
-	dbghelp->SymSetOptions(SYMOPT_UNDNAME);
 	if (!dbghelp->SymInitialize(
 		m_process,  // Process handle of the current process 
 		NULL,                 // No user-defined search path -> use default 
@@ -222,10 +221,19 @@ AText PdbReader::getTypeName(uint32_t typeId) noexcept
 
 	return out;
 }
+uint32_t PdbReader::setOptions(uint32_t options) noexcept
+{
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	return dbghelp->SymSetOptions(options);
+}
+uint32_t PdbReader::getOptions() noexcept
+{
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	return dbghelp->SymGetOptions();
+}
 bool PdbReader::search(const char* filter, SearchCallback callback) noexcept
 {
 	DbgHelp* dbghelp = DbgHelp::getInstance();
-
 	return dbghelp->SymEnumSymbols(
 		m_process,
 		m_base,

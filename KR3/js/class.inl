@@ -247,5 +247,16 @@ T* kr::JsClassT<T>::newInstance(const ARGS & ... args) const throws(JsException)
 {
 	meta::array<JsValue, sizeof...(args)> list = { args ... };
 	JsValue value = newInstanceRaw(View<JsValue>(list, endof(list)));
-	return value.getNativeObject<T>();
+	T* out = value.getNativeObject<T>();
+	if (out == nullptr)
+	{
+		JsValue proto = value.get(u"prototype").get(u"__proto__");
+		Text16 proto_name = proto.get(u"name").cast<Text16>();
+		JsValue cls = JsObject::classObject;
+		Text16 cls_name = cls.get(u"name").cast<Text16>();
+		bool res = proto == cls;
+		debug();
+	}
+	_assert(out != nullptr);
+	return out;
 }

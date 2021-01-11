@@ -37,6 +37,7 @@ namespace kr
 		KRJS_EXPORT explicit JsRawData(nullptr_t) noexcept;
 		KRJS_EXPORT explicit JsRawData(undefined_t) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsNewObject_t) noexcept;
+		KRJS_EXPORT explicit JsRawData(JsNewSymbol symbol) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsNewArray arr) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsNewTypedArray arr) noexcept;
 		KRJS_EXPORT explicit JsRawData(JsNewArrayBuffer arr) noexcept;
@@ -46,6 +47,7 @@ namespace kr
 		KRJS_EXPORT void setByProperty(const JsPropertyId &name, const JsRawData& value) const noexcept;
 		KRJS_EXPORT JsRawData getByIndex(const JsRawData& name) const noexcept;
 		KRJS_EXPORT JsRawData getByProperty(const JsPropertyId& name) const noexcept;
+		KRJS_EXPORT JsRawData getConstructor() const noexcept;
 		KRJS_EXPORT bool prototypeOf(const JsRawData& value) const noexcept;
 		KRJS_EXPORT bool instanceOf(const JsRawData& value) const noexcept;
 		KRJS_EXPORT void* getExternalData() const noexcept;

@@ -17,19 +17,24 @@ namespace kr
 			friend _pri_::InternalTools;
 			friend JsContext;
 			friend JsRuntime;
+		public:
+			using ClearMethods = void(*)(JsClassInfo*);
+
 		private:
 			typedef JsObject* (*CTOR)(const JsArguments&);
+			typedef void (*DTOR)(JsObject*);
 			size_t m_index;
 			byte m_classObjectBuffer alignas(JsClass) [sizeof(JsClass)];
-			void (*m_initMethods)();
-			void (*m_clearMethods)();
+			ClearMethods (*m_initMethods)();
 			Text16 m_name;
 			CTOR m_ctor;
 			size_t m_parentIndex;
 			bool m_isGlobal;
+			ondebug(int m_inited);
 
 		public:
-			KRJS_EXPORT JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, void (*initMethods)(), void (*clearMethods)(), bool global) noexcept;
+
+			KRJS_EXPORT JsClassInfo(Text16 name, size_t parentIdx, CTOR ctor, ClearMethods(*initMethods)(), bool global) noexcept;
 			static void operator delete(void* p) noexcept;
 
 			size_t getIndex() noexcept;
@@ -51,9 +56,8 @@ namespace kr
 	private:
 		static constexpr undefined_t className = undefined; // Need to define with Text16
 		static _pri_::JsClassInfo s_classInfo;
-		static JsObject* _ctor(const JsArguments &args) throws(JsException);
-		static void _initMethods() noexcept;
-		static void _clearMethods() noexcept;
+		static _pri_::JsClassInfo::ClearMethods _initMethods() noexcept;
+		static void _clearMethods(_pri_::JsClassInfo*) noexcept;
 
 	public:
 		static JsClassT<Class> &classObject;
@@ -63,6 +67,9 @@ namespace kr
 		{
 		}
 		JsObjectT(const JsObjectT&) = delete;
+
+		// override finalize for free-ing
+		static JsObject* _allocate(const JsArguments& args) throws(JsException);
 
 		static void initMethods(JsClassT<Class> * cls) noexcept
 		{
@@ -81,9 +88,9 @@ namespace kr
 		{
 			return classObject;
 		}
-		virtual void finallize() noexcept override
+		virtual void finalize() noexcept override
 		{
-			delete static_cast<Class*>(this);
+			deleteAligned(static_cast<Class*>(this));
 		}
 
 		// 객체를 생성합니다
@@ -99,6 +106,7 @@ namespace kr
 	{
 		template <class Class, class Parent>
 		friend class JsObjectT;
+		friend _pri_::JsClassInfo;
 	private:
 		static _pri_::JsClassInfo s_classInfo;
 
@@ -110,7 +118,7 @@ namespace kr
 		// 객체를 생성합니다
 		static JsValue newInstanceRaw(JsArgumentsIn args) throws(JsObjectT);
 		virtual JsClass& getClass() noexcept;
-		virtual void finallize() noexcept;
+		virtual void finalize() noexcept;
 
 		// 객체를 생성합니다
 		// 기본적으로 Weak 상태로 생성되어, GC에 의하여 지워질 수 있습니다.
@@ -138,30 +146,31 @@ namespace kr
 
 	ATTR_ANY _pri_::JsClassInfo JsObjectT<JsObject>::s_classInfo(JsObject::className, -1,
 		[](const JsArguments& args) { return _new JsObject(args); }, 
-		[] {}, [] {}, false);
+		[] { return (_pri_::JsClassInfo::ClearMethods)[](_pri_::JsClassInfo*){}; }, false);
 
 	ATTR_ANY JsClassT<JsObject>& JsObjectT<JsObject>::classObject = *s_classInfo.get<JsObject>();
 
 	// Need to define className to child of JsObjectT
 	template <class Class, class Parent>
 	_pri_::JsClassInfo JsObjectT<Class, Parent>::s_classInfo(
-		Class::className, Parent::s_classInfo.getIndex(), _ctor, _initMethods, _clearMethods, Class::global);
+		Class::className, Parent::s_classInfo.getIndex(), Class::_allocate, _initMethods, Class::global);
 
 	template <class Class, class Parent>
 	JsClassT<Class>& JsObjectT<Class, Parent>::classObject = *s_classInfo.get<Class>();
 
 	template <class Class, class Parent>
-	JsObject* JsObjectT<Class, Parent>::_ctor(const JsArguments& args) throws(JsException)
+	JsObject* JsObjectT<Class, Parent>::_allocate(const JsArguments& args) throws(JsException)
 	{
-		return static_cast<JsObject*>(_newAligned(Class, args));
+		return _newAligned(Class, args);
 	}
 	template <class Class, class Parent>
-	void JsObjectT<Class, Parent>::_initMethods() noexcept
+	_pri_::JsClassInfo::ClearMethods JsObjectT<Class, Parent>::_initMethods() noexcept
 	{
 		Class::initMethods(s_classInfo.get<Class>());
+		return _clearMethods;
 	}
 	template <class Class, class Parent>
-	void JsObjectT<Class, Parent>::_clearMethods() noexcept
+	void JsObjectT<Class, Parent>::_clearMethods(_pri_::JsClassInfo*) noexcept
 	{
 		Class::clearMethods();
 	}

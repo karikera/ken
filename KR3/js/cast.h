@@ -91,6 +91,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			static Text16 toInner(const TText16& _value) noexcept;
 			static JsObjectRawData toInner(JsNewObject_t) noexcept;
 			static JsObjectRawData toInner(JsNewArray arr) noexcept;
+			static JsObjectRawData toInner(JsNewSymbol symbol) noexcept;
 			static JsArrayBufferRawData toInner(JsNewArrayBuffer arr) noexcept;
 			static JsTypedArrayRawData toInner(JsNewTypedArray arr) noexcept;
 			static JsRawData toInner(const JsPersistent& value) noexcept;

@@ -27,7 +27,7 @@ JsClass& JsObjectT<JsObject>::getClass() noexcept
 {
 	return *s_classInfo.get();
 }
-void JsObjectT<JsObject>::finallize() noexcept
+void JsObjectT<JsObject>::finalize() noexcept
 {
 	delete this;
 }

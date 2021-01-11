@@ -116,46 +116,6 @@ namespace kr
 		ondebug(bool m_constructed);
 	};
 
-	/*
-	T를 수동으로 생성, 소멸시키는 클래스 래퍼
-	create로 생성시키며,
-	remove로 소멸시킨다.
-	*/
-	template <typename T>
-	class alignas(alignof(T)) Deferred
-	{
-	public:
-		template <typename ... ARGS>
-		void create(const ARGS & ... args) noexcept;
-		void remove() noexcept;
-		operator T*() noexcept;
-		T* operator ->() noexcept;
-
-	private:
-		uint8_t m_buffer[sizeof(T)];
-	};
-	template <typename T>
-	template <typename ... ARGS>
-	void Deferred<T>::create(const ARGS & ... args) noexcept
-	{
-		new(((T*)(void*)this)) T(args ...);
-	}
-	template <typename T>
-	void Deferred<T>::remove() noexcept
-	{
-		((T*)(void*)this)->~T();
-	}
-	template <typename T>
-	Deferred<T>::operator T*() noexcept
-	{
-		return (T*)(void*)this;
-	}
-	template <typename T>
-	T* Deferred<T>::operator ->() noexcept
-	{
-		return (T*)(void*)this;
-	}
-	
 	template <typename T>
 	class Pointer
 	{

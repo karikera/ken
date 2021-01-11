@@ -54,8 +54,8 @@ namespace kr
 		KRJS_EXPORT JsException(JsException&& _move) noexcept;
 
 		// It will free string after out of scope
-		KRJS_EXPORT Text16 toString() noexcept;
-		KRJS_EXPORT JsValue getValue() noexcept;
+		KRJS_EXPORT Text16 toString() const noexcept;
+		KRJS_EXPORT JsValue getValue() const noexcept;
 
 	private:
 		JsException() = default;

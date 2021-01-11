@@ -7,11 +7,18 @@ namespace kr
 {
 	size_t getElementSize(JsTypedType type) noexcept;
 
+	class JsNewSymbol
+	{
+	public:
+		JsNewSymbol() noexcept;
+		JsNewSymbol(JsRawData desc) noexcept;
+		const JsRawData description;
+	};
+
 	class JsNewArray
 	{
 	public:
 		JsNewArray(size_t size = 0) noexcept;
-
 		const size_t size;
 	};
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <KR3/main.h>
+#include <KR3/util/initpack.h>
 #include "type.h"
 
 namespace kr
@@ -9,6 +10,7 @@ namespace kr
 	{
 	public:
 		using Init = JsRuntime;
+		static InitPack initpack;
 
 		KRJS_EXPORT JsRuntime() noexcept;
 		KRJS_EXPORT ~JsRuntime() noexcept;
@@ -43,6 +45,7 @@ namespace kr
 	class JsContext
 	{
 		friend _pri_::InternalTools;
+		friend _pri_::JsClassInfo;
 		friend JsRawData;
 		friend JsClass;
 		friend JsRuntime;

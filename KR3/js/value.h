@@ -65,6 +65,7 @@ default: unreachable();\
 		JsValue get(const JsValue& name) const noexcept;
 		void set(const JsPropertyId& name, const JsValue& value) const noexcept;
 		JsValue get(const JsPropertyId& name) const noexcept;
+		JsValue getConstructor() const noexcept;
 		template <size_t size>
 		void set(const char16(&name)[size], const JsValue& value) const noexcept
 		{

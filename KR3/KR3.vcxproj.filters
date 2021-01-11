@@ -717,6 +717,9 @@
     <ClInclude Include="mt\atomicqueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="util\initpack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="data\binarray.cpp">
@@ -1080,6 +1083,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mt\atomicqueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\initpack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

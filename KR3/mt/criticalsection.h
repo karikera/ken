@@ -104,8 +104,10 @@ namespace kr
 		RWLock() noexcept;
 		void enterRead() noexcept;
 		void leaveRead() noexcept;
+		void changeToWrite() noexcept;
 		void enterWrite() noexcept;
 		void leaveWrite() noexcept;
+		void leaveAnyway() noexcept;
 
 	private:
 		std::atomic<int> m_reading;

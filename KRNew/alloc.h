@@ -176,6 +176,19 @@ namespace kr
 		inline ~MemoryTest() noexcept{ memtest(); }
 	};
 
+	template <typename T, typename ... ARGS> T* newAlignedExtra(size_t extraSize, ARGS &&... args) throws(...)
+	{
+		T* data = (T*)alloc<alignof(T)>::allocate(sizeof(T)+ extraSize);
+		try
+		{
+			return new(data) T(forward<ARGS>(args)...);
+		}
+		catch (...)
+		{
+			alloc<alignof(T)>::free(data);
+			throw;
+		}
+	}
 	template <typename T, typename ... ARGS> T * newAligned(ARGS &&... args) throws(...)
 	{
 		T* data = (T*)alloc<alignof(T)>::allocate(sizeof(T));

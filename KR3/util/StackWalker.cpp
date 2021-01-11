@@ -320,12 +320,13 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 		{
 			SIZE_T size;
 			BOOL res = ReadProcessMemory(hProcess, (LPVOID)qwBaseAddress, lpBuffer, nSize, &size);
-			static_assert(sizeof(dword) == sizeof(DWORD), "dword size unmatch");
-			*lpNumberOfBytesRead = (dword)size;
+			*lpNumberOfBytesRead = (DWORD)size;
 			return res;
 		}, dbghelp->SymFunctionTableAccess64, dbghelp->SymGetModuleBase64, nullptr))
 		{
-			onDbgHelpErr("StackWalk64", GetLastError(), s.AddrPC.Offset);
+			DWORD err = GetLastError();
+			if (err == ERROR_INVALID_ADDRESS) break;
+			onDbgHelpErr("StackWalk64", err, s.AddrPC.Offset);
 			break;
 		}
 
@@ -348,7 +349,11 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 		else
 		{
 			DWORD err = GetLastError();
-			if (err == ERROR_MOD_NOT_FOUND)
+			if (err == ERROR_INVALID_ADDRESS)
+			{
+				continue;
+			}
+			else if (err == ERROR_MOD_NOT_FOUND)
 			{
 				csEntry.line = -1;
 				csEntry.filename = nullptr;
@@ -420,7 +425,13 @@ void kr::StackWalker::onLoadModule(ModuleInfo * info) noexcept
 }
 void kr::StackWalker::onStack(StackInfo *entry) noexcept
 {
-	if (entry->filename == nullptr) return;
+	if (entry->filename == nullptr)
+	{
+		//TSZ16 buf;
+		//buf << u"unknown: " << entry->address << u"()";
+		//onOutput(buf);
+		return;
+	}
 
 	Text16 filename = path16.basename((Text16)entry->filename);
 
@@ -432,15 +443,15 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 	if (strcmp(entry->function, "mainCRTStartup") == 0) return;
 
 	TSZ16 buf;
-	buf << filename << u'(' << entry->line << u"): " << (Utf8ToUtf16)(Text)entry->function;
+	buf << filename << u'(' << entry->line << u"): " << (Utf8ToUtf16)(Text)entry->function << u"()";
 	onOutput(buf);
 }
 void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept
 {
 	TSZ16 buf;
-	buf << (Utf8ToUtf16)(Text)function << u":0x" << hexf(gle, 8) << u' ';
+	buf << (Utf8ToUtf16)(Text)function << u": ";
 	ErrorCode(gle).getMessageTo<char16>(&buf);
-	buf << u" (Address: " << (void*)(uintptr_t)addr << u')';
+	buf << u" (errno: " << gle << u",Address: " << (void*)(uintptr_t)addr << u')';
 	onOutput(buf);
 }
 

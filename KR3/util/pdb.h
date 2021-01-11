@@ -37,13 +37,16 @@ namespace kr
 		SymbolInfo getInfo() throws(FunctionError);
 		AText getTypeName(uint32_t typeId) noexcept;
 
-		using SearchCallback = Lambda<sizeof(void*) * 4, bool(Text name, autoptr64 address, uint32_t typeId)>;
+		static uint32_t setOptions(uint32_t options) noexcept;
+		static uint32_t getOptions() noexcept;
+
+		using SearchCallback = Lambda<sizeof(void*) * 3, bool(Text name, autoptr64 address, uint32_t typeId)>;
 		bool search(const char* filter, SearchCallback callback) noexcept;
 
-		using GetAllExCallback = Lambda<sizeof(void*) * 4, bool(Text name, SYMBOL_INFO* info)>;
+		using GetAllExCallback = Lambda<sizeof(void*) * 3, bool(Text name, SYMBOL_INFO* info)>;
 		bool getAllEx(GetAllExCallback callback) noexcept;
 
-		using GetAllCallback = Lambda<sizeof(void*) * 4, bool(Text name, autoptr64 address)>;
+		using GetAllCallback = Lambda<sizeof(void*) * 3, bool(Text name, autoptr64 address)>;
 		bool getAll(GetAllCallback callback) noexcept;
 
 		autoptr64 getFunctionAddress(const char* name) noexcept;

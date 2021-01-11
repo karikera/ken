@@ -45,6 +45,10 @@ JsObjectRawData _pri_::JsCast::toInner(JsNewArray arr) noexcept
 {
 	return (JsRawData)arr;
 }
+JsObjectRawData _pri_::JsCast::toInner(JsNewSymbol symbol) noexcept
+{
+	return (JsRawData)symbol;
+}
 JsArrayBufferRawData _pri_::JsCast::toInner(JsNewArrayBuffer arr) noexcept
 {
 	return (JsRawData)arr;

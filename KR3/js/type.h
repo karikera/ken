@@ -9,6 +9,7 @@ namespace kr
 	{
 		struct InternalTools;
 		struct JsCast;
+		class JsClassInfo;
 	}
 
 	enum class JsType
@@ -54,6 +55,7 @@ namespace kr
 	typedef JsValue(*JSCallback)(const JsArguments&);
 	typedef View<JsValue> JsArgumentsIn;
 
+	class JsNewSymbol;
 	class JsNewArray;
 	class JsNewArrayBuffer;
 	enum class JsTypedType
@@ -142,6 +144,7 @@ namespace kr
 	using JsRawExternal = JsValueRef;
 	using JsRawRuntime = JsRuntimeRef;
 	using JsRawPropertyId = JsPropertyIdRef;
+	using JsRawSymbol = JsValueRef;
 	using JsRawPersistent = JsValueRef;
 }
 

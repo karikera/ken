@@ -3,24 +3,96 @@
 
 using namespace kr;
 
-void AtomicQueue::enqueue(AtomicQueueNode* param) noexcept
+AtomicQueueNode::AtomicQueueNode() noexcept
+	:m_ref(2), m_done(false), m_next(nullptr)
 {
-	AtomicQueueNode* last;
-	do
-	{
-		last = m_last;
-		param->m_next = last;
-	} while (!m_last.compare_exchange_weak(last, param));
-	if (last == nullptr) m_first = param;
 }
-AtomicQueueNode* AtomicQueue::dequeue() noexcept
+AtomicQueueNode::~AtomicQueueNode() noexcept
 {
-	AtomicQueueNode* first;
+}
+intptr_t AtomicQueueNode::release() noexcept
+{
+	intptr_t ref = --m_ref;
+	if (ref != 0) return ref;
+	delete this;
+	return 0;
+}
+AtomicQueueNode::AtomicQueueNode(int) noexcept
+	:m_ref(2), m_done(true), m_next(nullptr)
+{
+}
+
+AtomicQueue::AtomicQueue() noexcept
+	:AtomicQueue(_new AtomicQueueNode(0))
+{
+}
+AtomicQueue::~AtomicQueue() noexcept
+{
+	for (;;)
+	{
+		auto pair = dequeue();
+		if (pair.first == nullptr) break;
+		pair.first->release();
+	}
+	AtomicQueueNode* node = m_rear.load();
+	delete node;
+}
+AtomicQueue::AtomicQueue(AtomicQueueNode* endnode) noexcept
+	:m_front(endnode), m_rear(endnode), m_size(0)
+{
+}
+intptr_t AtomicQueue::enqueue(AtomicQueueNode* param) noexcept
+{
+	AtomicQueueNode* axis;
+	AtomicQueueNode* expected;
+
 	do
 	{
-		first = m_first;
-		if (first == nullptr) return nullptr;
-	} while (!m_first.compare_exchange_weak(first, first->m_next));
-	m_last.compare_exchange_strong(first, nullptr);
-	return first;
+		axis = m_rear;
+		expected = nullptr;
+	} while (!axis->m_next.compare_exchange_weak(expected, param));
+	do
+	{
+		expected = axis;
+	} while (!m_rear.compare_exchange_weak(expected, param));
+	expected->release();
+
+	return ++m_size;
+}
+pair<AtomicQueueNode*, intptr_t> AtomicQueue::dequeue() noexcept
+{
+	AtomicQueueNode* front;
+	AtomicQueueNode* next;
+
+	for (;;)
+	{
+		do
+		{
+			front = m_front;
+			next = front->m_next;
+			if (next == nullptr)
+			{
+				bool old = false;
+				if (front->m_done.compare_exchange_strong(old, true))
+				{
+					++front->m_ref;
+					intptr_t size = --m_size;
+					return { front, size };
+				}
+				else
+				{
+					return { nullptr, m_size };
+				}
+				continue;
+			}
+		} while (!m_front.compare_exchange_weak(front, next));
+
+		if (front->m_done)
+		{
+			front->release();
+			continue;
+		}
+		intptr_t size = --m_size;
+		return { front, size };
+	}
 }

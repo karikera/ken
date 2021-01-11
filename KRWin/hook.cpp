@@ -530,24 +530,37 @@ void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, in
 }
 void CodeWriter::lea(Register dest, Register src, int32_t offset) noexcept
 {
-	movex(RegSize::Qword, src, dest, AccessType::Lea, offset);
+	if (offset == 0) mov(dest, src);
+	else movex(RegSize::Qword, src, dest, AccessType::Lea, offset);
 }
-void CodeWriter::operex(bool memoryAccess, Operator oper, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::operex(Operator oper, Register dest, int32_t offset, int32_t reg2_or_const, AccessType atype) noexcept
 {
 	_writeRegEx(dest, 0, RegSize::Qword);
-	int is32bits = (int8_t)chr != chr;
-	if (is32bits && dest == RAX)
+
+	if (atype == AccessType::Register)
 	{
-		write(0x05 | ((int)oper << 3));
-		writeas<int32_t>(chr);
+		Register src = (Register)reg2_or_const;
+		write(0x01 | ((int)oper << 3));
+		_writeOffset(regidx(dest) | (regidx(src) << 3), dest, offset, true);
 	}
 	else
 	{
-		write(0x83 ^ (is32bits << 1));
-		_writeOffset(((int)oper << 3) | regidx(dest), dest, offset, !memoryAccess);
+		int32_t chr = reg2_or_const;
 
-		if (is32bits) writeas<int32_t>(chr);
-		else write((int8_t)chr);
+		int is32bits = (int8_t)chr != chr;
+		if (is32bits && dest == RAX)
+		{
+			write(0x05 | ((int)oper << 3));
+			writeas<int32_t>(chr);
+		}
+		else
+		{
+			write(0x83 ^ (is32bits << 1));
+			_writeOffset(((int)oper << 3) | regidx(dest), dest, offset, atype == AccessType::Register || atype == AccessType::PutConst);
+
+			if (is32bits) writeas<int32_t>(chr);
+			else write((int8_t)chr);
+		}
 	}
 }
 void CodeWriter::test(Register dest, Register src) noexcept
@@ -557,70 +570,103 @@ void CodeWriter::test(Register dest, Register src) noexcept
 	write(0xC0 | (src << 3) | dest);
 }
 
+void CodeWriter::cmp(Register dest, Register src) noexcept
+{
+	operex(Operator::CMP, dest, 0, src, AccessType::Register);
+}
+void CodeWriter::sub(Register dest, Register src) noexcept
+{
+	operex(Operator::SUB, dest, 0, src, AccessType::Register);
+}
+void CodeWriter::add(Register dest, Register src) noexcept
+{
+	operex(Operator::ADD, dest, 0, src, AccessType::Register);
+}
+void CodeWriter::sbb(Register dest, Register src) noexcept
+{
+	operex(Operator::SBB, dest, 0, src, AccessType::Register);
+}
+void CodeWriter::adc(Register dest, Register src) noexcept
+{
+	operex(Operator::ADC, dest, 0, src, AccessType::Register);
+}
+void CodeWriter::xor_(Register dest, Register src) noexcept
+{
+	operex(Operator::XOR, dest, 0, src, AccessType::Register);
+}
+void CodeWriter::or_(Register dest, Register src) noexcept
+{
+	operex(Operator::OR, dest, 0, src, AccessType::Register);
+}
+void CodeWriter::and_(Register dest, Register src) noexcept
+{
+	operex(Operator::AND, dest, 0, src, AccessType::Register);
+}
+
 void CodeWriter::cmp(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::CMP, dest, 0, chr);
+	operex(Operator::CMP, dest, 0, chr, AccessType::PutConst);
 }
 void CodeWriter::sub(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::SUB, dest, 0, chr);
+	operex(Operator::SUB, dest, 0, chr, AccessType::PutConst);
 }
 void CodeWriter::add(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::ADD, dest, 0, chr);
+	operex(Operator::ADD, dest, 0, chr, AccessType::PutConst);
 }
 void CodeWriter::sbb(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::SBB, dest, 0, chr);
+	operex(Operator::SBB, dest, 0, chr, AccessType::PutConst);
 }
 void CodeWriter::adc(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::ADC, dest, 0, chr);
+	operex(Operator::ADC, dest, 0, chr, AccessType::PutConst);
 }
 void CodeWriter::xor_(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::XOR, dest, 0, chr);
+	operex(Operator::XOR, dest, 0, chr, AccessType::PutConst);
 }
 void CodeWriter::or_(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::OR, dest, 0, chr);
+	operex(Operator::OR, dest, 0, chr, AccessType::PutConst);
 }
 void CodeWriter::and_(Register dest, int32_t chr) noexcept
 {
-	operex(false, Operator::AND, dest, 0, chr);
+	operex(Operator::AND, dest, 0, chr, AccessType::PutConst);
 }
 
 void CodeWriter::cmp(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::CMP, dest, offset, chr);
+	operex(Operator::CMP, dest, offset, chr, AccessType::Write);
 }
 void CodeWriter::sub(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::SUB, dest, offset, chr);
+	operex(Operator::SUB, dest, offset, chr, AccessType::Write);
 }
 void CodeWriter::add(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::ADD, dest, offset, chr);
+	operex(Operator::ADD, dest, offset, chr, AccessType::Write);
 }
 void CodeWriter::sbb(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::SBB, dest, offset, chr);
+	operex(Operator::SBB, dest, offset, chr, AccessType::Write);
 }
 void CodeWriter::adc(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::ADC, dest, offset, chr);
+	operex(Operator::ADC, dest, offset, chr, AccessType::Write);
 }
 void CodeWriter::xor_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::XOR, dest, offset, chr);
+	operex(Operator::XOR, dest, offset, chr, AccessType::Write);
 }
 void CodeWriter::or_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::OR, dest, offset, chr);
+	operex(Operator::OR, dest, offset, chr, AccessType::Write);
 }
 void CodeWriter::and_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
 {
-	operex(true, Operator::AND, dest, offset, chr);
+	operex(Operator::AND, dest, offset, chr, AccessType::Write);
 }
 
 void CodeWriter::jump(void* to, Register tmp) noexcept

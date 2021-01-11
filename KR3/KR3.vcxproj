@@ -226,6 +226,7 @@
     <ClInclude Include="meta\has_equals.h" />
     <ClInclude Include="msg\cascader.h" />
     <ClInclude Include="mt\atomicqueue.h" />
+    <ClInclude Include="util\initpack.h" />
     <ClInclude Include="util\statickeeper.h" />
     <ClInclude Include="win\devent.h" />
     <ClInclude Include="msg\minidb.h" />
@@ -475,6 +476,7 @@
     <ClCompile Include="math\geom.cpp" />
     <ClCompile Include="msg\cascader.cpp" />
     <ClCompile Include="mt\atomicqueue.cpp" />
+    <ClCompile Include="util\initpack.cpp" />
     <ClCompile Include="win\devent.cpp" />
     <ClCompile Include="msg\minidb.cpp" />
     <ClCompile Include="msg\msgloop.cpp" />

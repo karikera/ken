@@ -218,6 +218,7 @@ namespace kr
 			Read,
 			Lea,
 			WriteConst,
+			PutConst,
 		};
 
 		enum class Operator
@@ -277,8 +278,17 @@ namespace kr
 			void mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept;
 			void mov(Register dest, AddressPointerRule address, Register src, int32_t offset = 0) noexcept;
 			void lea(Register dest, Register src, int32_t offset = 0) noexcept;
-			void operex(bool memoryAccess, Operator oper, Register dest, int32_t offset, int32_t chr) noexcept;
+			void operex(Operator oper, Register dest, int32_t offset, int32_t reg2_or_const, AccessType atype) noexcept;
 			void test(Register dest, Register src) noexcept;
+
+			void cmp(Register dest, Register src) noexcept;
+			void sub(Register dest, Register src) noexcept;
+			void add(Register dest, Register src) noexcept;
+			void sbb(Register dest, Register src) noexcept;
+			void adc(Register dest, Register src) noexcept;
+			void xor_(Register dest, Register src) noexcept;
+			void or_(Register dest, Register src) noexcept;
+			void and_(Register dest, Register src) noexcept;
 
 			void cmp(Register dest, int32_t chr) noexcept;
 			void sub(Register dest, int32_t chr) noexcept;

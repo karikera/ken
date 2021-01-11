@@ -225,9 +225,9 @@ namespace
 #endif
 			test();
 #ifdef _MSC_VER
-			_assert(_CrtCheckMemory()); // 메모리가 오염되었다
+			_assert(_CrtCheckMemory()); // memory corruption
 #endif
-			_assert(empty()); // KR 라이브러리에 감지에 의한 메모리 누수가 발견되었다
+			_assert(empty()); // memory leaks
 		}
 
 		struct Iterator

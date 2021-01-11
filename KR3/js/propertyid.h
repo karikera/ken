@@ -12,6 +12,7 @@ namespace kr
 	public:
 		KRJS_EXPORT JsPropertyId() noexcept;
 		KRJS_EXPORT JsPropertyId(pcstr16 name) noexcept;
+		JsPropertyId(nullptr_t)=delete;
 		KRJS_EXPORT explicit JsPropertyId(const JsPropertyId& name) noexcept;
 		KRJS_EXPORT explicit JsPropertyId(JsPropertyId&& name) noexcept;
 		KRJS_EXPORT explicit JsPropertyId(const JsRawPropertyId& name) noexcept;
@@ -21,8 +22,7 @@ namespace kr
 		JsPropertyId& operator =(const JsPropertyId& name) noexcept;
 		JsPropertyId& operator =(JsPropertyId&& name) noexcept;
 
-		JsPropertyId(nullptr_t) noexcept;
-		JsPropertyId& operator =(nullptr_t) noexcept;
+		KRJS_EXPORT static JsPropertyId fromSymbol(JsRawData value) noexcept;
 	private:
 		JsRawPropertyId m_data;
 	};
