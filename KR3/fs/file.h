@@ -22,7 +22,7 @@ namespace kr
 		};
 
 #ifdef WIN32
-		static constexpr uint NAMELEN = 260;
+		static constexpr uint NAMELEN = PathMaxLen;
 #else
 		static constexpr uint NAMELEN = 512; // 적당히 큰 값을 사용하였다.
 #endif

@@ -249,6 +249,7 @@ namespace kr
 			void fillDebugBreak() noexcept;
 			void rjump(int32_t rpos) noexcept;
 			void rcall(int32_t rpos) noexcept;
+			void mov_gs(Register dest, AddressPointerRule, int32_t offset) noexcept;
 #ifdef _M_X64
 			void mov(Register r, dword to) noexcept;
 			void mov(Register r, qword to) noexcept;
@@ -280,6 +281,7 @@ namespace kr
 			void lea(Register dest, Register src, int32_t offset = 0) noexcept;
 			void operex(Operator oper, Register dest, int32_t offset, int32_t reg2_or_const, AccessType atype) noexcept;
 			void test(Register dest, Register src) noexcept;
+			void test_b(Register dest, Register src) noexcept;
 
 			void cmp(Register dest, Register src) noexcept;
 			void sub(Register dest, Register src) noexcept;

@@ -341,6 +341,15 @@ void CodeWriter::rcall(int32_t rpos) noexcept
 	write(0xe8);
 	writeas(rpos);
 }
+void CodeWriter::mov_gs(Register dest, AddressPointerRule, int32_t offset) noexcept
+{
+	write(0x65);
+	write(0x48);
+	write(0x8b);
+	write(0x04 | (regidx(dest) << 3));
+	write(0x25);
+	writeas<int32_t>(offset);
+}
 #ifdef _M_X64
 void CodeWriter::mov(Register r, dword to) noexcept
 {
@@ -434,7 +443,7 @@ void CodeWriter::movsxd(Register dest, AddressPointerRule address, Register src,
 	_assert(address == DwordPtr);
 	_writeRegEx(src, dest, RegSize::Qword);
 	write(0x63);
-	_writeOffset((dest << 3) | src, src, 0, false);
+	_writeOffset((dest << 3) | src, src, offset, false);
 }
 void CodeWriter::movzx(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
 {
@@ -567,6 +576,12 @@ void CodeWriter::test(Register dest, Register src) noexcept
 {
 	_writeRegEx(src, dest, RegSize::Qword);
 	write(0x85);
+	write(0xC0 | (src << 3) | dest);
+}
+void CodeWriter::test_b(Register dest, Register src) noexcept
+{
+	_writeRegEx(src, dest, RegSize::Qword);
+	write(0x84);
 	write(0xC0 | (src << 3) | dest);
 }
 
