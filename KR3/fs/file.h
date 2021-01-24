@@ -123,11 +123,13 @@ namespace kr
 		ptr allocAll(size_t *pSize) throws(TooBigException);
 		Mapping beginMapping(filesize_t off, size_t read) throws(Error);
 		void endMapping(const Mapping& map) noexcept;
+		void truncate() noexcept;
 
-		// 사용 후 파일이 닫힌다.
+		// it will close the file after reading.
 		void md5All(byte _dest[16]) throws(Error);
 
-		// 지정된 크기만큼 md5 해시를 생성하고 파일 포인터를 읽기 전 위치로 돌려놓는다.
+		// make the hash with the specific size.
+		// the file pointer is not changed.
 		void md5(size_t sz, byte _dest[16]) throws(Error);
 
 		uint32_t size32() throws(TooBigException);

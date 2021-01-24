@@ -424,6 +424,10 @@ void File::endMapping(const Mapping& map) noexcept
 	UnmapViewOfFile((byte*)map.point - map.offset);
 	CloseHandle(map.handle);
 }
+void File::truncate() noexcept
+{
+	SetEndOfFile(this);
+}
 filetime_t File::getLastModifiedTime(pcstr16 filename) throws(Error)
 {
 	WIN32_FILE_ATTRIBUTE_DATA  fileInfo;
