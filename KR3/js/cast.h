@@ -70,7 +70,7 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			CASTER(long long, double);
 			CASTER(unsigned char, int);
 			CASTER(unsigned short, int);
-			CASTER(unsigned int, int);
+			CASTER(unsigned int, double);
 			CASTER(unsigned long, double);
 			CASTER(unsigned long long, double);
 			CASTER(bool, bool);
