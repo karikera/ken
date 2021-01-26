@@ -26,6 +26,8 @@ namespace kr
 		// OuterType : external usable types
 		struct JsCast
 		{
+			static int doubleToInt(double _value) noexcept;
+
 			template <typename To, typename From>
 			struct ToOuter
 			{
@@ -201,6 +203,14 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 				std::is_same<S, nullptr_t>::value
 				) ? CastTypeDefault : CastTypeCast, S, D>
 		{
+		};
+		template <> struct ComputeCast<double, int>
+		{
+			static int cast(double v) noexcept { return JsCast::doubleToInt(v); }
+		};
+		template <> struct ComputeCast<double, unsigned int>
+		{
+			static unsigned int cast(double v) noexcept { return JsCast::doubleToInt(v); }
 		};
 		template <> struct ComputeCast<int, bool>
 		{

@@ -9,6 +9,19 @@
 using namespace kr;
 
 
+int _pri_::JsCast::doubleToInt(double _value) noexcept
+{
+	if (sizeof(int) != sizeof(intptr_t))
+	{
+		int out = (int)_value;
+		if (out != (int)0x80000000)
+		{
+			return out;
+		}
+	}
+	return (int)(int64_t)_value;
+}
+
 _pri_::JsCast::long_to_what_t _pri_::JsCast::toInner(long _value) noexcept
 {
 	return (long_to_what_t)_value;
