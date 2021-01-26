@@ -177,7 +177,8 @@ namespace kr
 			}
 			static JsArguments makeArgs(JsRawData _this, JsValueRef* arguments, unsigned short argumentCount) noexcept
 			{
-				return JsArguments(_this, arguments + 1, argumentCount - 1);
+				static_assert(sizeof(JsRawDataValue) == sizeof(JsValue), "size unmatched");
+				return JsArguments(_this, (JsValue*)arguments + 1, argumentCount - 1);
 			}
 			static JsValueRef CT_STDCALL nativeConstructorCallback(JsValueRef callee, bool isConstructCall, JsValueRef* arguments, unsigned short argumentCount, void* callbackState) noexcept
 			{
@@ -480,6 +481,11 @@ bool kr::JsRawData::isEmpty() const noexcept
 }
 kr::JsType kr::JsRawData::getType() const noexcept
 {
+	if (((uintptr_t)m_data >> 48) == 1)
+	{
+		return JsType::Integer;
+	}
+
 	JsValueType type;
 	NOERR JsGetValueType(m_data, &type);
 	switch (type)
@@ -781,7 +787,7 @@ bool kr::JsWeak::isEmpty() const noexcept
 
 // arguments
 kr::JsArgumentsAllocated::JsArgumentsAllocated(const JsValue& _this, size_t argn) noexcept
-	:JsArguments(_this, _new JsRawDataValue[argn], argn)
+	:JsArguments(_this, _new JsValue[argn], argn)
 {
 }
 kr::JsArgumentsAllocated::~JsArgumentsAllocated() noexcept

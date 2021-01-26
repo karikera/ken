@@ -5,7 +5,7 @@
 using namespace kr;
 
 
-JsArguments::JsArguments(const JsValue& _this, JsRawDataValue* args, size_t argn) noexcept
+JsArguments::JsArguments(const JsValue& _this, JsValue* args, size_t argn) noexcept
 	: m_this(_this), m_args(args), m_argn(argn)
 {
 }
@@ -25,14 +25,19 @@ JsArguments& JsArguments::operator =(JsArguments&& _move) noexcept
 	new(this) JsArguments(move(_move));
 	return *this;
 }
-JsValue JsArguments::operator [](size_t i) const noexcept
+JsValue& JsArguments::operator [](size_t i) noexcept
 {
 	_assert(i < m_argn);
-	return (JsValue)(JsRawData)m_args[i];
+	return m_args[i];
+}
+const JsValue& JsArguments::operator [](size_t i) const noexcept
+{
+	_assert(i < m_argn);
+	return m_args[i];
 }
 void JsArguments::set(size_t idx, const JsValue& value) noexcept
 {
-	(JsRawData&)m_args[idx] = value;
+	m_args[idx] = value;
 }
 size_t JsArguments::size() const noexcept
 {

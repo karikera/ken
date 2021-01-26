@@ -17,7 +17,8 @@ namespace kr
 
 		JsArguments& operator =(JsArguments&& _move) noexcept;
 
-		JsValue operator [](size_t i) const noexcept;
+		JsValue& operator [](size_t i) noexcept;
+		const JsValue& operator [](size_t i) const noexcept;
 		size_t size() const noexcept;
 
 		const JsValue& getThis() const noexcept;
@@ -28,13 +29,13 @@ namespace kr
 		T at(size_t i) const noexcept
 		{
 			if (i >= m_argn) return _pri_::JsCast::defaultValue<T>();
-			return JsValue((JsRawData)m_args[i]).cast<T>();
+			return m_args[i].cast<T>();
 		}
 		template <typename T>
 		bool equalsAt(size_t i, T&& value) const noexcept
 		{
 			if (i < m_argn) return is_same_v<undefined_t, decay_t<T>>;
-			return JsValue((JsRawData)m_args[i]) == value;
+			return m_args[i] == value;
 		}
 
 	private:
@@ -42,9 +43,9 @@ namespace kr
 		const size_t m_argn;
 
 	protected:
-		JsRawDataValue* const m_args;
+		JsValue* const m_args;
 
-		JsArguments(const JsValue& _this, JsRawDataValue* args, size_t argn) noexcept;
+		JsArguments(const JsValue& _this, JsValue* args, size_t argn) noexcept;
 
 	};
 

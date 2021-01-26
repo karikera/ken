@@ -134,6 +134,7 @@ kr::JsValue::JsValue(T&& value) noexcept
 
 template <typename T> T kr::JsValue::cast() const noexcept
 {
+	if (_pri_::CheckDirectReturn<T>::possible) return _pri_::CheckDirectReturn<T>::cast(this);
 	using Inner = typename _pri_::OuterBridge<T>::type;
 	KRJS_TYPE_CONSTLIZE(getType(),
 		return _pri_::JsCast::toOuter<T>(_pri_::ComputeCast<type, Inner>::cast(as<type>()));
