@@ -372,39 +372,5 @@ static to toInner(from && _value) noexcept { return to(move(_value)); }
 			}
 		};
 
-		template <typename T>
-		struct CheckDirectReturn
-		{
-			static constexpr bool possible = false;
-			
-			ATTR_NORETURN static T cast(const JsValue*) noexcept {
-				unreachable();
-			}
-		};
-
-		struct CheckDirectReturnPossible
-		{
-			static constexpr bool possible = true;
-			static const JsValue& cast(const JsValue* jsval) noexcept {
-				return *jsval;
-			}
-		};
-
-		template <>
-		struct CheckDirectReturn<const JsValue&> :CheckDirectReturnPossible
-		{
-		};
-		template <>
-		struct CheckDirectReturn<JsValue&>:CheckDirectReturnPossible
-		{
-		};
-		template <>
-		struct CheckDirectReturn<const JsValue>:CheckDirectReturnPossible
-		{
-		};
-		template <>
-		struct CheckDirectReturn<JsValue> :CheckDirectReturnPossible
-		{
-		};
 	}
 }

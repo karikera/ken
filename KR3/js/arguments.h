@@ -28,6 +28,7 @@ namespace kr
 		template <typename T>
 		T at(size_t i) const noexcept
 		{
+			static_assert(!std::is_reference<T>::value, "Cannot get as the reference type");
 			if (i >= m_argn) return _pri_::JsCast::defaultValue<T>();
 			return m_args[i].cast<T>();
 		}
