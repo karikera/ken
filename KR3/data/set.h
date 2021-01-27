@@ -27,6 +27,7 @@ namespace kr
 
 			class ConstIterator
 			{
+				friend SetWrapper<TK, TV>;
 			private:
 				const_iterator m_raw;
 
@@ -65,6 +66,7 @@ namespace kr
 
 			class Iterator
 			{
+				friend SetWrapper<TK, TV>;
 			private:
 				iterator m_raw;
 
@@ -141,7 +143,7 @@ namespace kr
 			}
 			Iterator erase(Iterator iter) noexcept
 			{
-				return super::erase(iter);
+				return super::erase(iter.m_raw);
 			}
 			Iterator find(const TV& key) noexcept
 			{
