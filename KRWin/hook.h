@@ -122,6 +122,7 @@ namespace kr
 		public:
 			ExecutableAllocator() noexcept;
 			void* alloc(size_t size) noexcept;
+			void* alloc(size_t size, size_t alignment) noexcept;
 			void shrink(void* end) noexcept;
 
 			static ExecutableAllocator* getInstance() noexcept;

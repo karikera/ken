@@ -260,6 +260,13 @@ void* ExecutableAllocator::alloc(size_t size) noexcept
 	m_page += size;
 	return out;
 }
+void* ExecutableAllocator::alloc(size_t size, size_t alignment) noexcept
+{
+	uintptr_t missed = ((uintptr_t)m_page) % alignment;
+	missed = (alignment - missed) % alignment;
+	m_page += missed;
+	return alloc(size);
+}
 void ExecutableAllocator::shrink(void* end) noexcept
 {
 	ondebug(_assert(m_alloc_begin <= (byte*)end));
@@ -827,7 +834,7 @@ void CodeWriter::movsd(FloatRegister dest, FloatRegister src) noexcept
 void CodeWriter::movss(FloatRegister dest, FloatRegister src) noexcept
 {
 	write(0xf3);
-	if (regex(src) || regex(dest)) write(0x48 | (regex(src) ? 1 : 0) | (regex(dest) ? 4 : 0));
+	if (regex(src) || regex(dest)) write(0x40 | (regex(src) ? 1 : 0) | (regex(dest) ? 4 : 0));
 	write(0x0f);
 	write(0x10);
 	write(0xc0 | (dest << 3) | src);

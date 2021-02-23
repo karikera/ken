@@ -357,6 +357,11 @@ namespace kr
 
 				JsRuntime::gc();
 			}
+
+			static void throwException(JsErrorCode err) throws(kr::JsException)
+			{
+				throw kr::JsException(kr::TSZ16() << u"JsErrorCode: 0x" << kr::hexf((int)err));
+			}
 		};
 	}
 }
@@ -365,12 +370,13 @@ _ErrorCatchThrow::_ErrorCatchThrow(JsErrorCode err) throws(kr::JsException)
 {
 	if (err == JsNoError) return;
 	JsValueRef exception;
-	if (JsGetAndClearException(&exception) == JsNoError) {
+	if (JsGetAndClearException(&exception) == JsNoError)
+	{
 		InternalTools::throwException(exception);
 	}
 	else
 	{
-		throw kr::JsException(kr::TSZ16() << u"JsErrorCode: 0x" << kr::hexf((int)err));
+		InternalTools::throwException(err);
 	}
 }
 
