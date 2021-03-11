@@ -319,7 +319,7 @@ CodeWriter::~CodeWriter() noexcept
 {
 }
 
-void CodeWriter::_writeRegEx(int r1, int r2, RegSize size) noexcept
+void CodeWriter::_writeRegEx(int r1, int r2, RegSize size) throws(NotEnoughSpaceException)
 {
 	if (size == RegSize::Word) write(0x66);
 
@@ -338,17 +338,17 @@ void CodeWriter::fillDebugBreak() noexcept
 {
 	writeFill(0xcc, remaining());
 }
-void CodeWriter::rjump(int32_t rpos) noexcept
+void CodeWriter::rjump(int32_t rpos) throws(NotEnoughSpaceException)
 {
 	write(0xe9);
 	writeas(rpos);
 }
-void CodeWriter::rcall(int32_t rpos) noexcept
+void CodeWriter::rcall(int32_t rpos) throws(NotEnoughSpaceException)
 {
 	write(0xe8);
 	writeas(rpos);
 }
-void CodeWriter::mov_gs(Register dest, AddressPointerRule, int32_t offset) noexcept
+void CodeWriter::mov_gs(Register dest, AddressPointerRule, int32_t offset) throws(NotEnoughSpaceException)
 {
 	write(0x65);
 	write(0x48);
@@ -358,63 +358,63 @@ void CodeWriter::mov_gs(Register dest, AddressPointerRule, int32_t offset) noexc
 	writeas<int32_t>(offset);
 }
 #ifdef _M_X64
-void CodeWriter::mov(Register r, dword to) noexcept
+void CodeWriter::mov(Register r, dword to) throws(NotEnoughSpaceException)
 {
 	_writeRegEx(r, 0, RegSize::Qword);
 	write(0xc7);
 	write(0xC0 | regidx(r));
 	writeas(to);
 }
-void CodeWriter::mov(Register r, qword to) noexcept
+void CodeWriter::mov(Register r, qword to) throws(NotEnoughSpaceException)
 {
 	if ((dword)to == to) return mov(r, (dword)to);
 	_writeRegEx(r, 0, RegSize::Qword);
 	write(0xb8 | regidx(r));
 	writeas(to);
 }
-void CodeWriter::jump64ex(void* to, Register r, bool isCall) noexcept
+void CodeWriter::jump64ex(void* to, Register r, bool isCall) throws(NotEnoughSpaceException)
 {
 	mov(r, (uintptr_t)to);
 	jumpex(r, isCall);
 }
-void CodeWriter::jump64(void* to, Register r) noexcept
+void CodeWriter::jump64(void* to, Register r) throws(NotEnoughSpaceException)
 {
 	jump64ex(to, r, false);
 }
-void CodeWriter::call64(void* to, Register r) noexcept
+void CodeWriter::call64(void* to, Register r) throws(NotEnoughSpaceException)
 {
 	jump64ex(to, r, true);
 }
-void CodeWriter::jumpex(Register r, bool isCall) noexcept
+void CodeWriter::jumpex(Register r, bool isCall) throws(NotEnoughSpaceException)
 {
 	if (regex(r)) write(0x41);
 	write(0xff);
 	write((isCall ? 0xd0 : 0xe0) | regidx(r));
 }
-void CodeWriter::jump(Register r) noexcept
+void CodeWriter::jump(Register r) throws(NotEnoughSpaceException)
 {
 	jumpex(r, false);
 }
-void CodeWriter::call(Register r) noexcept
+void CodeWriter::call(Register r) throws(NotEnoughSpaceException)
 {
 	jumpex(r, true);
 }
 #endif
-void CodeWriter::jumpex(AddressPointerRule address, Register r, int32_t offset, bool isCall) noexcept
+void CodeWriter::jumpex(AddressPointerRule address, Register r, int32_t offset, bool isCall) throws(NotEnoughSpaceException)
 {
 	if (regex(r)) write(0x41);
 	write(0xff);
 	_writeOffset((isCall ? 0x10 : 0x20) | regidx(r), r, offset, false);
 }
-void CodeWriter::jump(AddressPointerRule address, Register r, int32_t offset) noexcept
+void CodeWriter::jump(AddressPointerRule address, Register r, int32_t offset) throws(NotEnoughSpaceException)
 {
 	jumpex(address, r, offset, false);
 }
-void CodeWriter::call(AddressPointerRule address, Register r, int32_t offset) noexcept
+void CodeWriter::call(AddressPointerRule address, Register r, int32_t offset) throws(NotEnoughSpaceException)
 {
 	jumpex(address, r, offset, true);
 }
-void CodeWriter::push(int32_t value) noexcept
+void CodeWriter::push(int32_t value) throws(NotEnoughSpaceException)
 {
 	if (value == (int8_t)value)
 	{
@@ -427,32 +427,32 @@ void CodeWriter::push(int32_t value) noexcept
 		writeas<int32_t>(value);
 	}
 }
-void CodeWriter::push(Register r) noexcept
+void CodeWriter::push(Register r) throws(NotEnoughSpaceException)
 {
 	if (regex(r)) write(0x41);
 	write(0x50 | regidx(r));
 }
-void CodeWriter::pop(Register r) noexcept
+void CodeWriter::pop(Register r) throws(NotEnoughSpaceException)
 {
 	if (regex(r)) write(0x41);
 	write(0x58 | regidx(r));
 }
-void CodeWriter::mov(Register dest, Register src) noexcept
+void CodeWriter::mov(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	movex(RegSize::Qword, dest, src, AccessType::Register, 0);
 }
-void CodeWriter::movb(Register dest, Register src) noexcept
+void CodeWriter::movb(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	movex(RegSize::Byte, dest, src, AccessType::Register, 0);
 }
-void CodeWriter::movsxd(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
+void CodeWriter::movsxd(Register dest, AddressPointerRule address, Register src, int32_t offset) throws(NotEnoughSpaceException)
 {
 	_assert(address == DwordPtr);
 	_writeRegEx(src, dest, RegSize::Qword);
 	write(0x63);
 	_writeOffset((dest << 3) | src, src, offset, false);
 }
-void CodeWriter::movzx(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
+void CodeWriter::movzx(Register dest, AddressPointerRule address, Register src, int32_t offset) throws(NotEnoughSpaceException)
 {
 	_assert(address == BytePtr);
 	_writeRegEx(src, dest, RegSize::Qword);
@@ -460,7 +460,7 @@ void CodeWriter::movzx(Register dest, AddressPointerRule address, Register src, 
 	write(0xb6);
 	_writeOffset((dest << 3) | src, src, offset, false);
 }
-void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) noexcept
+void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalue, AccessType atype, int32_t offset) throws(NotEnoughSpaceException)
 {
 	// reg1 is memory address
 
@@ -515,41 +515,41 @@ void CodeWriter::movex(RegSize bittype, Register reg1, int32_t reg2_or_constvalu
 		}
 	}
 }
-void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t value) noexcept
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t value) throws(NotEnoughSpaceException)
 {
 	movex(ptr_to_size(address), dest, value, AccessType::WriteConst, 0);
 }
-void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) noexcept
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, int32_t value) throws(NotEnoughSpaceException)
 {
 	movex(ptr_to_size(address), dest, value, AccessType::WriteConst, offset);
 }
-void CodeWriter::mov(AddressPointerRule address, Register dest, RegisterLow src) noexcept
+void CodeWriter::mov(AddressPointerRule address, Register dest, RegisterLow src) throws(NotEnoughSpaceException)
 {
 	mov(address, dest, 0, src);
 }
-void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, RegisterLow src) noexcept
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, RegisterLow src) throws(NotEnoughSpaceException)
 {
 	_assert(address == BytePtr);
 	movex(ptr_to_size(address), dest, src, AccessType::Write, offset);
 }
-void CodeWriter::mov(AddressPointerRule address, Register dest, Register src) noexcept
+void CodeWriter::mov(AddressPointerRule address, Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	mov(address, dest, 0, src);
 }
-void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, Register src) noexcept
+void CodeWriter::mov(AddressPointerRule address, Register dest, int32_t offset, Register src) throws(NotEnoughSpaceException)
 {
 	movex(ptr_to_size(address), dest, src, AccessType::Write, offset);
 }
-void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, int32_t offset) noexcept
+void CodeWriter::mov(Register dest, AddressPointerRule address, Register src, int32_t offset) throws(NotEnoughSpaceException)
 {
 	movex(ptr_to_size(address), src, dest, AccessType::Read, offset);
 }
-void CodeWriter::lea(Register dest, Register src, int32_t offset) noexcept
+void CodeWriter::lea(Register dest, Register src, int32_t offset) throws(NotEnoughSpaceException)
 {
 	if (offset == 0) mov(dest, src);
 	else movex(RegSize::Qword, src, dest, AccessType::Lea, offset);
 }
-void CodeWriter::operex(Operator oper, Register dest, int32_t offset, int32_t reg2_or_const, AccessType atype) noexcept
+void CodeWriter::operex(Operator oper, Register dest, int32_t offset, int32_t reg2_or_const, AccessType atype) throws(NotEnoughSpaceException)
 {
 	_writeRegEx(dest, 0, RegSize::Qword);
 
@@ -579,119 +579,119 @@ void CodeWriter::operex(Operator oper, Register dest, int32_t offset, int32_t re
 		}
 	}
 }
-void CodeWriter::test(Register dest, Register src) noexcept
+void CodeWriter::test(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	_writeRegEx(src, dest, RegSize::Qword);
 	write(0x85);
 	write(0xC0 | (src << 3) | dest);
 }
-void CodeWriter::test_b(Register dest, Register src) noexcept
+void CodeWriter::test_b(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	_writeRegEx(src, dest, RegSize::Qword);
 	write(0x84);
 	write(0xC0 | (src << 3) | dest);
 }
 
-void CodeWriter::cmp(Register dest, Register src) noexcept
+void CodeWriter::cmp(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::CMP, dest, 0, src, AccessType::Register);
 }
-void CodeWriter::sub(Register dest, Register src) noexcept
+void CodeWriter::sub(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::SUB, dest, 0, src, AccessType::Register);
 }
-void CodeWriter::add(Register dest, Register src) noexcept
+void CodeWriter::add(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::ADD, dest, 0, src, AccessType::Register);
 }
-void CodeWriter::sbb(Register dest, Register src) noexcept
+void CodeWriter::sbb(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::SBB, dest, 0, src, AccessType::Register);
 }
-void CodeWriter::adc(Register dest, Register src) noexcept
+void CodeWriter::adc(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::ADC, dest, 0, src, AccessType::Register);
 }
-void CodeWriter::xor_(Register dest, Register src) noexcept
+void CodeWriter::xor_(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::XOR, dest, 0, src, AccessType::Register);
 }
-void CodeWriter::or_(Register dest, Register src) noexcept
+void CodeWriter::or_(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::OR, dest, 0, src, AccessType::Register);
 }
-void CodeWriter::and_(Register dest, Register src) noexcept
+void CodeWriter::and_(Register dest, Register src) throws(NotEnoughSpaceException)
 {
 	operex(Operator::AND, dest, 0, src, AccessType::Register);
 }
 
-void CodeWriter::cmp(Register dest, int32_t chr) noexcept
+void CodeWriter::cmp(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::CMP, dest, 0, chr, AccessType::PutConst);
 }
-void CodeWriter::sub(Register dest, int32_t chr) noexcept
+void CodeWriter::sub(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::SUB, dest, 0, chr, AccessType::PutConst);
 }
-void CodeWriter::add(Register dest, int32_t chr) noexcept
+void CodeWriter::add(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::ADD, dest, 0, chr, AccessType::PutConst);
 }
-void CodeWriter::sbb(Register dest, int32_t chr) noexcept
+void CodeWriter::sbb(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::SBB, dest, 0, chr, AccessType::PutConst);
 }
-void CodeWriter::adc(Register dest, int32_t chr) noexcept
+void CodeWriter::adc(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::ADC, dest, 0, chr, AccessType::PutConst);
 }
-void CodeWriter::xor_(Register dest, int32_t chr) noexcept
+void CodeWriter::xor_(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::XOR, dest, 0, chr, AccessType::PutConst);
 }
-void CodeWriter::or_(Register dest, int32_t chr) noexcept
+void CodeWriter::or_(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::OR, dest, 0, chr, AccessType::PutConst);
 }
-void CodeWriter::and_(Register dest, int32_t chr) noexcept
+void CodeWriter::and_(Register dest, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::AND, dest, 0, chr, AccessType::PutConst);
 }
 
-void CodeWriter::cmp(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::cmp(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::CMP, dest, offset, chr, AccessType::Write);
 }
-void CodeWriter::sub(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::sub(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::SUB, dest, offset, chr, AccessType::Write);
 }
-void CodeWriter::add(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::add(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::ADD, dest, offset, chr, AccessType::Write);
 }
-void CodeWriter::sbb(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::sbb(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::SBB, dest, offset, chr, AccessType::Write);
 }
-void CodeWriter::adc(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::adc(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::ADC, dest, offset, chr, AccessType::Write);
 }
-void CodeWriter::xor_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::xor_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::XOR, dest, offset, chr, AccessType::Write);
 }
-void CodeWriter::or_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::or_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::OR, dest, offset, chr, AccessType::Write);
 }
-void CodeWriter::and_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) noexcept
+void CodeWriter::and_(AddressPointerRule address, Register dest, int32_t offset, int32_t chr) throws(NotEnoughSpaceException)
 {
 	operex(Operator::AND, dest, offset, chr, AccessType::Write);
 }
 
-void CodeWriter::jump(void* to, Register tmp) noexcept
+void CodeWriter::jump(void* to, Register tmp) throws(NotEnoughSpaceException)
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
 #ifdef _M_X64
@@ -707,7 +707,7 @@ void CodeWriter::jump(void* to, Register tmp) noexcept
 	rjump((int)rjumppos);
 #endif
 }
-void CodeWriter::jumpWithoutTemp(void* to) noexcept
+void CodeWriter::jumpWithoutTemp(void* to) throws(NotEnoughSpaceException)
 {
 #ifdef _M_X64
 	push(RCX);
@@ -719,7 +719,7 @@ void CodeWriter::jumpWithoutTemp(void* to) noexcept
 	rjump((int)rjumppos);
 #endif
 }
-void CodeWriter::call(void* to, Register tmp) noexcept
+void CodeWriter::call(void* to, Register tmp) throws(NotEnoughSpaceException)
 {
 	intptr_t rjumppos = (intptr_t)((byte*)to - end() - 5);
 #ifdef _M_X64
@@ -735,7 +735,7 @@ void CodeWriter::call(void* to, Register tmp) noexcept
 	rcall((int)rjumppos);
 #endif
 }
-void CodeWriter::jz(int32_t offset) noexcept
+void CodeWriter::jz(int32_t offset) throws(NotEnoughSpaceException)
 {
 	if ((int8_t)offset == offset)
 	{
@@ -749,7 +749,7 @@ void CodeWriter::jz(int32_t offset) noexcept
 		writeas(offset);
 	}
 }
-void CodeWriter::jnz(int32_t offset) noexcept
+void CodeWriter::jnz(int32_t offset) throws(NotEnoughSpaceException)
 {
 	if ((int8_t)offset == offset)
 	{
@@ -763,16 +763,16 @@ void CodeWriter::jnz(int32_t offset) noexcept
 		writeas(offset);
 	}
 }
-void CodeWriter::ret() noexcept
+void CodeWriter::ret() throws(NotEnoughSpaceException)
 {
 	write(0xc3);
 }
-void CodeWriter::debugBreak() noexcept
+void CodeWriter::debugBreak() throws(NotEnoughSpaceException)
 {
 	write(0xcc);
 }
 
-void CodeWriter::_writeOffset(uint8_t opcode, Register r, int32_t offset, bool registerOperation) noexcept
+void CodeWriter::_writeOffset(uint8_t opcode, Register r, int32_t offset, bool registerOperation) throws(NotEnoughSpaceException)
 {
 	if (registerOperation)
 	{
@@ -795,35 +795,35 @@ void CodeWriter::_writeOffset(uint8_t opcode, Register r, int32_t offset, bool r
 	if (opcode & 0x40) write((int8_t)offset);
 	else if (opcode & 0x80) writeas<int32_t>(offset);
 }
-void CodeWriter::movss(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) noexcept
+void CodeWriter::movss(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) throws(NotEnoughSpaceException)
 {
 	write(0xf3);
 	write(0x0f);
 	write(0x11);
 	_writeOffset(0x04 | (r << 3) | dest, dest, offset, false);
 }
-void CodeWriter::movsd(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) noexcept
+void CodeWriter::movsd(AddressPointerRule atype, Register dest, int32_t offset, FloatRegister r) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	write(0x0f);
 	write(0x11);
 	_writeOffset(0x04 | (r << 3) | dest, dest, offset, false);
 }
-void CodeWriter::movss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+void CodeWriter::movss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) throws(NotEnoughSpaceException)
 {
 	write(0xf3);
 	write(0x0f);
 	write(0x10);
 	_writeOffset(0x04 | (dest << 3) | r, r, offset, false);
 }
-void CodeWriter::movsd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+void CodeWriter::movsd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	write(0x0f);
 	write(0x10);
 	_writeOffset(0x04 | (dest << 3) | r, r, offset, false);
 }
-void CodeWriter::movsd(FloatRegister dest, FloatRegister src) noexcept
+void CodeWriter::movsd(FloatRegister dest, FloatRegister src) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	if (regex(src) || regex(dest)) write(0x48 | (regex(src) ? 1 : 0) | (regex(dest) ? 4 : 0));
@@ -831,7 +831,7 @@ void CodeWriter::movsd(FloatRegister dest, FloatRegister src) noexcept
 	write(0x10);
 	write(0xc0 | (dest << 3) | src);
 }
-void CodeWriter::movss(FloatRegister dest, FloatRegister src) noexcept
+void CodeWriter::movss(FloatRegister dest, FloatRegister src) throws(NotEnoughSpaceException)
 {
 	write(0xf3);
 	if (regex(src) || regex(dest)) write(0x40 | (regex(src) ? 1 : 0) | (regex(dest) ? 4 : 0));
@@ -839,7 +839,7 @@ void CodeWriter::movss(FloatRegister dest, FloatRegister src) noexcept
 	write(0x10);
 	write(0xc0 | (dest << 3) | src);
 }
-void CodeWriter::cvttsd2ss(FloatRegister dest, Register r) noexcept
+void CodeWriter::cvttsd2ss(FloatRegister dest, Register r) throws(NotEnoughSpaceException)
 {
 	write(0xf3);
 	_writeRegEx(r, dest, RegSize::Qword);
@@ -847,7 +847,7 @@ void CodeWriter::cvttsd2ss(FloatRegister dest, Register r) noexcept
 	write(0x2a);
 	write(0xc0 | r | (dest << 3));
 }
-void CodeWriter::cvttsi2sd(FloatRegister dest, Register r) noexcept
+void CodeWriter::cvttsi2sd(FloatRegister dest, Register r) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	_writeRegEx(r, dest, RegSize::Qword);
@@ -855,7 +855,7 @@ void CodeWriter::cvttsi2sd(FloatRegister dest, Register r) noexcept
 	write(0x2a);
 	write(0xc0 | r | (dest << 3));
 }
-void CodeWriter::cvttsd2ss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+void CodeWriter::cvttsd2ss(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) throws(NotEnoughSpaceException)
 {
 	write(0xf3);
 	if (atype == QwordPtr || regex(r) || regex(dest)) _writeRegEx(r, dest, RegSize::Qword);
@@ -863,7 +863,7 @@ void CodeWriter::cvttsd2ss(FloatRegister dest, AddressPointerRule atype, Registe
 	write(0x2a);
 	_writeOffset(r | (dest << 3), r, offset, false);
 }
-void CodeWriter::cvttsi2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+void CodeWriter::cvttsi2sd(FloatRegister dest, AddressPointerRule atype, Register r, int32_t offset) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	if (atype == QwordPtr || regex(r) || regex(dest)) _writeRegEx(r, dest, RegSize::Qword);
@@ -871,7 +871,7 @@ void CodeWriter::cvttsi2sd(FloatRegister dest, AddressPointerRule atype, Registe
 	write(0x2a);
 	_writeOffset(r | (dest << 3), r, offset, false);
 }
-void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, int32_t value) noexcept
+void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, int32_t value) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	if (atype == QwordPtr || regex(dest)) _writeRegEx(0, dest, RegSize::Qword);
@@ -882,7 +882,7 @@ void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, int32_t valu
 	write(0x25);
 	writeas<int32_t>(value);
 }
-void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, Register r, int32_t offset) noexcept
+void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, Register r, int32_t offset) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	if (atype == QwordPtr || regex(dest)) _writeRegEx(r, dest, RegSize::Qword);
@@ -890,7 +890,7 @@ void CodeWriter::cvttsd2si(Register dest, AddressPointerRule atype, Register r, 
 	write(0x2c);
 	_writeOffset((dest << 3) | r, r, offset, false);
 }
-void CodeWriter::cvttsd2si(Register dest, FloatRegister xmm) noexcept
+void CodeWriter::cvttsd2si(Register dest, FloatRegister xmm) throws(NotEnoughSpaceException)
 {
 	write(0xf2);
 	_writeRegEx(xmm, dest, RegSize::Qword);
@@ -898,14 +898,14 @@ void CodeWriter::cvttsd2si(Register dest, FloatRegister xmm) noexcept
 	write(0x2c);
 	write(0xc0 | (dest << 3) | xmm);
 }
-void CodeWriter::cmovz(Register a, Register b) noexcept
+void CodeWriter::cmovz(Register a, Register b) throws(NotEnoughSpaceException)
 {
 	_writeRegEx(b, a, RegSize::Qword);
 	write(0x0f);
 	write(0x44);
 	write(0xc0 | (a << 3) | b);
 }
-void CodeWriter::cmovnz(Register a, Register b) noexcept
+void CodeWriter::cmovnz(Register a, Register b) throws(NotEnoughSpaceException)
 {
 	_writeRegEx(b, a, RegSize::Qword);
 	write(0x0f);
