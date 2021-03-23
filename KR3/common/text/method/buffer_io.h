@@ -407,26 +407,6 @@ namespace kr
 				_data.template copyTo<Component>(beg);
 			}
 			template <typename _Derived, class _Parent>
-			BufferIOMethod(const HasOnlyCopyTo<_Derived, Component, _Parent>& _data) throws(NotEnoughSpaceException)
-			{
-				_alloc(0, _Parent::maximum + _Parent::szable);
-				InternalComponent* beg = begin();
-				InternalComponent* maximum = beg + _Parent::maximum;
-				mema::ctor(beg, maximum);
-				_addEnd(_data.copyTo(beg));
-				mema::dtor(end(), maximum);
-			}
-			template <typename _Derived, class _Parent>
-			BufferIOMethod(const HasOnlyCopyTo<_Derived, AutoComponent, _Parent>& _data) throws(NotEnoughSpaceException)
-			{
-				_alloc(0, _Parent::maximum + _Parent::szable);
-				InternalComponent* beg = begin();
-				InternalComponent* maximum = beg + _Parent::maximum;
-				mema::ctor(beg, maximum);
-				_addEnd(_data.template copyTo<Component>(beg));
-				mema::dtor(end(), maximum);
-			}
-			template <typename _Derived, class _Parent>
 			BufferIOMethod(const HasWriteTo<_Derived, Component, _Parent>& _data) throws(NotEnoughSpaceException)
 				:BufferIOMethod()
 			{

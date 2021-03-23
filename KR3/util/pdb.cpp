@@ -231,7 +231,7 @@ uint32_t PdbReader::getOptions() noexcept
 	DbgHelp* dbghelp = DbgHelp::getInstance();
 	return dbghelp->SymGetOptions();
 }
-bool PdbReader::search(const char* filter, SearchCallback callback) noexcept
+bool PdbReader::search(pcstr filter, SearchCallback callback) noexcept
 {
 	DbgHelp* dbghelp = DbgHelp::getInstance();
 	return dbghelp->SymEnumSymbols(
@@ -239,216 +239,10 @@ bool PdbReader::search(const char* filter, SearchCallback callback) noexcept
 		m_base,
 		filter,
 		[](SYMBOL_INFO* symInfo, ULONG SymbolSize, void* callback)->BOOL {
-			if (symInfo->Tag != SymTagFunction && symInfo->Tag != SymTagPublicSymbol)
-			{
-				return true;
-			}
-			"std::basic_string<char,std::char_traits<char>,std::allocator<char> >";
 			return (*(SearchCallback*)callback)(Text(symInfo->Name, symInfo->NameLen), (autoptr64)symInfo->Address, symInfo->TypeIndex);
 		},
 		(PVOID)&callback);
 }
-
-class TemplateParser
-{
-private:
-	static Map<Text, size_t> s_lambdas;
-
-public:
-
-	Text name;
-	AText out;
-
-	void writeLambda(Text lambda) noexcept
-	{
-		auto res = s_lambdas.insert(lambda, s_lambdas.size());
-		out << "LAMBDA_" << res.first->second;
-	}
-
-	void parseTemplateParameters(Text ns, Text tname) throws(EofException)
-	{
-		if (ns == "std::")
-		{
-			if (tname == "basic_string")
-			{
-				size_t before_tname = out.size();
-				out << tname;
-				out << '<';
-				size_t before_param = out.size();
-				parse();
-				Text param = out.subarr(before_param);
-				if (param == "char")
-				{
-					out.cut_self(before_tname);
-					out << "string";
-				}
-				else
-				{
-					out << param;
-					out << '>';
-				}
-				leave();
-				return;
-			}
-			else if (tname == "vector" || tname == "unique_ptr")
-			{
-				out << tname;
-				out << '<';
-				parse();
-				out << '>';
-				leave();
-				return;
-			}
-			else if (tname == "_Umap_traits")
-			{
-				out << "UMapTraits";
-				out << '<';
-				parse();
-				name.must(',');
-				out << ',';
-				parse();
-				out << '>';
-				leave();
-				return;
-			}
-		}
-		else if (ns == "JsonUtil::")
-		{
-			if (tname == "JsonSchemaNodeChildSchemaOptions")
-			{
-				out << "[SchemaOptions]";
-				leave();
-				return;
-			}
-			else if (tname == "JsonSchemaChildOptionBase")
-			{
-				out << "[OptionsBase]";
-				leave();
-				return;
-			}
-			else if (tname == "JsonParseState")
-			{
-				out << "[ParseState]";
-				leave();
-				return;
-			}
-		}
-
-		out << tname;
-		out << '<';
-		for (;;)
-		{
-			parse();
-			switch (name.peek())
-			{
-			case '>':
-				out << name.read();
-				if (name.empty()) return;
-				if (name.peek() == ' ') name.read();
-				return;
-			case ',':
-				out << name.read();
-				break;
-			case '\'':
-				throw InvalidSourceException();
-			}
-		}
-	}
-
-	void leave() throws(EofException)
-	{
-		int level = 1;
-		for (;;)
-		{
-			if (name.readto_y("<>") == nullptr) throw EofException();
-			switch (name.read())
-			{
-			case '>': level--; break;
-			case '<': level++; break;
-			}
-			if (level == 0)
-			{
-				if (name.empty()) break;
-				break;
-			}
-		}
-	}
-	Text parse() throws(EofException)
-	{
-		while (name.readIf(' ')) {}
-
-		size_t nameStart = out.size();
-		for (;;)
-		{
-			if (name.readIf('`'))
-			{
-				size_t open_idx = out.size();
-				out << '`';
-				Text method = parse();
-				name.must('\'');
-				if (method == "dynamic initializer for " || method == "dynamic atexit destructor for ")
-				{
-					out[open_idx] = '[';
-					Text nameend = name.readto('\'');
-					if (nameend == nullptr) throw InvalidSourceException();
-					name.must('\'');
-
-					// out << '\'';
-					out << nameend;
-					// out << '\'';
-					out << ']';
-					name.must('\'');
-					break;
-				}
-				out << '\'';
-			}
-			else if (name.readIf('<'))
-			{
-				parse();
-				name.must('>');
-			}
-			else
-			{
-				Text tname = name.readto_y("<>,:' ");
-				if (tname == nullptr)
-				{
-					out << name.readAll();
-					break;
-				}
-				if (name.readIf('<'))
-				{
-					Text ns = out.subarr(nameStart);
-					parseTemplateParameters(ns, tname);
-				}
-				else
-				{
-					if (tname.startsWith("lambda_"))
-					{
-						writeLambda(tname);
-					}
-					else
-					{
-						out << tname;
-					}
-				}
-			}
-			if (name.empty()) break;
-			if (name.readIf(' ')) continue;
-			if (name.readIf(':'))
-			{
-				out << "::";
-				name.must(':');
-			}
-			else // , > '
-			{
-				break;
-			}
-		}
-		return out.subarr(nameStart);
-	}
-};
-Map<Text, size_t> TemplateParser::s_lambdas;
-
 bool PdbReader::getAllEx(GetAllExCallback callback) noexcept
 {
 	DbgHelp* dbghelp = DbgHelp::getInstance();
@@ -459,45 +253,60 @@ bool PdbReader::getAllEx(GetAllExCallback callback) noexcept
 		nullptr,
 		[](SYMBOL_INFO* symInfo, ULONG SymbolSize, void* callback)->BOOL {
 			GetAllExCallback* cb = (GetAllExCallback*)callback;
-
 			Text name = Text(symInfo->Name, symInfo->NameLen);
 			return (*cb)(name, symInfo);
 		},
 		(PVOID)&callback);
 }
-bool PdbReader::getAll(GetAllCallback callback) noexcept
+bool PdbReader::getAll(SearchCallback callback) noexcept
+{
+	return search(nullptr, move(callback));
+}
+template <>
+size_t PdbReader::undecorate<char>::$copyTo(char* out) const noexcept
+{
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	return dbghelp->UnDecorateSymbolName(m_decorated, out, maximum, m_flags);
+}
+template <>
+size_t PdbReader::undecorate<char16_t>::$copyTo(char16_t* out) const noexcept
+{
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	return dbghelp->UnDecorateSymbolNameW(wide(m_decorated), wide(out), maximum, m_flags);
+}
+bool PdbReader::search16(pcstr16 filter, SearchCallback16 callback) noexcept
+{
+	DbgHelp* dbghelp = DbgHelp::getInstance();
+	return dbghelp->SymEnumSymbolsExW(
+		m_process,
+		m_base,
+		wide(filter),
+		[](SYMBOL_INFOW* symInfo, ULONG SymbolSize, void* callback)->BOOL {
+			Text16 name = Text16(unwide(symInfo->Name), symInfo->NameLen - 1);
+			return (*(SearchCallback16*)callback)(name, (autoptr64)symInfo->Address, symInfo->TypeIndex);
+		},
+		(PVOID)&callback,
+		SYMENUM_OPTIONS_DEFAULT);
+}
+bool PdbReader::getAllEx16(GetAllExCallback16 callback) noexcept
 {
 	DbgHelp* dbghelp = DbgHelp::getInstance();
 
-	return dbghelp->SymEnumSymbols(
+	return dbghelp->SymEnumSymbolsExW(
 		m_process,
 		m_base,
 		nullptr,
-		[](SYMBOL_INFO* symInfo, ULONG SymbolSize, void* callback)->BOOL {
-			if (symInfo->Tag != SymTagFunction && symInfo->Tag != SymTagPublicSymbol)
-			{
-				return true;
-			}
-			
-			GetAllCallback* cb = (GetAllCallback*)callback;
-
-			TemplateParser parser;
-			parser.name = Text(symInfo->Name, symInfo->NameLen);
-			try
-			{
-				parser.parse();
-			}
-			catch (InvalidSourceException&)
-			{
-				parser.out << "..[err]";
-			}
-			catch (EofException&)
-			{
-				parser.out << "..[eof]";
-			}
-			return (*cb)(parser.out, (autoptr64)symInfo->Address);
+		[](SYMBOL_INFOW* symInfo, ULONG SymbolSize, void* callback)->BOOL {
+			GetAllExCallback16* cb = (GetAllExCallback16*)callback;
+			Text16 name = Text16(unwide(symInfo->Name), symInfo->NameLen-1);
+			return (*cb)(name, symInfo);
 		},
-		(PVOID)&callback);
+		(PVOID)&callback,
+		SYMENUM_OPTIONS_DEFAULT);
+}
+bool PdbReader::getAll16(SearchCallback16 callback) noexcept
+{
+	return search16(nullptr, move(callback));
 }
 autoptr64 PdbReader::getFunctionAddress(const char* name) noexcept
 {

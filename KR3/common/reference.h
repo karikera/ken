@@ -352,6 +352,8 @@ namespace kr
 	class CopyToByWriteTo;
 	template <class Derived, typename Component, typename Parent = Empty>
 	class WriteToByCopyTo;
+	template <class Derived, typename Component, typename Parent = Empty>
+	class WriteToByOnlyCopyTo;
 	template <typename Derived, typename Component, typename Parent = Empty>
 	class HasStreamTo;
 	template <class Derived, typename Component, typename Parent = Empty>
@@ -594,8 +596,6 @@ namespace kr
 	}
 
 	template <typename T>
-	using IsHasOnlyCopyTo = _pri_::has_method<T, HasOnlyCopyTo>;
-	template <typename T>
 	using IsHasCopyTo = _pri_::has_method<T, HasCopyTo>;
 	template <typename T>
 	using IsHasWriteTo = _pri_::has_method<T, HasWriteTo>;
@@ -614,7 +614,7 @@ namespace kr
 
 	template <typename T> struct IsBuffer
 	{
-		static constexpr bool value = IsHasOnlyCopyTo<T>::value || IsHasCopyTo<T>::value || IsHasWriteTo<T>::value;
+		static constexpr bool value = IsHasCopyTo<T>::value || IsHasWriteTo<T>::value;
 	};
 	template <typename T> struct IsTransBeffer
 	{

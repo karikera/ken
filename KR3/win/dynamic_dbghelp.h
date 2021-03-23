@@ -19,6 +19,10 @@ struct DbgHelp
     FUNCDECL(SymGetModuleInfoW64);
     FUNCDECL(SymGetTypeInfo);
     FUNCDECL(SymEnumSymbols);
+    FUNCDECL(SymEnumSymbolsExW);
+    FUNCDECL(UnDecorateSymbolName);
+    FUNCDECL(UnDecorateSymbolNameW);
+    FUNCDECL(SymEnumSymbolsForAddrW);
     FUNCDECL(SymGetSymFromName64);
     FUNCDECL(StackWalk64);
     FUNCDECL(SymFunctionTableAccess64);
@@ -27,6 +31,8 @@ struct DbgHelp
     FUNCDECL(SymGetOptions);
     FUNCDECL(SymGetSymFromAddr64);
     FUNCDECL(SymGetLineFromAddrW64);
+    FUNCDECL(SymNext);
+    FUNCDECL(SymNextW);
 
     static DbgHelp* getInstance() noexcept;
 

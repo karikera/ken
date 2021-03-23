@@ -84,10 +84,9 @@ namespace kr
 		}
 	};
 
-	template <size_t _maximum, bool _szable, class Parent = Empty>
+	template <size_t _maximum, class Parent = Empty>
 	struct HasOnlyCopyToInfo :Parent
 	{
-		static constexpr bool szable = _szable;
 		static constexpr size_t maximum = _maximum;
 	};
 
@@ -223,6 +222,60 @@ namespace kr
 			TmpArray<Component> temp;
 			temp.resize(sz + (szable ? 1 : 0));
 			this->template copyTo<Component>(temp.data());
+			os->write(temp.data(), sz);
+			return sz;
+		}
+	};
+
+	template <class Derived, typename Component, typename Parent>
+	class WriteToByOnlyCopyTo :public HasOnlyCopyTo<Derived, Component, Parent>
+	{
+		CLASS_HEADER(WriteToByOnlyCopyTo, HasOnlyCopyTo<Derived, Component, Parent>);
+	public:
+		using Super::Super;
+		using Super::copyTo;
+		using Super::szable;
+		using Super::maximum;
+
+		template <class _Derived, class _Parent>
+		void writeTo(OutStream<_Derived, Component, StreamInfo<true, _Parent>>* os) const
+		{
+			Component* dest = os->padding(maximum + (szable ? 1 : 0));
+			size_t sz = copyTo(dest);
+			os->commit(sz);
+		}
+		template <class _Derived, class _Parent>
+		void writeTo(OutStream<_Derived, Component, StreamInfo<false, _Parent>>* os) const
+		{
+			TmpArray<Component> temp;
+			size_t sz = copyTo(temp.padding(maximum + (szable ? 1 : 0)));
+			os->write(temp.data(), sz);
+		}
+	};
+
+	template <class Derived, typename Parent>
+	class WriteToByOnlyCopyTo<Derived, AutoComponent, Parent> :public HasOnlyCopyTo<Derived, AutoComponent, Parent>
+	{
+		CLASS_HEADER(WriteToByOnlyCopyTo, HasOnlyCopyTo<Derived, AutoComponent, Parent>);
+	public:
+		using Super::Super;
+		using Super::szable;
+		using Super::maximum;
+
+		template <typename Component, class _Derived, class _Parent>
+		size_t writeTo(OutStream<_Derived, Component, StreamInfo<true, _Parent>>* os) const
+		{
+			Component* dest = os->padding(maximum + (szable ? 1 : 0));
+			size_t sz = this->template copyTo<Component>(dest);
+			os->commit(sz);
+			return sz;
+		}
+		template <typename Component, class _Derived, class _Parent>
+		size_t writeTo(OutStream<_Derived, Component, StreamInfo<false, _Parent>>* os) const
+		{
+			TmpArray<Component> temp;
+			temp.resize(maximum + (szable ? 1 : 0));
+			size_t sz = this->template copyTo<Component>(temp.data());
 			os->write(temp.data(), sz);
 			return sz;
 		}

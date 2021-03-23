@@ -195,27 +195,9 @@ namespace kr
 				const_cast<HasStreamTo<Derived2, Component, Parent2>&>(value).streamTo(out);
 			}
 			template <class Derived, typename Component, typename Info, typename Derived2, typename Parent2>
-			static void printTo(OutStream<Derived, Component, Info>* out, const HasOnlyCopyTo<Derived2, Component, Parent2>& value) throws(...)
-			{
-				using OS = OutStream<Derived, Component, Info>;
-				WriteLock<OS, value.maximum> lock;
-				Component* dest = lock.lock(out);
-				size_t sz = value.copyTo(dest);
-				lock.unlock(out, sz);
-			}
-			template <class Derived, typename Component, typename Info, typename Derived2, typename Parent2>
 			static void printTo(OutStream<Derived, AutoComponent, Info>* out, const HasStreamTo<Derived2, Component, Parent2>& value) throws(...)
 			{
 				const_cast<HasStreamTo<Derived2, Component, Parent2>&>(value).streamTo(out);
-			}
-			template <class Derived, typename Component, typename Info, typename Derived2, typename Parent2>
-			static void printTo(OutStream<Derived, AutoComponent, Info>* out, const HasOnlyCopyTo<Derived2, Component, Parent2>& value) throws(...)
-			{
-				using OS = OutStream<Derived, Component, Info>;
-				WriteLock<OS, value.maximum> lock;
-				Component* dest = lock.lock(out);
-				size_t sz = value.copyTo(dest);
-				lock.unlock(out, sz);
 			}
 		};
 
@@ -233,7 +215,6 @@ namespace kr
 
 		template <typename T>
 		struct PrintTo:public meta::if_t<
-			IsHasOnlyCopyTo<T>::value ||
 			IsHasStreamTo<T>::value, 
 			PrintToMixed, PrintToAsBuffer>
 		{

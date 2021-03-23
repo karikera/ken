@@ -65,5 +65,13 @@ namespace kr
 			INHERIT_COMPONENT();
 			using Super::Super;
 		};
+		template <typename Derived, typename Info>
+		class OnlyCopyTo : public WriteToByOnlyCopyTo<Derived, typename Info::Component, Info>
+		{
+			using Super = WriteToByOnlyCopyTo<Derived, typename Info::Component, Info>;
+		public:
+			INHERIT_COMPONENT();
+			using Super::Super;
+		};;
 	}
 }

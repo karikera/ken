@@ -53,13 +53,12 @@ template <> size_t CurrentDirectory::$sizeAs<wchar_t>() const noexcept
 
 CurrentApplicationPath::CurrentApplicationPath() noexcept
 {
-	m_module = win::Module::current();
 }
 
 template <typename CHR>
 size_t CurrentApplicationPath::copyTo(CHR* dest) const noexcept
 {
-	return ((win::Module*)(m_module))->getFileName(dest, MAX_PATH);
+	return ((win::Module*)(nullptr))->getFileName(dest, MAX_PATH);
 }
 template size_t CurrentApplicationPath::copyTo<char>(char*) const noexcept;
 template size_t CurrentApplicationPath::copyTo<char16_t>(char16_t*) const noexcept;

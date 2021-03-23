@@ -37,9 +37,6 @@ namespace kr
 
 		template <typename CHR>
 		size_t copyTo(CHR* dest) const noexcept;
-
-	private:
-		void* m_module;
 	};
 
 #endif
