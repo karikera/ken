@@ -34,6 +34,7 @@ namespace kr
 		void load() throws(FunctionError);
 		void load(uint64_t base, pcstr16 programPath) throws(FunctionError);
 		void* base() noexcept;
+		void* process() noexcept;
 		void close() noexcept;
 		SymbolInfo getInfo() throws(FunctionError);
 		AText getTypeName(uint32_t typeId) noexcept;

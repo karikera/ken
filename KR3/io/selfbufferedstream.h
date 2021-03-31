@@ -401,7 +401,7 @@ namespace kr
 					return m_stream->read(dest, size);
 				}
 			}
-			Text readLine() // EofException
+			pair<Text, bool> readLine() // EofException
 			{
 				try
 				{
@@ -421,14 +421,14 @@ namespace kr
 						next++;
 					}
 					m_read = next;
-					return res;
+					return { res, true };
 				}
 				catch (EofException&)
 				{
 					Text res = text();
 					if (res.empty()) throw;
 					m_read = res.end();
-					return res;
+					return { res, false };
 				}
 			}
 

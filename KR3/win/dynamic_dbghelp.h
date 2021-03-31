@@ -33,6 +33,7 @@ struct DbgHelp
     FUNCDECL(SymGetLineFromAddrW64);
     FUNCDECL(SymNext);
     FUNCDECL(SymNextW);
+    FUNCDECL(SymEnumTypesW);
 
     static DbgHelp* getInstance() noexcept;
 

@@ -410,7 +410,14 @@ kr::JsRawData::JsRawData() noexcept
 kr::JsRawData::JsRawData(Text16 text) noexcept
 {
 	ondebug(_assert(s_scopeStackCounter != 0));
-	NOERR JsPointerToString(wide(text.data()), text.size(), &m_data);
+	if (text == nullptr) // JsPointerToString nullptr 0 is fail
+	{
+		NOERR JsPointerToString(L"", 0, &m_data);
+	}
+	else
+	{
+		NOERR JsPointerToString(wide(text.data()), text.size(), &m_data);
+	}
 }
 kr::JsRawData::JsRawData(const JsPersistent& data) noexcept
 {

@@ -141,6 +141,10 @@ void* PdbReader::base() noexcept
 {
 	return (void*)m_base;
 }
+void* PdbReader::process() noexcept
+{
+	return m_process;
+}
 void PdbReader::close() noexcept
 {
 	if (m_process == nullptr && m_base == 0) return;
