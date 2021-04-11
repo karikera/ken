@@ -809,6 +809,10 @@ kr::JsArgumentsAllocated::~JsArgumentsAllocated() noexcept
 }
 
 // exception
+kr::JsException::JsException() noexcept
+{
+	m_exception = JS_INVALID_REFERENCE;
+}
 kr::JsException::JsException(kr::Text16 message) noexcept
 {
 	ondebug(_assert(s_scopeStackCounter != 0));
@@ -833,6 +837,10 @@ kr::Text16 kr::JsException::toString() const noexcept
 kr::JsValue kr::JsException::getValue() const noexcept
 {
 	return JsRawData(m_exception);
+}
+bool kr::JsException::isEmpty() const noexcept
+{
+	return m_exception == JS_INVALID_REFERENCE;
 }
 
 // object

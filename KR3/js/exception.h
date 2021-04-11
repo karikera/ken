@@ -50,16 +50,23 @@ namespace kr
 		//JsString message;
 
 		// JsException();
+		KRJS_EXPORT JsException() noexcept;
 		KRJS_EXPORT JsException(Text16 message) noexcept;
 		KRJS_EXPORT JsException(JsException&& _move) noexcept;
 
 		// It will free string after out of scope
 		KRJS_EXPORT Text16 toString() const noexcept;
 		KRJS_EXPORT JsValue getValue() const noexcept;
+		KRJS_EXPORT bool isEmpty() const noexcept;
+
+		inline JsException& operator =(JsException&& _move) noexcept
+		{
+			new (this) JsException(move(_move));
+			this->~JsException();
+			return *this;
+		}
 
 	private:
-		JsException() = default;
-
 		JsRawException m_exception;
 	};
 
