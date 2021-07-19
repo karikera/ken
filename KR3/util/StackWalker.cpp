@@ -164,7 +164,7 @@ namespace
 	//IMAGEHLP_MODULE64 Module;
 	//memset(&Module, 0, sizeof(Module));
 	//Module.SizeOfStruct = sizeof(Module);
-	//if (SymGetModuleInfoW64(this->m_hProcess, s.AddrPC.Offset, &Module) != FALSE)
+	//if (SymGetModuleInfoW64(this->m_hProcess, *s, &Module) != FALSE)
 	//{
 	//	csEntry.symTypeString = getSymTypeName(Module.SymType);
 	//	strcpy_s(csEntry.moduleName, Module.ModuleName);
@@ -255,49 +255,14 @@ bool kr::StackWalker::showCallstack() noexcept
 {
 	CONTEXT c;
 	GET_CURRENT_CONTEXT(c, USED_CONTEXT_FLAGS);
-	return showCallstack(&c);
+	return showCallstack(&c, GetCurrentThread());
 }
-bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
+
+bool kr::StackWalker::showCallstack(CONTEXT* ctx, void* threadHandle) noexcept
 {
 	DbgHelp* dbghelp = DbgHelp::getInstance();
 	if (m_modulesLoaded == false) loadModules();  // ignore the result...
 	
-	HANDLE hThread = GetCurrentThread();
-
-	STACKFRAME64 s;
-	memset(&s, 0, sizeof(s));
-	dword imageType;
-#ifdef _M_IX86
-	// normally, call ImageNtHeader() and use machine info from PE header
-	imageType = IMAGE_FILE_MACHINE_I386;
-	s.AddrPC.Offset = ctx->Eip;
-	s.AddrPC.Mode = AddrModeFlat;
-	s.AddrFrame.Offset = ctx->Ebp;
-	s.AddrFrame.Mode = AddrModeFlat;
-	s.AddrStack.Offset = ctx->Esp;
-	s.AddrStack.Mode = AddrModeFlat;
-#elif _M_X64
-	imageType = IMAGE_FILE_MACHINE_AMD64;
-	s.AddrPC.Offset = ctx->Rip;
-	s.AddrPC.Mode = AddrModeFlat;
-	s.AddrFrame.Offset = ctx->Rsp;
-	s.AddrFrame.Mode = AddrModeFlat;
-	s.AddrStack.Offset = ctx->Rsp;
-	s.AddrStack.Mode = AddrModeFlat;
-#elif _M_IA64
-	imageType = IMAGE_FILE_MACHINE_IA64;
-	s.AddrPC.Offset = ctx->StIIP;
-	s.AddrPC.Mode = AddrModeFlat;
-	s.AddrFrame.Offset = ctx->IntSp;
-	s.AddrFrame.Mode = AddrModeFlat;
-	s.AddrBStore.Offset = ctx->RsBSP;
-	s.AddrBStore.Mode = AddrModeFlat;
-	s.AddrStack.Offset = ctx->IntSp;
-	s.AddrStack.Mode = AddrModeFlat;
-#else
-#error "Platform not supported!"
-#endif
-
 	struct SYM :IMAGEHLP_SYMBOL64
 	{
 		char __buffer[STACKWALK_MAX_NAMELEN];
@@ -305,6 +270,7 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 	memset(&sym, 0, sizeof(sym));
 	sym.SizeOfStruct = sizeof(IMAGEHLP_SYMBOL64);
 	sym.MaxNameLength = STACKWALK_MAX_NAMELEN;
+	HANDLE process = GetCurrentProcess();
 
 	StackInfo csEntry;
 	memset(&csEntry, 0, sizeof(csEntry));
@@ -313,45 +279,40 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 	memset(&Line, 0, sizeof(Line));
 	Line.SizeOfStruct = sizeof(Line);
 
+	csEntry.address = (void*)ctx->Rip;
+
+	IMAGEHLP_MODULEW64 moduleInfo;
+	memset(&moduleInfo, 0, sizeof(moduleInfo));
+	moduleInfo.SizeOfStruct = sizeof(moduleInfo);
+
 	for (;;)
 	{
-		if (!dbghelp->StackWalk64(imageType, m_hProcess, hThread, &s, ctx,
-			[](HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
-		{
-			SIZE_T size;
-			BOOL res = ReadProcessMemory(hProcess, (LPVOID)qwBaseAddress, lpBuffer, nSize, &size);
-			*lpNumberOfBytesRead = (DWORD)size;
-			return res;
-		}, dbghelp->SymFunctionTableAccess64, dbghelp->SymGetModuleBase64, nullptr))
-		{
-			DWORD err = GetLastError();
-			if (err == ERROR_INVALID_ADDRESS) break;
-			onDbgHelpErr("StackWalk64", err, s.AddrPC.Offset);
+		if (csEntry.address == nullptr) {
 			break;
 		}
-
-		if (s.AddrPC.Offset == 0) continue;
-		if (s.AddrPC.Offset == s.AddrReturn.Offset)
-		{
-			onDbgHelpErr("StackWalk64-Endless-Callstack!", 0, s.AddrPC.Offset);
-			break;
+		void* handlerData;
+		uintptr_t establisherFrame;
+		csEntry.base = nullptr;
+		PRUNTIME_FUNCTION fntable = RtlLookupFunctionEntry((uintptr_t)csEntry.address, (uintptr_t*)&csEntry.base, nullptr);
+		if (dbghelp->SymGetModuleInfoW64(process, (uintptr_t)csEntry.base, &moduleInfo)) {
+			csEntry.moduleName = unwide(moduleInfo.ImageName);
 		}
-
-		csEntry.address = (void*)s.AddrPC.Offset;
+		else {
+			csEntry.moduleName = nullptr;
+		}
+		_assert(csEntry.base < csEntry.address);
 
 		qword offsetFromSymbol;
-		if (dbghelp->SymGetSymFromAddr64(this->m_hProcess, s.AddrPC.Offset, &offsetFromSymbol, &sym) != FALSE)
+		if (dbghelp->SymGetSymFromAddr64(this->m_hProcess, (uintptr_t)csEntry.address, &offsetFromSymbol, &sym))
 		{
 			csEntry.function = sym.Name;
-			//UnDecorateSymbolName(sym.Name, csEntry.undName, STACKWALK_MAX_NAMELEN, UNDNAME_NAME_ONLY);
-			//UnDecorateSymbolName(sym.Name, csEntry.undFullName, STACKWALK_MAX_NAMELEN, UNDNAME_COMPLETE);
 		}
 		else
 		{
 			DWORD err = GetLastError();
 			if (err == ERROR_INVALID_ADDRESS)
 			{
-				continue;
+				goto _next;
 			}
 			else if (err == ERROR_MOD_NOT_FOUND)
 			{
@@ -359,16 +320,16 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 				csEntry.filename = nullptr;
 				csEntry.function = nullptr;
 				this->onStack(&csEntry);
-				continue;
+				goto _next;
 			}
 			else
 			{
-				onDbgHelpErr("SymGetSymFromAddr64", GetLastError(), s.AddrPC.Offset);
+				onDbgHelpErr("SymGetSymFromAddr64", GetLastError(), (uintptr_t)csEntry.address);
 			}
 		}
 
 		DWORD offsetFromLine;
-		if (dbghelp->SymGetLineFromAddrW64(this->m_hProcess, s.AddrPC.Offset, &offsetFromLine, &Line) != FALSE)
+		if (dbghelp->SymGetLineFromAddrW64(this->m_hProcess, (uintptr_t)csEntry.address, &offsetFromLine, &Line))
 		{
 			csEntry.line = Line.LineNumber;
 			csEntry.filename = unwide(Line.FileName);
@@ -382,38 +343,44 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx) noexcept
 			}
 			else
 			{
-				onDbgHelpErr("SymGetLineFromAddr64", GetLastError(), s.AddrPC.Offset);
+				onDbgHelpErr("SymGetLineFromAddr64", GetLastError(), (uintptr_t)csEntry.address);
 			}
 		}
 
 		this->onStack(&csEntry);
-		if (s.AddrReturn.Offset == 0)
-		{
-			SetLastError(ERROR_SUCCESS);
-			break;
+
+	_next:
+		if (fntable == nullptr) {
+			csEntry.address = *(void**)ctx->Rsp;
+			ctx->Rip = (uintptr_t)csEntry.address;
+			ctx->Rsp += 8;
+		}
+		else {
+			RtlVirtualUnwind(UNW_FLAG_NHANDLER, (uintptr_t)csEntry.base, (uintptr_t)csEntry.address, fntable, ctx, &handlerData, &establisherFrame, nullptr);
+			csEntry.address = (void*)ctx->Rip;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 #else
 
 
-kr::StackWalker::StackWalker() noexcept
+StackWalker::StackWalker() noexcept
 {
 	notImplementedYet();
 }
-kr::StackWalker::~StackWalker() noexcept
+StackWalker::~StackWalker() noexcept
 {
 	notImplementedYet();
 }
 
-bool kr::StackWalker::loadModules() noexcept
+bool StackWalker::loadModules() noexcept
 {
 	notImplementedYet();
 }
-bool kr::StackWalker::showCallstack() noexcept
+bool StackWalker::showCallstack() noexcept
 {
 	notImplementedYet();
 }
@@ -423,7 +390,7 @@ bool kr::StackWalker::showCallstack() noexcept
 void kr::StackWalker::onLoadModule(ModuleInfo * info) noexcept
 {
 }
-void kr::StackWalker::onStack(StackInfo *entry) noexcept
+void kr::StringStackWalker::onStack(StackInfo *entry) noexcept
 {
 	if (entry->filename == nullptr)
 	{
@@ -435,8 +402,8 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 
 	Text16 filename = path16.basename((Text16)entry->filename);
 
-	if (strcmp(entry->function, "kr::criticalError") == 0) return;
-	if (strcmp(entry->function, "kr::StackWalker::ShowCallstack") == 0) return;
+	if (strcmp(entry->function, "criticalError") == 0) return;
+	if (strcmp(entry->function, "StackWalker::ShowCallstack") == 0) return;
 	if (strcmp(entry->function, "invoke_main") == 0) return;
 	if (strcmp(entry->function, "__scrt_common_main_seh") == 0) return;
 	if (strcmp(entry->function, "__scrt_common_main") == 0) return;
@@ -446,7 +413,7 @@ void kr::StackWalker::onStack(StackInfo *entry) noexcept
 	buf << filename << u'(' << entry->line << u"): " << (Utf8ToUtf16)(Text)entry->function << u"()";
 	onOutput(buf);
 }
-void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept
+void kr::StringStackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept
 {
 	TSZ16 buf;
 	buf << (Utf8ToUtf16)(Text)function << u": ";
@@ -455,8 +422,8 @@ void kr::StackWalker::onDbgHelpErr(pcstr function, dword gle, qword addr) noexce
 	onOutput(buf);
 }
 
-kr::StackWriter::StackWriter(CONTEXT* ctx) noexcept
-	:m_ctx(ctx)
+kr::StackWriter::StackWriter(CONTEXT* ctx, void* threadHandle) noexcept
+	:m_ctx(ctx), m_threadHandle(threadHandle)
 {
 	loadModules();
 }
@@ -465,4 +432,83 @@ void kr::StackWriter::onOutput(Text16 szText) noexcept
 {
 	m_out.write(szText);
 	m_out << endl;
+}
+
+
+kr::Array<kr::StackInfo> kr::getStackInfos(CONTEXT* ctx, void* threadHandle) noexcept {
+	class StackGetter :private StackWalker
+	{
+	public:
+		Array<StackInfo> m_out;
+		TmpArray<byte> m_buffer;
+
+		StackGetter() noexcept {
+		}
+		~StackGetter() noexcept {
+		}
+		void get(CONTEXT* ctx, void* threadHandle) noexcept
+		{
+			if (ctx != nullptr) showCallstack(ctx, threadHandle);
+			else showCallstack();
+		}
+
+	private:
+
+		virtual void onStack(StackInfo* entry) noexcept {
+			size_t moduleNameOffset;
+			if (entry->moduleName == nullptr) {
+				moduleNameOffset = -1;
+			}
+			else {
+				Text16 moduleName = (Text16)entry->moduleName;
+				moduleNameOffset = m_buffer.size();
+				m_buffer.write((byte*)moduleName.data(), moduleName.bytes() + 2);
+			}
+			size_t fileNameOffset;
+			if (entry->filename == nullptr) {
+				fileNameOffset = -1;
+			}
+			else {
+				Text16 filename = (Text16)entry->filename;
+				fileNameOffset = m_buffer.size();
+				m_buffer.write((byte*)filename.data(), filename.bytes() + 2);
+			}
+
+			size_t functionOffset;
+			if (entry->function == nullptr) {
+				functionOffset = -1;
+			}
+			else {
+				Text function = (Text)entry->function;
+				functionOffset = m_buffer.size();
+				m_buffer.write((byte*)function.data(), function.bytes() + 1);
+			}
+
+			StackInfo* out = m_out.prepare(1);
+			out->base = entry->base;
+			out->address = entry->address;
+			out->moduleName = (char16*)moduleNameOffset;
+			out->filename = (char16*)fileNameOffset;
+			out->function = (char*)functionOffset;
+			out->line = entry->line;
+		}
+		virtual void onDbgHelpErr(pcstr function, dword gle, qword addr) noexcept {
+		}
+	};
+
+	StackGetter getter;
+	getter.get(ctx, threadHandle);
+	size_t bufsize = getter.m_buffer.size();
+	byte* base = (byte*)getter.m_out.padding((bufsize + sizeof(StackInfo) - 1) / sizeof(StackInfo));
+	memcpy(base, getter.m_buffer.data(), bufsize);
+	
+	for (StackInfo& comp : getter.m_out) {
+		if ((intptr_t)comp.moduleName == -1) comp.moduleName = nullptr;
+		else (byte*&)comp.moduleName += (uintptr_t)base;
+		if ((intptr_t)comp.function == -1) comp.function = nullptr;
+		else (byte*&)comp.function += (uintptr_t)base;
+		if ((intptr_t)comp.filename == -1) comp.filename = nullptr;
+		else (byte*&)comp.filename += (uintptr_t)base;
+	}
+	return move(getter.m_out);
 }

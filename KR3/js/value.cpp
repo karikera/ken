@@ -57,6 +57,10 @@ JsValue JsValue::callRaw(JsValue _this, JsArgumentsIn arguments) const throws(Js
 {
 	return JsRawData::call(_this, arguments);
 }
+bool JsValue::abstractEquals(const JsValue& other) const noexcept
+{
+	return JsRawData::abstractEquals(other);
+}
 bool JsValue::operator ==(const JsValue& value) const noexcept
 {
 	return equals(value);

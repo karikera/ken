@@ -87,6 +87,7 @@ default: unreachable();\
 		{
 			return callRaw(undefined, { JsValue(forward<ARGS>(args)) ... });
 		}
+		bool abstractEquals(const JsValue& other) const noexcept;
 		bool operator ==(const JsValue& value) const noexcept;
 		bool operator !=(const JsValue& value) const noexcept;
 

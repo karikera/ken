@@ -11,7 +11,7 @@ using namespace kr;
 
 namespace
 {
-	class Walker:public StackWalker
+	class Walker:public StringStackWalker
 	{
 	public:
 		Walker() noexcept;
