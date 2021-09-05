@@ -356,8 +356,13 @@ bool kr::StackWalker::showCallstack(CONTEXT* ctx, void* threadHandle) noexcept
 			ctx->Rsp += 8;
 		}
 		else {
-			RtlVirtualUnwind(UNW_FLAG_NHANDLER, (uintptr_t)csEntry.base, (uintptr_t)csEntry.address, fntable, ctx, &handlerData, &establisherFrame, nullptr);
-			csEntry.address = (void*)ctx->Rip;
+			try {
+				RtlVirtualUnwind(UNW_FLAG_NHANDLER, (uintptr_t)csEntry.base, (uintptr_t)csEntry.address, fntable, ctx, &handlerData, &establisherFrame, nullptr);
+				csEntry.address = (void*)ctx->Rip;
+			}
+			catch (...) {
+				return false;
+			}
 		}
 	}
 
