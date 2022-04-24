@@ -393,9 +393,9 @@ size_t ToConvert<Charset::Utf8, char16>::decode(char * out, Text16 text) noexcep
 		}
 		else if ((chr & SURROGATE_MASK) == SURROGATE_HIGH)
 		{
+			text++;
 			if (text.empty())
 				break;
-			text++;
 			uint unicode = surrogateToUnicode(chr, text.front());
 			*dest++ = (char)((unicode >> 18) | 0xf0);
 			*dest++ = (char)(((unicode >> 12) & 0x3f) | 0x80);

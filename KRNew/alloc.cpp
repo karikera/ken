@@ -385,6 +385,7 @@ namespace
 			m_cs.enter();
 			for (BlockInfo & info : *this)
 			{
+				_assert(BlockInfo::from(info.getAddress()) == &info);
 			}
 			m_cs.leave();
 #ifdef _MSC_VER

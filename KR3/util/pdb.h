@@ -42,7 +42,7 @@ namespace kr
 		static uint32_t setOptions(uint32_t options) noexcept;
 		static uint32_t getOptions() noexcept;
 		template <typename C>
-		class undecorate :public Bufferable<undecorate<C>, BufferInfo<C, method::OnlyCopyTo, true, true, HasOnlyCopyToInfo<4095> > > {
+		class undecorate :public Bufferable<undecorate<C>, BufferInfo<C, method::OnlyCopyTo, true, true, HasOnlyCopyToInfo<4095, 4000> > > {
 		private:
 			const C* m_decorated;
 			uint32_t m_flags;

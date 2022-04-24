@@ -84,10 +84,11 @@ namespace kr
 		}
 	};
 
-	template <size_t _maximum, class Parent = Empty>
+	template <size_t _maximum, size_t _extendsThreshold = 0, class Parent = Empty>
 	struct HasOnlyCopyToInfo :Parent
 	{
 		static constexpr size_t maximum = _maximum;
+		static constexpr size_t extendsThreshold = _extendsThreshold;
 	};
 
 	template <class Derived, typename Component, typename Parent>
@@ -236,20 +237,38 @@ namespace kr
 		using Super::copyTo;
 		using Super::szable;
 		using Super::maximum;
+		using Super::extendsThreshold;
 
 		template <class _Derived, class _Parent>
-		void writeTo(OutStream<_Derived, Component, StreamInfo<true, _Parent>>* os) const
+		size_t writeTo(OutStream<_Derived, Component, StreamInfo<true, _Parent>>* os) const
 		{
-			Component* dest = os->padding(maximum + (szable ? 1 : 0));
-			size_t sz = copyTo(dest);
-			os->commit(sz);
+			size_t size = maximum;
+			for (;;) {
+				Component* dest = os->padding(size + (szable ? 1 : 0));
+				size_t sz = copyTo(dest);
+				if (extendsThreshold != 0 && sz >= size + extendsThreshold - maximum) {
+					size <<= 1;
+					continue;
+				}
+				os->commit(sz);
+				return sz;
+			}
 		}
 		template <class _Derived, class _Parent>
-		void writeTo(OutStream<_Derived, Component, StreamInfo<false, _Parent>>* os) const
+		size_t writeTo(OutStream<_Derived, Component, StreamInfo<false, _Parent>>* os) const
 		{
 			TmpArray<Component> temp;
-			size_t sz = copyTo(temp.padding(maximum + (szable ? 1 : 0)));
-			os->write(temp.data(), sz);
+			size_t size = maximum;
+			for (;;) {
+				temp.resize(size + (szable ? 1 : 0));
+				size_t sz = copyTo(temp.data());
+				if (extendsThreshold != 0 && sz >= size + extendsThreshold - maximum) {
+					size <<= 1;
+					continue;
+				}
+				os->write(temp.data(), sz);
+				return sz;
+			}
 		}
 	};
 
@@ -261,23 +280,38 @@ namespace kr
 		using Super::Super;
 		using Super::szable;
 		using Super::maximum;
+		using Super::extendsThreshold;
 
 		template <typename Component, class _Derived, class _Parent>
 		size_t writeTo(OutStream<_Derived, Component, StreamInfo<true, _Parent>>* os) const
 		{
-			Component* dest = os->padding(maximum + (szable ? 1 : 0));
-			size_t sz = this->template copyTo<Component>(dest);
-			os->commit(sz);
-			return sz;
+			size_t size = maximum;
+			for (;;) {
+				Component* dest = os->padding(size + (szable ? 1 : 0));
+				size_t sz = this->template copyTo<Component>(dest);
+				if (extendsThreshold != 0 && sz >= size+extendsThreshold-maximum) {
+					size <<= 1;
+					continue;
+				}
+				os->commit(sz);
+				return sz;
+			}
 		}
 		template <typename Component, class _Derived, class _Parent>
 		size_t writeTo(OutStream<_Derived, Component, StreamInfo<false, _Parent>>* os) const
 		{
 			TmpArray<Component> temp;
-			temp.resize(maximum + (szable ? 1 : 0));
-			size_t sz = this->template copyTo<Component>(temp.data());
-			os->write(temp.data(), sz);
-			return sz;
+			size_t size = maximum;
+			for (;;) {
+				temp.resize(size + (szable ? 1 : 0));
+				size_t sz = this->template copyTo<Component>(temp.data());
+				if (extendsThreshold != 0 && sz >= size + extendsThreshold - maximum) {
+					size <<= 1;
+					continue;
+				}
+				os->write(temp.data(), sz);
+				return sz;
+			}
 		}
 	};
 

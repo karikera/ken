@@ -473,7 +473,7 @@ namespace kr
 			}
 			size_t capacityBytes() const noexcept
 			{
-				return _mem_msize_bytes(m_begin);
+				return Allocator::_mem_msize_bytes(m_begin);
 			}
 			bool isNull() const noexcept
 			{

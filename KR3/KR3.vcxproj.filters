@@ -720,6 +720,9 @@
     <ClInclude Include="util\initpack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="win\symopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="data\binarray.cpp">
