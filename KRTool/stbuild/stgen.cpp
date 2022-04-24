@@ -256,7 +256,7 @@ int Main::main(int argn, const wchar_t ** args) noexcept
 
 		for(;;)
 		{
-			Text line = fis.readLine();
+			Text line = fis.readLine().first;
 			lineNumber++;
 
 			// remove comment
