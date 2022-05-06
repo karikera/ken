@@ -235,10 +235,10 @@ ExecutableAllocator::ExecutableAllocator() noexcept
 void* ExecutableAllocator::alloc(size_t size) noexcept
 {
 	size_t remaining = m_page_end - m_page;
-	if (remaining <= size)
+	if (remaining < size)
 	{
-		dword pageSize = getAllocationGranularity();
-		size_t needsize = (size + pageSize - 1 - remaining) & ~(size_t)(pageSize - 1);
+		dword pageSize_minus_1 = getAllocationGranularity() - 1;
+		size_t needsize = (size + pageSize_minus_1 - remaining) & ~(size_t)(pageSize_minus_1);
 		void* next = VirtualAlloc(m_page_end, needsize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 		if (next != nullptr)
 		{
@@ -248,7 +248,7 @@ void* ExecutableAllocator::alloc(size_t size) noexcept
 		else
 		{
 			if (m_page_end == nullptr) notEnoughMemory();
-			needsize = (size + pageSize - 1) & ~(size_t)(pageSize - 1);
+			needsize = (size + pageSize_minus_1) & ~(size_t)(pageSize_minus_1);
 			m_page = (byte*)VirtualAlloc(nullptr, needsize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 			if (m_page == nullptr) notEnoughMemory();
 			m_page_end = m_page + needsize;

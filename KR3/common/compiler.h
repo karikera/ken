@@ -49,7 +49,6 @@
 		::kr::requestDebugger();\
 		__debugbreak();\
 	}\
-	::kr::terminate(-1);\
 } } while(false)
 #else
 #define ondebug(code)

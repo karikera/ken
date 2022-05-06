@@ -393,6 +393,7 @@
     <ClInclude Include="win\minidef.h" />
     <ClInclude Include="win\msgthread.h" />
     <ClInclude Include="win\resource.h" />
+    <ClInclude Include="win\symopt.h" />
     <ClInclude Include="win\threadhandle.h" />
     <ClInclude Include="win\threadid.h" />
     <ClInclude Include="win\version.h" />
