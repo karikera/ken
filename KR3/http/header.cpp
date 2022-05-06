@@ -8,7 +8,6 @@ EMPTY_SOURCE
 #include "header.h"
 
 #include <KR3/io/selfbufferedstream.h>
-#include <KR3/util/unaligned.h>
 #include <KR3/net/socket.h>
 
 kr::HttpResponseHeader::HttpResponseHeader() noexcept

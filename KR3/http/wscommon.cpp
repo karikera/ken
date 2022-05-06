@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "wscommon.h"
-#include <KR3/util/unaligned.h>
 
 using namespace kr;
 

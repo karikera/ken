@@ -63,7 +63,7 @@ namespace kr
 		template <typename C, class Parent>
 		class ReadableData:public Common<C, true, true, false, false, Parent>
 		{
-			CLASS_HEADER(ReadableData, Common<C, true, true, false, false, Parent>);
+			CLASS_HEADER(Common<C, true, true, false, false, Parent>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -180,7 +180,7 @@ namespace kr
 		template <typename C, class Parent> 
 		class AccessableData :public Common<C, true, true, false, true, Parent>
 		{
-			CLASS_HEADER(AccessableData, Common<C, true, true, false, true, Parent>);
+			CLASS_HEADER(Common<C, true, true, false, true, Parent>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -263,7 +263,7 @@ namespace kr
 		template <typename C, class Parent> 
 		class WritableData:public Common<C, false, false, true, true, Parent>
 		{
-			CLASS_HEADER(WritableData, Common<C, false, false, true, true, Parent>);
+			CLASS_HEADER(Common<C, false, false, true, true, Parent>);
 		public:
 			INHERIT_COMPONENT();
 

@@ -54,6 +54,7 @@ namespace
 		static dword makeColor(color _color) noexcept;
 		static void maskedRecolor(image::ImageData * _dest, color _color, const image::ImageData * _mask) noexcept;
 		static void recolor(image::ImageData * _dest, color _color) noexcept;
+		static color getPixel(const image::ImageData* image, int x, int y) noexcept;
 	};
 	
 #ifdef WIN32
@@ -116,6 +117,7 @@ PixelUtil<PixelFormat##pf>::setAlpha, \
 PixelUtil<PixelFormat##pf>::fill, \
 PixelUtil<PixelFormat##pf>::maskedRecolor, \
 PixelUtil<PixelFormat##pf>::recolor, \
+PixelUtil<PixelFormat##pf>::getPixel, \
 },
 
 #include "formatlist.h"
@@ -200,6 +202,14 @@ const kr::image::ImageData * kr::image::reformat(ImageData * buffer, const Image
 		reformat(buffer, src);
 		return buffer;
 	}
+}
+kr::image::ImageData* kr::image::reformat(ImageData* buffer, ImageData* src, PixelFormat format) noexcept
+{
+	return (ImageData*)reformat(buffer, (const ImageData*)src, format);
+}
+kr::image::ImageData* kr::image::reformat(ImageData* buffer, ImageData* src, PixelFormat format, int pitchBytes) noexcept
+{
+	return (ImageData*)reformat(buffer, (const ImageData*)src, format, pitchBytes);
 }
 
 template <image::PixelFormat dstf, image::PixelFormat srcf>
@@ -548,6 +558,18 @@ void PixelUtil<pf>::recolor(image::ImageData * _dest, color _color) noexcept
 		}
 		dst += dstpitch;
 	}
+}\
+template <image::PixelFormat pf>
+color PixelUtil<pf>::getPixel(const image::ImageData* image, int x, int y) noexcept {
+	_assert(x >= 0);
+	_assert(y >= 0);
+	_assert(x < image->getWidth());
+	_assert(y < image->getHeight());
+
+	byte* src = (byte*)image->getBits();
+	byte* pixelptr = src + image->getPitch() * y + x;
+
+	return ((image::Pixel<pf>*)pixelptr)->get();
 }
 
 vec3 hsv_to_rgb(const vec3 & _hsv) noexcept

@@ -4,6 +4,8 @@
 #include <KR3/main.h>
 #include <KR3/util/wide.h>
 #include <KR3/util/resloader.h>
+#include <KR3/http/fetch.h>
+#include <KR3/msg/pool.h>
 
 #include "stdcommon.h"
 #include "bitmap.h"
@@ -257,7 +259,7 @@ void kr::image::ImageData::recolor(kr::color _color) noexcept
 {
 	getPixelInfo()->recolor(this, _color);
 }
-void kr::image::ImageData::free() noexcept
+void kr::image::ImageData::free() const noexcept
 {
 	delete[] (byte*)m_image;
 }
@@ -310,12 +312,32 @@ size_t kr::image::ImageData::getByteSize() const noexcept
 {
 	return m_pitch * m_height;
 }
+kr::color kr::image::ImageData::getPixel(int x, int y) const noexcept {
+	return kr::image::getFormatInfo(m_pf)->getPixel(this, x, y);
+}
 
+kr::Promise<kr::image::ImageData>* kr::image::ImageData::loadFile(Text16 filepath, Palette* palette) noexcept {
+	return threading([filepatha = (AText16)filepath, palette]() {
+		AText data = fetch::sync::text(filepatha);
+		kr::Buffer databuf = data;
 
-bool kr::image::ImageData::load(krb::File file, krb::Extension extension, Palette* palette) noexcept
-{
-	struct ImageCallback : KrbImageCallback
-	{
+		ImageData image;
+		krb::Extension ext = krb::makeExtensionFromPath((Text16)filepatha);
+		if (!image.load(&databuf, ext, palette)) {
+			image = nullptr;
+		}
+		return image;
+	});
+}
+bool kr::image::ImageData::loadFileSync(Text16 filepath, Palette* palette) noexcept {
+	AText data = fetch::sync::text(filepath);
+	kr::Buffer databuf = data;
+
+	krb::Extension ext = krb::makeExtensionFromPath(filepath);
+	return load(&databuf, ext, palette);
+}
+bool kr::image::ImageData::load(krb::File file, krb::Extension extension, Palette* palette) noexcept {
+	struct ImageCallback : KrbImageCallback {
 		ImageData * data;
 	};
 	ImageCallback cb;
@@ -326,8 +348,7 @@ bool kr::image::ImageData::load(krb::File file, krb::Extension extension, Palett
 	};
 	return krb_load_image(extension, &cb, &file);
 }
-bool kr::image::ImageData::save(krb::File file, krb::Extension extension, Palette * palette) noexcept
-{
+bool kr::image::ImageData::save(krb::File file, krb::Extension extension, Palette * palette) noexcept {
 	KrbImageSaveInfo info;
 	info.data = m_image;
 	info.width = m_width;

@@ -68,6 +68,7 @@ namespace kr
 			~SortedArray() noexcept;
 
 			void insert(const Component &data) throws(NotEnoughSpaceException);
+			void insert(Component&& data) throws(NotEnoughSpaceException);
 			void rankingInsert(const Component & data, size_t limit) throws(NotEnoughSpaceException);
 
 			void remove(K key) noexcept;

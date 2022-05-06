@@ -612,6 +612,7 @@ namespace kr
 			void(*fill)(ImageData * _dest, color _color);
 			void(*maskedRecolor)(ImageData * _dest, color _color, const ImageData * _mask);
 			void(*recolor)(ImageData * _dest, color _color);
+			color(*getPixel)(const ImageData* _image, int x, int y);
 		};
 
 		const FormatInfo * getFormatInfo(PixelFormat pf) noexcept;
@@ -622,5 +623,7 @@ namespace kr
 		void reformat(ImageData * dest, const ImageData * src) noexcept;
 		const ImageData * reformat(ImageData * buffer, const ImageData * src, PixelFormat format) noexcept;
 		const ImageData * reformat(ImageData * buffer, const ImageData * src, PixelFormat format, int pitchBytes) noexcept;
+		ImageData* reformat(ImageData* buffer, ImageData* src, PixelFormat format) noexcept;
+		ImageData* reformat(ImageData* buffer, ImageData* src, PixelFormat format, int pitchBytes) noexcept;
 	}
 }

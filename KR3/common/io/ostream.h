@@ -30,7 +30,7 @@ namespace kr
 		class OStream_cmpAccessable<Derived, C, StreamInfo<false, Parent> >
 			:public AddContainer<C, true, StreamInfo<false, Parent> >
 		{
-			CLASS_HEADER(OStream_cmpAccessable, AddContainer<C, true, StreamInfo<false, Parent> >);
+			CLASS_HEADER(AddContainer<C, true, StreamInfo<false, Parent> >);
 		public:
 			using Super::Super;
 			using typename Super::Component;
@@ -53,7 +53,7 @@ namespace kr
 		class OStream_cmpAccessable<Derived, C, StreamInfo<true, Parent> >
 			:public AddContainer<C, false, StreamInfo<true, Parent> >
 		{
-			CLASS_HEADER(OStream_cmpAccessable, AddContainer<C, false, StreamInfo<true, Parent> >);
+			CLASS_HEADER(AddContainer<C, false, StreamInfo<true, Parent> >);
 		public:
 			INHERIT_COMPONENT();
 
@@ -178,7 +178,7 @@ namespace kr
 		template <class Derived, typename C, typename Info>
 		class OStream_cmpComponent :public OStream_cmpAccessable<Derived, C, Info>
 		{
-			CLASS_HEADER(OStream_cmpComponent, OStream_cmpAccessable<Derived, C, Info>);
+			CLASS_HEADER(OStream_cmpAccessable<Derived, C, Info>);
 		public:
 			INHERIT_COMPONENT();
 			using Super::Super;
@@ -224,7 +224,7 @@ namespace kr
 	template <class Derived, typename Component, typename Info>
 	class OutStream :public _pri_::OStream_cmpComponent<Derived, Component, Info>
 	{
-		CLASS_HEADER(OutStream, _pri_::OStream_cmpComponent<Derived, Component, Info>);
+		CLASS_HEADER(_pri_::OStream_cmpComponent<Derived, Component, Info>);
 
 	public:
 		INHERIT_COMPONENT();
@@ -308,7 +308,7 @@ namespace kr
 	class OutStream<Derived, AutoComponent, StreamInfo<false, Parent>>
 		:public AddContainer<AutoComponent, true, StreamInfo<false, Parent>>
 	{
-		CLASS_HEADER(OutStream, AddContainer<AutoComponent, true, StreamInfo<false, Parent>>);
+		CLASS_HEADER(AddContainer<AutoComponent, true, StreamInfo<false, Parent>>);
 	public:
 		INHERIT_COMPONENT();
 		using Super::Super;

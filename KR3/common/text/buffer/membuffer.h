@@ -342,7 +342,7 @@ namespace kr
 		class Memory<Derived, BufferInfo<Component, Method, szable, readonly, Parent> > 
 			:public WriteToByCopyTo<Derived, Component, BufferInfo<Component, Method, szable, readonly, Parent> >
 		{
-			CLASS_HEADER(Memory, WriteToByCopyTo<Derived, Component, BufferInfo<Component, Method, szable, readonly, Parent> >);
+			CLASS_HEADER(WriteToByCopyTo<Derived, Component, BufferInfo<Component, Method, szable, readonly, Parent> >);
 			using Memory_Info = BufferInfo<Component, Method, szable, readonly, Parent>;
 		public:
 			INHERIT_COMPONENT();
@@ -1031,7 +1031,7 @@ namespace kr
 		template <typename Derived, typename Info>
 		class WMemory :public Memory<Derived, Info>
 		{
-			CLASS_HEADER(WMemory, Memory<Derived, Info>);
+			CLASS_HEADER(Memory<Derived, Info>);
 		public:
 			INHERIT_COMPONENT();
 

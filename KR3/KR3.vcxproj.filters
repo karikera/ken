@@ -354,7 +354,7 @@
     <ClInclude Include="util\wide.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util\unaligned.h">
+    <ClInclude Include="common\unaligned.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\text\iterator.h">

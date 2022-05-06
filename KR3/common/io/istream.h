@@ -151,7 +151,7 @@ namespace kr
 		class IStream_cmpAccessable<Derived, C, StreamInfo<false, Info> >
 			: public AddContainer<C, true, StreamInfo<false, Info> >
 		{
-			CLASS_HEADER(IStream_cmpAccessable, AddContainer<C, true, StreamInfo<false, Info> >);
+			CLASS_HEADER(AddContainer<C, true, StreamInfo<false, Info> >);
 		public:
 			INHERIT_COMPONENT();
 
@@ -214,7 +214,7 @@ namespace kr
 		class IStream_cmpAccessable<Derived, C, StreamInfo<true, Info>> :
 			public StreamInfo<true, Info>
 		{
-			CLASS_HEADER(IStream_cmpAccessable, StreamInfo<true, Info>);
+			CLASS_HEADER(StreamInfo<true, Info>);
 		public:
 			INHERIT_COMPONENT();
 			using Super::Super;
@@ -304,7 +304,7 @@ namespace kr
 			{
 				static_assert(sizeof(T) % sizeof(InternalComponent) == 0, "Size of T must aligned by size of component");
 				Ref ref = read(sizeof(T) / sizeof(InternalComponent));
-				return *(T*)ref.begin();
+				return *(Unaligned<T>*)(ref.begin());
 			}
 			inline Ref _readto_p(const Component* p) noexcept
 			{
@@ -525,7 +525,7 @@ namespace kr
 		template <class Derived, typename C, class Info>
 		class IStream_voidStream: public IStream_cmpAccessable<Derived, C, Info>
 		{
-			CLASS_HEADER(IStream_voidStream, IStream_cmpAccessable<Derived, C, Info>);
+			CLASS_HEADER(IStream_cmpAccessable<Derived, C, Info>);
 		public:
 			using Super::Super;
 		};
@@ -533,7 +533,7 @@ namespace kr
 		template <class Derived, class Info>
 		class IStream_voidStream<Derived, void, Info>: public IStream_cmpAccessable<Derived, void, Info>
 		{
-			CLASS_HEADER(IStream_voidStream, IStream_cmpAccessable<Derived, void, Info>);
+			CLASS_HEADER(IStream_cmpAccessable<Derived, void, Info>);
 		public:
 			INHERIT_COMPONENT();
 			using Super::Super;
@@ -588,19 +588,17 @@ namespace kr
 	class InStream
 		: public _pri_::IStream_voidStream<Derived, Component, Info>
 	{
-		CLASS_HEADER(InStream, _pri_::IStream_voidStream<Derived, Component, Info>);
+		CLASS_HEADER(_pri_::IStream_voidStream<Derived, Component, Info>);
 	public:
 		INHERIT_COMPONENT();
 		using Super::Super;
 		using Super::read;
 		using Super::readAll;
 
-		inline dword readLeb128() throws(...)
-		{
+		inline dword readLeb128() throws(...) {
 			dword result = 0;
 			dword shift = 0;
-			while (true)
-			{
+			for (;;) {
 				InternalComponent v;
 				read(&v, 1);
 				result |= (v & 0x7f) << shift;
@@ -611,14 +609,11 @@ namespace kr
 			return result;
 		}
 
-		inline qword readLeb128_64() throws(...)
-		{
+		inline qword readLeb128_64() throws(...) {
 			qword result = 0;
 			dword shift = 0;
-			while (true)
-			{
-				Component v;
-				read(&v, 1);
+			for (;;) {
+				Component v = read();
 				result |= (qword)(v & 0x7f) << shift;
 				if ((v & 0x80) == 0)
 					break;
@@ -627,16 +622,12 @@ namespace kr
 			return result;
 		}
 
-		inline dword readLeb128_kr() throws(...)
-		{
+		inline dword readLeb128_kr() throws(...) {
 			dword v = 0;
 			byte shift = 0;
-			for (;;)
-			{
-				Component d;
-				read(&d, 1);
-				if ((d & 0x80) != 0)
-				{
+			for (;;) {
+				Component d = read();
+				if ((d & 0x80) != 0) {
 					v |= (d & 0x7f) << shift;
 					break;
 				}
@@ -646,16 +637,12 @@ namespace kr
 			return v;
 		}
 
-		inline qword readLeb128_kr64() throws(...)
-		{
+		inline qword readLeb128_kr64() throws(...) {
 			qword v = 0;
 			byte shift = 0;
-			for (;;)
-			{
-				Component d;
-				read(&d, 1);
-				if ((d & 0x80) != 0)
-				{
+			for (;;) {
+				Component d = read();
+				if ((d & 0x80) != 0) {
 					v |= (qword)(d & 0x7f) << shift;
 					break;
 				}

@@ -9,7 +9,7 @@ namespace kr
 		template <class Parent>
 		class IStreamMethod: public InStream<IStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>
 		{
-			CLASS_HEADER(IStreamMethod, InStream<IStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>);
+			CLASS_HEADER(InStream<IStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>);
 		public:
 			INHERIT_ARRAY();
 
@@ -28,7 +28,7 @@ namespace kr
 				addBegin(1);
 				return *static_cast<Self*>(this);
 			}
-			Ref operator ++(int) noexcept
+			SelfRef operator ++(int) noexcept
 			{
 				Ref out = *static_cast<Self*>(this);
 				addBegin(1);
@@ -39,7 +39,7 @@ namespace kr
 				addBegin(-1);
 				return *static_cast<Self*>(this);
 			}
-			Ref operator --(int) noexcept
+			SelfRef operator --(int) noexcept
 			{
 				Ref out = *static_cast<Self*>(this);
 				addBegin(-1);
@@ -80,7 +80,7 @@ namespace kr
 		class OStreamMethod 
 			: public OutStream<OStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>
 		{
-			CLASS_HEADER(OStreamMethod, OutStream<OStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>);
+			CLASS_HEADER(OutStream<OStreamMethod<Parent>, typename Parent::Component, StreamInfo<true, Parent>>);
 		public:
 			INHERIT_ARRAY();
 
@@ -101,7 +101,7 @@ namespace kr
 		class IRStreamMethod
 			: public Parent
 		{
-			CLASS_HEADER(IRStreamMethod, Parent);
+			CLASS_HEADER(Parent);
 		public:
 			INHERIT_ARRAY();
 

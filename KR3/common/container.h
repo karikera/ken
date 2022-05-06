@@ -41,6 +41,7 @@ namespace kr
 		using Alc = Array<C>;
 		using Ref = View<C>;
 		using WRef = WView<C>;
+		using SelfRef = meta::if_t<rdonly, View<C>, WView<C>>;
 		using Wri = ArrayWriter<C>;
 
 		using Parent::Parent;
@@ -60,6 +61,7 @@ namespace kr
 		using Alc = void;
 		using Ref = void;
 		using WRef = void;
+		using SelfRef = void;
 		using Wri = void;
 
 		using Parent::Parent;
@@ -83,7 +85,8 @@ namespace kr
 	using typename Super::ComponentRef;\
 	using typename Super::InternalComponent;\
 	using typename Super::InternalComponentRef;\
-	using Alc = typename Super::Alc;\
-	using Ref = typename Super::Ref;\
-	using Wri = typename Super::Wri;\
-	using WRef = typename Super::WRef;
+	using typename Super::Alc;\
+	using typename Super::Ref;\
+	using typename Super::Wri;\
+	using typename Super::WRef;\
+	using typename Super::SelfRef;

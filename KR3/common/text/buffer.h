@@ -15,7 +15,7 @@ namespace kr
 	template <typename C, template <typename, typename> class Method, bool _szable, bool _readonly, class Parent>
 	class BufferInfo : public AddContainer<C, _readonly, Parent>
 	{
-		CLASS_HEADER(BufferInfo, AddContainer<C, _readonly, Parent>);
+		CLASS_HEADER(AddContainer<C, _readonly, Parent>);
 	public:
 		INHERIT_COMPONENT();
 		using Super::Super;

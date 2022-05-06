@@ -7,7 +7,7 @@ namespace kr
 		template <class Parent> class CommonMethod
 			:public Parent
 		{
-			CLASS_HEADER(CommonMethod, Parent);
+			CLASS_HEADER(Parent);
 		public:
 			INHERIT_ARRAY();
 

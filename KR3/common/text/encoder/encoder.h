@@ -14,7 +14,7 @@ namespace kr
 		template <typename Derived, typename To, typename From>
 		class Parser : public Container<To>
 		{
-			CLASS_HEADER(Parser, Container<To>);
+			CLASS_HEADER(Container<To>);
 		public:
 			INHERIT_COMPONENT();
 			
@@ -24,7 +24,7 @@ namespace kr
 		template <typename Derived, typename To, typename From>
 		class Encoder :public Bufferable<Derived, BufferInfo<To>>
 		{
-			CLASS_HEADER(Encoder, Bufferable<Derived, BufferInfo<To>>);
+			CLASS_HEADER(Bufferable<Derived, BufferInfo<To>>);
 		public:
 			INHERIT_COMPONENT();
 			using ToComponent = To;
@@ -139,7 +139,7 @@ namespace kr
 		class OStreamEncoder :
 			public OutStream<OStreamEncoder<Base, Encoder>, typename Base::Component, StreamInfo<false>>
 		{
-			CLASS_HEADER(OStreamEncoder, OutStream<OStreamEncoder<Base, Encoder>, typename Base::Component, StreamInfo<false>>);
+			CLASS_HEADER(OutStream<OStreamEncoder<Base, Encoder>, typename Base::Component, StreamInfo<false>>);
 		public:
 			INHERIT_COMPONENT();
 			static_assert(IsOStream<Base>::value, "Base is not OutStream");

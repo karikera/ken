@@ -84,6 +84,7 @@ namespace kr
 		using bvec4 = vector<byte, 4, false, OrderRGBA>;
 		using bvec3 = vector<byte, 3, false, OrderRGBA>;
 		using bvec2 = vector<byte, 2, false, OrderRGBA>;
+		using colorr = bvec4;
 		using color = vector<byte, 4, false, OrderBGRA>;
 		using mat4 = matrix<float, 4, 4, false, matrix_data_type::none>;
 		using mat3 = matrix<float, 3, 3, false, matrix_data_type::none>;
@@ -140,6 +141,7 @@ namespace kr
 	using math::bvec3;
 	using math::bvec4;
 	using math::color;
+	using math::colorr;
 	using math::mat2;
 	using math::mat2p;
 	using math::mat3;

@@ -26,7 +26,7 @@ namespace kr
 			template <class Derived, class Next>
 			class TextCommon: public meta::if_t<Next::szable, _pri_::MemBuffer_c_str<Derived, Next>, Next>
 			{
-				CLASS_HEADER(TextCommon, meta::if_t<Next::szable, _pri_::MemBuffer_c_str<Derived, Next>, Next>);
+				CLASS_HEADER(meta::if_t<Next::szable, _pri_::MemBuffer_c_str<Derived, Next>, Next>);
 			public:
 				INHERIT_COMPONENT();
 
@@ -280,7 +280,7 @@ namespace kr
 		class Text<Derived, BufferInfo<Component, Method, szable, readonly, Parent> > 
 			:public _pri_::TextCommon<Derived, Memory<Derived, BufferInfo<Component, Method, szable, readonly, Parent> > >
 		{
-			CLASS_HEADER(Text, _pri_::TextCommon<Derived, Memory<Derived, BufferInfo<Component, Method, szable, readonly, Parent> > >);
+			CLASS_HEADER(_pri_::TextCommon<Derived, Memory<Derived, BufferInfo<Component, Method, szable, readonly, Parent> > >);
 		public:
 			INHERIT_COMPONENT();
 
@@ -293,7 +293,7 @@ namespace kr
 		template <class Derived, class Info>
 		class WText:public _pri_::TextCommon<Derived, WMemory<Derived, Info> >
 		{
-			CLASS_HEADER(WText, _pri_::TextCommon<Derived, WMemory<Derived, Info> >);
+			CLASS_HEADER(_pri_::TextCommon<Derived, WMemory<Derived, Info> >);
 		public:
 			INHERIT_COMPONENT();
 

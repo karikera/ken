@@ -9,7 +9,7 @@ namespace kr
 		template <class Derived, class Base, bool autoClose, typename NewComponent>
 		class FilterIStream : public InStream<Derived, NewComponent, StreamInfo<>>
 		{
-			CLASS_HEADER(FilterIStream, InStream<Derived, NewComponent, StreamInfo<>>);
+			CLASS_HEADER(InStream<Derived, NewComponent, StreamInfo<>>);
 		public:
 			static_assert(IsIStream<Base>::value, "Base is not InStream");
 			INHERIT_COMPONENT();
@@ -28,7 +28,7 @@ namespace kr
 		class FilterOStream : public OutStream<Derived, NewComponent>
 		{
 		public:
-			CLASS_HEADER(FilterOStream, OutStream<Derived, NewComponent>);
+			CLASS_HEADER(OutStream<Derived, NewComponent>);
 			static_assert(IsOStream<Base>::value, "Base is not OutStream");
 			INHERIT_COMPONENT();
 

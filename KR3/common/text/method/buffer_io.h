@@ -7,7 +7,7 @@ namespace kr
 		template <class Parent> 
 		class BufferIOMethod:public Parent
 		{
-			CLASS_HEADER(BufferIOMethod, Parent);
+			CLASS_HEADER(Parent);
 		public:
 			INHERIT_ARRAY();
 

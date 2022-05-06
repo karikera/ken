@@ -32,8 +32,10 @@ namespace kr
 		void setRequestHeader(const char * line) noexcept;
 		void setPostFields(AText data) noexcept;
 		Promise<AText>* fetchAsText(const char * url, AtomicProgress* progress = nullptr) noexcept;
+		Promise<AText>* fetchAsTextCached(const char* url, AtomicProgress* progress = nullptr) noexcept;
 #ifndef __EMSCRIPTEN__
 		AText fetchAsTextSync(const char * url, AtomicProgress* progress = nullptr) throws(HttpException);
+		AText fetchAsTextSyncCached(const char* url, AtomicProgress* progress = nullptr) throws(HttpException);
 #endif
 #ifndef NO_USE_FILESYSTEM
 		Promise<void>* fetchAsFile(const char * url, AText16 filename, AtomicProgress* progress = nullptr) noexcept;
@@ -53,12 +55,39 @@ namespace kr
 		AtomicProgress m_progress;
 #endif
 	};
-	Promise<AText>* fetchAsText(Text16 url, AtomicProgress* progress = nullptr) noexcept;
-	Promise<AText>* fetchAsText(Text url, AtomicProgress* progress = nullptr) noexcept;
-	Promise<AText>* fetchAsTextFromWeb(const char * url, AtomicProgress* progress = nullptr) noexcept;
+
+	namespace fetch {
+		Promise<AText>* text(Text16 url, AtomicProgress* progress = nullptr) noexcept;
+		Promise<AText>* text(Text url, AtomicProgress* progress = nullptr) noexcept;
+
+		namespace sync {
+			AText text(Text16 url, AtomicProgress* progress = nullptr) noexcept;
+		}
+
 #ifndef NO_USE_FILESYSTEM
-	Promise<void>* fetchAsFile(Text16 url, AText16 filename, AtomicProgress* progress = nullptr) noexcept;
-	Promise<void>* fetchAsFile(Text url, AText16 filename, AtomicProgress* progress = nullptr) noexcept;
-	Promise<void>* fetchAsFileFromSz(const char * url, AText16 filename, AtomicProgress* progress = nullptr) noexcept;
+		Promise<void>* file(Text16 url, AText16 filename, AtomicProgress* progress = nullptr) noexcept;
+		Promise<void>* file(Text url, AText16 filename, AtomicProgress* progress = nullptr) noexcept;
+		Promise<void>* file_sz(const char* url, AText16 filename, AtomicProgress* progress = nullptr) noexcept;
 #endif
+
+		namespace web {
+			Promise<AText>* text(const char* url, AtomicProgress* progress = nullptr) noexcept;
+			namespace sync {
+				AText text(const char* url, AtomicProgress* progress = nullptr) noexcept;
+			}
+			namespace cached {
+				Promise<AText>* text(const char* url, AtomicProgress* progress = nullptr) noexcept;
+				namespace sync {
+					AText text(const char* url, AtomicProgress* progress = nullptr) noexcept;
+				}
+			}
+		}
+		namespace cached {
+			Promise<AText>* text(Text16 url, AtomicProgress* progress = nullptr) noexcept;
+			Promise<AText>* text(Text url, AtomicProgress* progress = nullptr) noexcept;
+			namespace sync {
+				AText text(Text16 url, AtomicProgress* progress = nullptr) noexcept;
+			}
+		}
+	}
 }

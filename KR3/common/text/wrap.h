@@ -26,7 +26,7 @@ namespace kr
 			template attach<ary::BufferIOMethod, Data::extendable && Data::readable>::
 			type
 		{
-			CLASS_HEADER(WrapImpl,
+			CLASS_HEADER(
 				typename meta::crtp_order<Data>::
 				template attach<ary::CommonMethod, true>::
 				template attach<ary::OStreamMethod, Data::extendable>::

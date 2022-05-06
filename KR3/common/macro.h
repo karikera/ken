@@ -26,6 +26,15 @@ namespace kr
 	using std::move;
 	using std::forward;
 	using std::pair;
+
+	namespace _pri_ {
+		template <typename T> struct this_type_getter;
+		template <typename T> struct this_type_getter<void (T::*)()> {
+			using type = T;
+		};
+		template <typename T>
+		using this_type_getter_t = typename this_type_getter<T>::type;
+	}
 }
 
 using std::declval;
@@ -50,8 +59,9 @@ template <typename T>
 using remove_constref_t = remove_const_t<remove_reference_t<T>>;
 
 #define MUST_BASE_OF(der, ...) static_assert((bool)is_base_of<__VA_ARGS__, der>::value,#der " is not base of " #__VA_ARGS__)
-#define CLASS_HEADER(this_t,...) \
-	using This = this_t;\
+#define CLASS_HEADER(...) \
+	constexpr void __this_type_checker() {}; \
+	using This = ::kr::_pri_::this_type_getter_t<decltype(&__this_type_checker)>;\
 	using Super = __VA_ARGS__;
 
 #define EXTERN_FULL_CHAR_CLASS(tclass) \

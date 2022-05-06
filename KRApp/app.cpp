@@ -13,36 +13,6 @@ using namespace kr;
 namespace
 {
 	Application * s_main;
-#ifndef __EMSCRIPTEN__
-	class DrawInterval:public TimerEvent
-	{
-	public:
-		DrawInterval() noexcept
-			:TimerEvent(timepoint())
-		{
-			AddRef();
-		}
-		void start() noexcept
-		{
-			m_at = timepoint::now();
-			s_main->m_pump->attach(this);
-		}
-		void post() noexcept
-		{
-			m_at += 16_ms;
-			timepoint now = timepoint::now();
-			if (m_at < now) m_at = now;
-			EventPump::getInstance()->attach(this);
-		}
-		void call() noexcept override
-		{
-			s_main->onDraw();
-			s_main->_flush();
-			post();
-		}
-	};
-	DrawInterval s_drawInterval;
-#endif
 }
 
 #ifdef __EMSCRIPTEN__
@@ -59,8 +29,15 @@ void ::kr::_pri_::setApplication(Application * proc) noexcept
 
 #ifdef __EMSCRIPTEN__
 #elif defined(WIN32)
-	s_drawInterval.start();
-	s_main->m_pump->messageLoop();
+	try {
+		for (;;) {
+			s_main->m_pump->processOnce();
+			proc->onDraw();
+			proc->_flush();
+		}
+	}
+	catch (QuitException&) {
+	}
 #else
 #error Need implement
 #endif
@@ -278,7 +255,6 @@ void Application::create(int width, int height) noexcept
 			break;
 
 		case WM_DESTROY: 
-			s_main->m_pump->cancel(&s_drawInterval);
 			PostQuitMessage(0);
 			break;
 		case WM_SIZE: {

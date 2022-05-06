@@ -106,7 +106,7 @@ namespace kr
 	template <class Derived, typename Component, typename Parent>
 	class CopyToByWriteTo :public HasWriteTo<Derived, Component, Parent>
 	{
-		CLASS_HEADER(CopyToByWriteTo, HasWriteTo<Derived, Component, Parent>);
+		CLASS_HEADER(HasWriteTo<Derived, Component, Parent>);
 	public:
 		using Super::Super;
 		using Super::writeTo;
@@ -142,7 +142,7 @@ namespace kr
 	class CopyToByWriteTo<Derived, AutoComponent, Parent> :
 		public HasWriteTo<Derived, AutoComponent, Parent>
 	{
-		CLASS_HEADER(CopyToByWriteTo, HasWriteTo<Derived, AutoComponent, Parent>);
+		CLASS_HEADER(HasWriteTo<Derived, AutoComponent, Parent>);
 	public:
 		using Super::Super;
 		using Super::writeTo;
@@ -230,7 +230,7 @@ namespace kr
 	template <class Derived, typename Component, typename Parent>
 	class WriteToByOnlyCopyTo :public HasOnlyCopyTo<Derived, Component, Parent>
 	{
-		CLASS_HEADER(WriteToByOnlyCopyTo, HasOnlyCopyTo<Derived, Component, Parent>);
+		CLASS_HEADER(HasOnlyCopyTo<Derived, Component, Parent>);
 	public:
 		using Super::Super;
 		using Super::copyTo;
@@ -256,7 +256,7 @@ namespace kr
 	template <class Derived, typename Parent>
 	class WriteToByOnlyCopyTo<Derived, AutoComponent, Parent> :public HasOnlyCopyTo<Derived, AutoComponent, Parent>
 	{
-		CLASS_HEADER(WriteToByOnlyCopyTo, HasOnlyCopyTo<Derived, AutoComponent, Parent>);
+		CLASS_HEADER(HasOnlyCopyTo<Derived, AutoComponent, Parent>);
 	public:
 		using Super::Super;
 		using Super::szable;

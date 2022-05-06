@@ -101,23 +101,5 @@ namespace kr
 			GLint getAttribLocation(const GLchar * name) noexcept;
 			GLint getUniformLocation(const GLchar * name) noexcept;
 		};
-
-		class AttribLocations
-		{
-		private:
-			AttribLocation m_pos;
-			AttribLocation m_uv;
-
-		public:
-			void enable() const noexcept;
-			void set(Program program, const char* pos_name = "pos", const char* uv_name = "uv") noexcept;
-			template <typename T>
-			void pointer() const noexcept
-			{
-				m_pos.pointer(3, GL_FLOAT, 0, sizeof(T), offsetof(T, pos));
-				m_uv.pointer(2, GL_FLOAT, 0, sizeof(T), offsetof(T, uv));
-			}
-		};
-
 	}
 }

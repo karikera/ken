@@ -21,7 +21,7 @@ namespace kr
 	template <typename C>
 	class TempSzText:public TmpArray<C>
 	{
-		CLASS_HEADER(TempSzText, TmpArray<C>);
+		CLASS_HEADER(TmpArray<C>);
 	public:
 		INHERIT_COMPONENT();
 

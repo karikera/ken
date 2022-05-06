@@ -38,6 +38,36 @@ namespace
 		curl_off_t dltotal, curl_off_t dlnow,
 		curl_off_t ultotal, curl_off_t ulnow);
 
+	void urlToFilename(AText16* out, Text16 url) noexcept {
+		_assert(url.startsWith(u"http"));
+		Text16 next = url.subarr(4);
+		if (next.startsWith(u':')) {
+			next++;
+		}
+		else {
+			_assert(next.startsWith(u"s:"));
+			next += 2;
+		}
+
+		out->prepare(url.size() * 3 / 2);
+		while (!next.empty()) {
+			char16_t chr = *next++;
+			_assert(chr != '\0');
+			switch (chr) {
+			case '\\':
+			case '/':
+				*out << '#';
+				break;
+			case '*':
+				*out << '^';
+				break;
+			default:
+				*out << chr;
+				break;
+			}
+		}
+	}
+
 #ifndef __EMSCRIPTEN__
 	void setBasic(CURL* curl, curl_slist* headers) noexcept
 	{
@@ -103,6 +133,27 @@ namespace
 			dout << curl_easy_strerror(res) << endl;
 #endif
 			throw HttpException{ HttpStatus::Undefined };
+		}
+	}
+	void fetchAsFileImpl(CURL* curl, Text16 filename_sz, curl_slist* headers, AtomicProgress* progress) throws(HttpException, Error) {
+		if (File::exists(filename_sz.data())) return;
+
+		BText16<MAX_PATH> tempfile;
+		tempfile << filename_sz << u".#temp" << nullterm;
+
+		try
+		{
+			setBasic(curl, headers);
+			if (progress) setProgressImpl(curl, progress);
+			fetchAsFileImpl(curl, File::create(tempfile.data()), headers);
+		}
+		catch (...)
+		{
+			File::remove(tempfile.data());
+			throw;
+		}
+		if (!File::move(filename_sz.data(), tempfile.data())) {
+			File::remove(tempfile.data());
 		}
 	}
 #endif
@@ -243,9 +294,32 @@ Promise<AText>* HttpRequest::fetchAsText(const char * url, AtomicProgress* progr
 	});
 #endif
 }
+Promise<AText>* HttpRequest::fetchAsTextCached(const char* url, AtomicProgress* progress) noexcept {
+#ifdef __EMSCRIPTEN__
+	return fetchAsText(url, progress);
+#else
+	curl_easy_setopt(m_curl, CURLOPT_URL, url);
+
+	CURL* curl = m_curl;
+	curl_slist* headers = m_headers;
+	m_curl = nullptr;
+	m_headers = nullptr;
+
+	AText16 filename16 = (Utf8ToUtf16)(Text)url;
+	AText16 target = u"webcache\\";
+	urlToFilename(&target, filename16);
+
+	return threading([curl, headers, postdata = move(m_postdata), target = move(target), progress]() mutable{
+		finally { curl_easy_cleanup(curl); };
+		File::createDirectory(u"webcache");
+		target.c_str();
+		fetchAsFileImpl(curl, target, headers, progress);
+		return (AText)File::openAsArray<char>(target.data());
+	});
+#endif
+}
 #ifndef __EMSCRIPTEN__
-AText HttpRequest::fetchAsTextSync(const char * url, AtomicProgress* progress) throws(HttpException)
-{
+AText HttpRequest::fetchAsTextSync(const char * url, AtomicProgress* progress) throws(HttpException) {
 	curl_easy_setopt(m_curl, CURLOPT_URL, url);
 	curl_slist * headers = m_headers;
 	m_headers = nullptr;
@@ -256,65 +330,59 @@ AText HttpRequest::fetchAsTextSync(const char * url, AtomicProgress* progress) t
 	if (code != HttpStatus::OK) throw HttpException(code);
 	return response;
 }
+AText HttpRequest::fetchAsTextSyncCached(const char* url, AtomicProgress* progress) throws(HttpException) {
+	AText16 filename16 = (Utf8ToUtf16)(Text)url;
+	AText16 target = u"webcache\\";
+	urlToFilename(&target, filename16);
+	target.c_str();
+
+	File::createDirectory(u"webcache");
+	fetchAsFileSync(url, target.data(), progress);
+	return File::openAsArray<char>(target.data());
+}
 #endif
 #ifndef NO_USE_FILESYSTEM
 Promise<void>* HttpRequest::fetchAsFile(const char * url, AText16 filename, AtomicProgress* progress) noexcept
 {
 	curl_easy_setopt(m_curl, CURLOPT_URL, url);
-	filename.c_str();
 
 	CURL * curl = m_curl;
 	curl_slist * headers = m_headers;
 	m_curl = nullptr;
 	m_headers = nullptr;
-	return threading([curl, headers, postdata = move(m_postdata), filename = move(filename), progress]{
+	
+	return threading([curl, headers, postdata = move(m_postdata), filename = move(filename), progress]() mutable{
 		finally{ curl_easy_cleanup(curl); };
-		try
-		{
-			setBasic(curl, headers);
-			if (progress) setProgressImpl(curl, progress);
-			return fetchAsFileImpl(curl, File::create(filename.data()), headers);
-		}
-		catch (...)
-		{
-			File::remove(filename.data());
-			throw;
-		}
+		filename.c_str();
+		fetchAsFileImpl(curl, filename, headers, progress);
 		});
 }
-void HttpRequest::fetchAsFileSync(const char * url, pcstr16 filename, AtomicProgress* progress) throws(HttpException, Error)
-{
+void HttpRequest::fetchAsFileSync(const char * url, pcstr16 filename, AtomicProgress* progress) throws(HttpException, Error) {
 	curl_easy_setopt(m_curl, CURLOPT_URL, url);
 
 	curl_slist * headers = m_headers;
 	m_headers = nullptr;
-	setBasic(m_curl, headers);
-	if (progress) setProgressImpl(m_curl, progress);
-	fetchAsFileImpl(m_curl, File::create(filename), headers);
+	fetchAsFileImpl(m_curl, (Text16)filename, headers, progress);
 	HttpStatus code = _getStatusCode();
 	if (code != HttpStatus::OK) throw HttpException(code);
 }
 #endif
 #ifndef __EMSCRIPTEN__
-HttpStatus HttpRequest::_getStatusCode() noexcept
-{
+HttpStatus HttpRequest::_getStatusCode() noexcept {
 	long status;
 	curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &status);
 	return (HttpStatus)status;
 }
 #endif
 
-Promise<AText>* kr::fetchAsText(Text16 url, AtomicProgress* progress) noexcept
-{
+Promise<AText>* kr::fetch::text(Text16 url, AtomicProgress* progress) noexcept {
 #ifdef NO_USE_FILESYSTEM
 	return fetchAsTextFromWeb(TSZ() << toUtf8(url));
 #else
-	if (url.startsWith(u"http"))
-	{
+	if (url.startsWith(u"http")) {
 		Text16 next = url.subarr(4);
-		if (next.startsWith(u':') || next.startsWith(u"s:"))
-		{
-			return fetchAsTextFromWeb(TSZ() << toUtf8(url));
+		if (next.startsWith(u':') || next.startsWith(u"s:")) {
+			return fetch::web::text(TSZ() << toUtf8(url), progress);
 		}
 	}
 	return threading([textsz = AText16::concat(url, nullterm)]{
@@ -322,41 +390,106 @@ Promise<AText>* kr::fetchAsText(Text16 url, AtomicProgress* progress) noexcept
 	});
 #endif
 }
-Promise<AText>* kr::fetchAsText(Text url, AtomicProgress* progress) noexcept
-{
+Promise<AText>* kr::fetch::text(Text url, AtomicProgress* progress) noexcept {
 #ifdef NO_USE_FILESYSTEM
 	return fetchAsTextFromWeb(TSZ() << url);
 #else
-	if (url.startsWith("http"))
-	{
+	if (url.startsWith("http")) {
 		Text next = url.subarr(4);
-		if (next.startsWith(':') || next.startsWith("s:"))
-		{
-			return fetchAsTextFromWeb(TSZ() << url);
+		if (next.startsWith(':') || next.startsWith("s:")) {
+			return fetch::web::text(TSZ() << url, progress);
 		}
 	}
 	return threading([textsz = AText16::concat(utf8ToUtf16(url), nullterm)]{
 		return (AText)File::openAsArray<char>(textsz.data());
-	});
+		});
 #endif
 }
-Promise<AText>* kr::fetchAsTextFromWeb(const char * url, AtomicProgress* progress) noexcept
-{
+AText kr::fetch::sync::text(Text16 url, AtomicProgress* progress) noexcept {
+#ifdef NO_USE_FILESYSTEM
+	return fetchAsTextFromWeb(TSZ() << toUtf8(url));
+#else
+	if (url.startsWith(u"http")) {
+		Text16 next = url.subarr(4);
+		if (next.startsWith(u':') || next.startsWith(u"s:")) {
+			return fetch::web::sync::text(TSZ() << toUtf8(url), progress);
+		}
+	}
+	return (AText)File::openAsArray<char>(TSZ16() << url);
+#endif
+}
+Promise<AText>* kr::fetch::web::text(const char * url, AtomicProgress* progress) noexcept {
 	HttpRequest req;
-	return req.fetchAsText(url);
+	return req.fetchAsText(url, progress);
+}
+AText kr::fetch::web::sync::text(const char* url, AtomicProgress* progress) noexcept {
+	HttpRequest req;
+	return req.fetchAsTextSync(url, progress);
+}
+Promise<AText>* kr::fetch::web::cached::text(const char* url, AtomicProgress* progress) noexcept {
+	HttpRequest req;
+	return req.fetchAsTextCached(url, progress);
+}
+AText kr::fetch::web::cached::sync::text(const char* url, AtomicProgress* progress) noexcept {
+	HttpRequest req;
+	return req.fetchAsTextSyncCached(url, progress);
 }
 #ifndef NO_USE_FILESYSTEM
-Promise<void>* kr::fetchAsFile(Text16 url, AText16 filename, AtomicProgress* progress) noexcept
+Promise<void>* kr::fetch::file(Text16 url, AText16 filename, AtomicProgress* progress) noexcept
 {
-	return fetchAsFile(TSZ() << toUtf8(url), move(filename), progress);
+	return fetch::file_sz(TSZ() << toUtf8(url), move(filename), progress);
 }
-Promise<void>* kr::fetchAsFile(Text url, AText16 filename, AtomicProgress* progress) noexcept
+Promise<void>* kr::fetch::file(Text url, AText16 filename, AtomicProgress* progress) noexcept
 {
-	return fetchAsFileFromSz(TSZ() << url, move(filename), progress);
+	return fetch::file_sz(TSZ() << url, move(filename), progress);
 }
-Promise<void>* kr::fetchAsFileFromSz(const char * url, AText16 filename, AtomicProgress* progress) noexcept
+Promise<void>* kr::fetch::file_sz(const char * url, AText16 filename, AtomicProgress* progress) noexcept
 {
 	HttpRequest req;
 	return req.fetchAsFile(url, move(filename), progress);
 }
 #endif
+
+Promise<AText>* kr::fetch::cached::text(Text16 url, AtomicProgress* progress) noexcept {
+#ifdef NO_USE_FILESYSTEM
+	return fetch::web::text(TSZ() << toUtf8(url));
+#else
+	if (url.startsWith(u"http")) {
+		Text16 next = url.subarr(4);
+		if (next.startsWith(u':') || next.startsWith(u"s:")) {
+			return fetch::web::cached::text(TSZ() << toUtf8(url), progress);
+		}
+	}
+	return threading([textsz = AText16::concat(url, nullterm)]{
+		return (AText)File::openAsArray<char>(textsz.data());
+		});
+#endif
+}
+Promise<AText>* kr::fetch::cached::text(Text url, AtomicProgress* progress) noexcept {
+#ifdef NO_USE_FILESYSTEM
+	return fetch::web::text(TSZ() << url);
+#else
+	if (url.startsWith("http")) {
+		Text next = url.subarr(4);
+		if (next.startsWith(':') || next.startsWith("s:")) {
+			return fetch::web::cached::text(TSZ() << url, progress);
+		}
+	}
+	return threading([textsz = AText16::concat(utf8ToUtf16(url), nullterm)]{
+		return (AText)File::openAsArray<char>(textsz.data());
+		});
+#endif
+}
+AText kr::fetch::cached::sync::text(Text16 url, AtomicProgress* progress) noexcept {
+#ifdef NO_USE_FILESYSTEM
+	return fetchAsTextFromWeb(TSZ() << toUtf8(url));
+#else
+	if (url.startsWith(u"http")) {
+		Text16 next = url.subarr(4);
+		if (next.startsWith(u':') || next.startsWith(u"s:")) {
+			return fetch::web::cached::sync::text(TSZ() << toUtf8(url), progress);
+		}
+	}
+	return (AText)File::openAsArray<char>(TSZ16() << url);
+#endif
+}

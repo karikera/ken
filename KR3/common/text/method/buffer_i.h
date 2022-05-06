@@ -8,7 +8,7 @@ namespace kr
 		template <class Parent> class BufferIMethod : 
 			public AddBufferable<Parent, BufferInfo<typename Parent::Component, method::Memory, false, !Parent::writable, Parent>>
 		{
-			CLASS_HEADER(BufferIMethod, AddBufferable<Parent, BufferInfo<typename Parent::Component, method::Memory, false, !Parent::writable, Parent>>);
+			CLASS_HEADER(AddBufferable<Parent, BufferInfo<typename Parent::Component, method::Memory, false, !Parent::writable, Parent>>);
 		public:
 			INHERIT_ARRAY();
 
@@ -42,7 +42,7 @@ namespace kr
 		template <class Parent> class BufferIConstructor :
 			public Parent
 		{
-			CLASS_HEADER(BufferIConstructor, Parent);
+			CLASS_HEADER(Parent);
 		public:
 			INHERIT_ARRAY();
 
@@ -76,7 +76,7 @@ namespace kr
 		template <class Parent> class BufferIVoidConstructor :
 			public Parent
 		{
-			CLASS_HEADER(BufferIVoidConstructor, Parent);
+			CLASS_HEADER(Parent);
 		public:
 			INHERIT_ARRAY();
 

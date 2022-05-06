@@ -254,7 +254,7 @@ std::uint32_t FBXDoc::getVersion() noexcept
 
 Promise<FBXDoc>* FBXDoc::load(Text16 url) noexcept
 {
-	return fetchAsText(url)->then([](AText & data) {
+	return fetch::text(url)->then([](AText & data) {
 		FBXDoc model;
 		Buffer stream = data;
 		model.read(&stream);

@@ -59,6 +59,41 @@ intptr_t AtomicQueue::enqueue(AtomicQueueNode* param) noexcept
 
 	return ++m_size;
 }
+pair<AtomicQueueNode*, intptr_t> AtomicQueue::peek() noexcept {
+	AtomicQueueNode* front;
+	AtomicQueueNode* next;
+
+	for (;;)
+	{
+		do
+		{
+			front = m_front;
+			next = front->m_next;
+			if (next == nullptr)
+			{
+				if (front->m_done == false)
+				{
+					++front->m_ref;
+					intptr_t size = --m_size;
+					return { front, size };
+				}
+				else
+				{
+					return { nullptr, m_size };
+				}
+			}
+		} while (!m_front.compare_exchange_weak(front, next));
+
+		if (front->m_done)
+		{
+			front->release();
+			continue;
+		}
+		intptr_t size = --m_size;
+		return { front, size };
+	}
+	return { m_front, m_size };
+}
 pair<AtomicQueueNode*, intptr_t> AtomicQueue::dequeue() noexcept
 {
 	AtomicQueueNode* front;
@@ -83,7 +118,6 @@ pair<AtomicQueueNode*, intptr_t> AtomicQueue::dequeue() noexcept
 				{
 					return { nullptr, m_size };
 				}
-				continue;
 			}
 		} while (!m_front.compare_exchange_weak(front, next));
 

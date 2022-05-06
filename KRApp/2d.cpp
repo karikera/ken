@@ -93,6 +93,7 @@ namespace
 		GPBrush clearColor;
 
 		bool needFlush;
+		timepoint waitTo;
 
 		GraphicContext(Window* wnd) noexcept
 			:clearColor(GPColor::White)
@@ -102,6 +103,7 @@ namespace
 			, g(back.dc)
 		{
 			state = states.create();
+			waitTo = timepoint::now() + 16_ms;
 
 			g.FillRectangle(&clearColor, 0, 0, back.width, back.height);
 			g.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
@@ -119,6 +121,16 @@ namespace
 		}
 		void flush() noexcept
 		{
+			timepoint now = timepoint::now();
+			if (waitTo - now <= -20_ms) {
+				waitTo = now + 16_ms;
+				EventPump::getInstance()->processOnce();
+			}
+			else {
+				EventPump::getInstance()->sleepTo(waitTo);
+				waitTo += 16_ms;
+			}
+
 			if (!needFlush) return;
 			needFlush = false;
 			dc->bitBlt(back.dc, {0, 0, back.width, back.height}, { 0, 0 });

@@ -12,7 +12,7 @@
 
 using namespace kr;
 
-constexpr int PROCESS_MESSAGE_COUNT_PER_TRY = 4;
+constexpr int PROCESS_MESSAGE_COUNT_PER_TRY = 10;
 
 EventPump::EventPump() noexcept
 	:m_reference(0)
@@ -135,14 +135,15 @@ dword EventPump::processOnce(View<EventHandle *> events) throws(QuitException)
 }
 void EventPump::processOnce(View<EventProcedure> proc) throws(QuitException)
 {
+	static const duration_detail ms = duration_detail::second / 1000;
+	timepoint_detail start = timepoint_detail::now();
+
 	_assert(m_threadId == ThreadId::getCurrent());
 	m_prompump.process();
-	_processTimer(0);
 	TmpArray<EventHandle*> events = _makeEventArray(proc);
 
-	for (int i = 0; i<3; i++)
-	{
-		DWORD sleep = _processTimer(0);
+	do {
+		_processTimer(0);
 		DWORD cnt = intact<DWORD>(events.size());
 
 		dword index = MsgWaitForMultipleObjectsEx(cnt, (HANDLE*)events.data(), 0, QS_ALLINPUT, MWMO_ALERTABLE);
@@ -158,7 +159,7 @@ void EventPump::processOnce(View<EventProcedure> proc) throws(QuitException)
 			p.callback(p.param);
 			m_prompump.process();
 		}
-	}
+	} while (timepoint_detail::now() - start < ms);
 }
 void EventPump::processOnceWithoutMessage() throws(QuitException)
 {

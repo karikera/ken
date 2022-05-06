@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "hook.h"
 #include "handle.h"
-#include <KR3/util/unaligned.h>
 
 using namespace kr;
 using namespace hook;

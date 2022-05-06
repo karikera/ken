@@ -152,11 +152,14 @@ namespace kr
 			}; \
 		}
 
+		MAKE_ATTRIB(pos2, 2);
 		MAKE_ATTRIB(pos, 3);
 		MAKE_ATTRIB(uv, 2);
 		MAKE_UNIFORM(texture, int);
 		MAKE_UNIFORM(transform, mat4a);
+		MAKE_UNIFORM(transform2d, vec4a);
 		MAKE_UNIFORM(color, vec4a);
+		MAKE_UNIFORM(pointSize, float);
 
 #undef MAKE_ATTRIB
 #undef MAKE_UNIFORM
@@ -281,6 +284,7 @@ namespace kr
 				arrayBuffer.dataDynamic(data);
 				pointer<T>();
 				glDrawArrays(mode, 0, intact<GLsizei>(data.size() / sizeof(T)));
+				glCheck();
 			}
 		};
 	}

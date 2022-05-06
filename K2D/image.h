@@ -2,6 +2,7 @@
 
 #include <KR3/main.h>
 #include <KR3/util/resloader.h>
+#include <KR3/msg/promise.h>
 
 #include "common.h"
 #include "reformatter.h"
@@ -46,7 +47,7 @@ public:
 
 	void recolor(color _color) noexcept;
 
-	void free() noexcept;
+	void free() const noexcept;
 	bool exists() const noexcept;
 	int getWidth() const noexcept;
 	int getHeight() const noexcept;
@@ -58,9 +59,12 @@ public:
 	const FormatInfo * getPixelInfo() const noexcept;
 	int getPixelSize() const noexcept;
 	size_t getByteSize() const noexcept;
+	color getPixel(int x, int y) const noexcept;
 
-	bool load(krb::File file, krb::Extension extension, Palette * palette) noexcept;
-	bool save(krb::File file, krb::Extension extension, Palette * palette) noexcept;
+	static Promise<ImageData>* loadFile(Text16 filepath, Palette* palette = nullptr) noexcept;
+	bool loadFileSync(Text16 filepath, Palette* palette) noexcept;
+	bool load(krb::File file, krb::Extension extension, Palette* palette = nullptr) noexcept;
+	bool save(krb::File file, krb::Extension extension, Palette* palette = nullptr) noexcept;
 
 	static bvec4 color;
 

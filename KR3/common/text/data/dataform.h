@@ -14,7 +14,7 @@ namespace kr
 			class Parent>
 		class Common: public Container<C, !_writable, Parent>
 		{
-			CLASS_HEADER(Common, Container<C, !_writable, Parent>);
+			CLASS_HEADER(Container<C, !_writable, Parent>);
 		public:
 			INHERIT_COMPONENT();
 			static constexpr bool movable = _movable;
@@ -25,7 +25,7 @@ namespace kr
 		template <class Parent, class Data> 
 		class WritableForm :public Parent
 		{
-			CLASS_HEADER(WritableForm, Parent);
+			CLASS_HEADER(Parent);
 		public:
 			INHERIT_COMPONENT();
 
@@ -117,7 +117,7 @@ namespace kr
 		template <size_t CAP, typename C, class Parent> 
 		class BufferedForm :public Common<C, false, true, true, true, Parent>
 		{
-			CLASS_HEADER(BufferedForm, Common<C, false, true, true, true, Parent>);
+			CLASS_HEADER(Common<C, false, true, true, true, Parent>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -253,7 +253,7 @@ namespace kr
 		template <typename C, class Allocator, class Parent>
 		class AllocatedForm : public Common<C, false, true, true, true, Parent>
 		{
-			CLASS_HEADER(AllocatedForm, Common<C, false, true, true, true, Parent>);
+			CLASS_HEADER(Common<C, false, true, true, true, Parent>);
 		public:
 			INHERIT_COMPONENT();
 

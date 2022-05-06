@@ -28,6 +28,7 @@ namespace kr
 		AtomicQueue() noexcept;
 		~AtomicQueue() noexcept;
 		intptr_t enqueue(AtomicQueueNode* param) noexcept;
+		pair<AtomicQueueNode*, intptr_t> peek() noexcept;
 		pair<AtomicQueueNode*, intptr_t> dequeue() noexcept;
 
 	private:

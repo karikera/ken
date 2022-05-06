@@ -114,7 +114,7 @@ template <> float kr::Random::get<float>() noexcept
 {
 	return (float)getDword() / 4294967496.0f;
 
-	// keruch: 더 나은 랜덤 구현, 속도면에서 위쪽을 택하였다.
+	// karikera: for better speed
 	//dword v = (getDword() & 0x007fffff) | (_getExp8() << 21);
 	//return (float&)v;
 }
@@ -122,7 +122,7 @@ template <> double kr::Random::get<double>() noexcept
 {
 	return (double)get<qword>() / (double)18446744073709551616.0;
 
-	// keruch: 더 나은 랜덤 구현, 속도면에서 위쪽을 택하였다.
+	// karikera: for better speed
 	//qword v = (get<qword>() & 0x000fffffffffffffLL) | ((qword)_getExp11() << 52);
 	//return (double&)v;
 }

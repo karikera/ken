@@ -51,11 +51,12 @@ namespace kr
 
 		class ProcessAndModule
 		{
+			CLASS_HEADER(void);
 		public:
 			Process * process;
 			Module * winmodule;
 
-			KR_WRITABLE_METHOD(ProcessAndModule, name, true,
+			KR_WRITABLE_METHOD(name, true,
 				(m_this->getName<C>(dest, m_this->getNameLength<C>() + 1)),
 				(m_this->getNameLength<C>()));
 
@@ -147,6 +148,7 @@ namespace kr
 		};
 		class Window:public Handle<HWND__>
 		{
+			CLASS_HEADER(Handle<HWND__>);
 		public:
 			static const Window * TOP;
 			static const Window * BOTTOM;
@@ -197,7 +199,7 @@ namespace kr
 			Monitor* getMonitor() noexcept;
 			ivec2 getPos() noexcept;
 
-			KR_WRITABLE_METHOD(Window, text, true,
+			KR_WRITABLE_METHOD(text, true,
 				(m_this->getText<C>(dest, m_this->getTextLength<C>() + 1)),
 				(m_this->getTextLength<C>())
 			);

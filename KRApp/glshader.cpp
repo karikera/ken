@@ -29,12 +29,11 @@ void gl::Shader::create(GLenum type, const GLchar * shaderSrc) noexcept
 
 		glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &infoLen);
 
-		if (infoLen > 1)
-		{
-			char* infoLog = _new char[infoLen];
-			glGetShaderInfoLog(m_id, infoLen, nullptr, infoLog);
-			cerr << infoLog << endl;
-			delete[] infoLog;
+		if (infoLen > 1) {
+			AText buffer;
+			buffer.resize(infoLen-1, infoLen);
+			glGetShaderInfoLog(m_id, infoLen, nullptr, buffer.data());
+			dout << buffer << endl;
 		}
 
 		glDeleteShader(m_id);
@@ -43,7 +42,7 @@ void gl::Shader::create(GLenum type, const GLchar * shaderSrc) noexcept
 }
 Promise<void>* gl::Shader::load(GLenum type, Text16 filePath) noexcept
 {
-	return fetchAsText(filePath)->then([this, type](AText script){
+	return fetch::text(filePath)->then([this, type](AText script){
 		create(type, script.c_str());
 	});
 }
@@ -90,56 +89,82 @@ gl::Location::operator GLint() noexcept
 
 void gl::AttribLocation::enable() const noexcept
 {
+	glCheck();
 	glEnableVertexAttribArray(m_id);
+	glCheck();
 }
 void gl::AttribLocation::disable() const noexcept
 {
+	glCheck();
 	glDisableVertexAttribArray(m_id);
+	glCheck();
 }
 void gl::AttribLocation::pointer(GLint size, GLenum type, GLboolean normalized, GLsizei stride, uintptr_t offset) const noexcept
 {
+	glCheck();
 	glVertexAttribPointer(m_id, size, type, normalized, stride, (void*)offset);
+	glCheck();
 }
 
 void gl::UniformLocation::setInt(GLint value) noexcept
 {
+	glCheck();
 	glUniform1i(m_id, value);
+	glCheck();
 }
 void gl::UniformLocation::setFloat(GLfloat value) noexcept
 {
+	glCheck();
 	glUniform1f(m_id, value);
+	glCheck();
 }
 void gl::UniformLocation::setVector(const vec4 & vector) noexcept
 {
+	glCheck();
 	glUniform4fv(m_id, 1, (GLfloat*)&vector);
+	glCheck();
 }
 void gl::UniformLocation::setVector(const vec4a & vector) noexcept
 {
+	glCheck();
 	glUniform4fv(m_id, 1, (GLfloat*)&vector);
+	glCheck();
 }
 void gl::UniformLocation::setMatrix(const mat4 & matrix) noexcept
 {
+	glCheck();
 	glUniformMatrix4fv(m_id, 1, false, (GLfloat*)&matrix);
+	glCheck();
 }
 void gl::UniformLocation::setMatrix(const mat4a & matrix) noexcept
 {
+	glCheck();
 	glUniformMatrix4fv(m_id, 1, false, (GLfloat*)&matrix);
+	glCheck();
 }
 void gl::UniformLocation::setVector(const vec4 * vector, GLsizei count) noexcept
 {
+	glCheck();
 	glUniform4fv(m_id, 1, (GLfloat*)vector);
+	glCheck();
 }
 void gl::UniformLocation::setVector(const vec4a * vector, GLsizei count) noexcept
 {
+	glCheck();
 	glUniform4fv(m_id, 1, (GLfloat*)vector);
+	glCheck();
 }
 void gl::UniformLocation::setMatrix(const mat4 * matrix, GLsizei count) noexcept
 {
+	glCheck();
 	glUniformMatrix4fv(m_id, 1, false, (GLfloat*)matrix);
+	glCheck();
 }
 void gl::UniformLocation::setMatrix(const mat4a * matrix, GLsizei count) noexcept
 {
+	glCheck();
 	glUniformMatrix4fv(m_id, 1, false, (GLfloat*)matrix);
+	glCheck();
 }
 template <>
 void gl::UniformLocation::set<int>(const int& v) noexcept
@@ -264,20 +289,15 @@ AText gl::Program::getInfoLog() noexcept
 }
 GLint gl::Program::getAttribLocation(const GLchar * name) noexcept
 {
-	return glGetAttribLocation(m_id, name);
+	glCheck();
+	GLint loc = glGetAttribLocation(m_id, name);
+	glCheck();
+	return loc;
 }
 GLint gl::Program::getUniformLocation(const GLchar * name) noexcept
 {
-	return glGetUniformLocation(m_id, name);
-}
-
-void gl::AttribLocations::enable() const noexcept
-{
-	m_pos.enable();
-	m_uv.enable();
-}
-void gl::AttribLocations::set(Program program, const char* pos_name, const char* uv_name) noexcept
-{
-	m_pos = program.getAttribLocation(pos_name);
-	m_uv = program.getAttribLocation(uv_name);
+	glCheck();
+	GLint loc = glGetUniformLocation(m_id, name);
+	glCheck();
+	return loc;
 }

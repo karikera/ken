@@ -14,7 +14,7 @@ namespace kr
 		template <typename C, class Parent>
 		class VIStream : public InStream<VIStream<C, Parent>, C, StreamInfo<false, Parent>>
 		{
-			CLASS_HEADER(VIStream, InStream<VIStream<C, Parent>, C, StreamInfo<false, Parent>>);
+			CLASS_HEADER(InStream<VIStream<C, Parent>, C, StreamInfo<false, Parent>>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -65,7 +65,7 @@ namespace kr
 		template <typename C, class Parent>
 		class VOStream : public OutStream<VOStream<C, Parent>, C, StreamInfo<false, Parent>>
 		{
-			CLASS_HEADER(VOStream, OutStream<VOStream<C, Parent>, C, StreamInfo<false, Parent>>);
+			CLASS_HEADER(OutStream<VOStream<C, Parent>, C, StreamInfo<false, Parent>>);
 		public:
 			INHERIT_COMPONENT();
 		private:

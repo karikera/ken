@@ -331,7 +331,7 @@
     <ClInclude Include="util\process.h" />
     <ClInclude Include="util\stackgc.h" />
     <ClInclude Include="util\stdext.h" />
-    <ClInclude Include="util\unaligned.h" />
+    <ClInclude Include="common\unaligned.h" />
     <ClInclude Include="util\uts.h" />
     <ClInclude Include="util\wide.h" />
     <ClInclude Include="win\com.h" />

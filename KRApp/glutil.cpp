@@ -2,8 +2,13 @@
 
 using namespace kr;
 
+namespace {
+	thread_local GLContext* s_context = nullptr;
+}
+
 GLContext::GLContext() noexcept
 {
+	m_eglContext = nullptr;
 }
 GLContext::~GLContext() noexcept
 {
@@ -77,14 +82,31 @@ void GLContext::create(EGLNativeDisplayType display, EGLNativeWindowType window)
 		return;
 	}
 
-	// Make the context current
-	if (!eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext))
-	{
-		cerr << "eglMakeCurrent failed" << endl;
-		return;
-	}
+	makeCurrent();
+
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
 }
 void GLContext::swap() noexcept
 {
 	eglSwapBuffers(m_eglDisplay, m_eglSurface);
+}
+bool GLContext::makeCurrent() noexcept {
+	// Make the context current
+	if (eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext)) {
+		s_context = this;
+		return true;
+	}
+	else {
+		cerr << "eglMakeCurrent failed" << endl;
+		return false;
+	}
+}
+void GLContext::shareContant() noexcept {
+	_assert(m_eglContext != nullptr);
+	s_context = this;
+}
+
+GLContext* GLContext::getInstance() noexcept {
+	_assert(s_context != nullptr && s_context->m_eglContext != nullptr);
+	return s_context;
 }

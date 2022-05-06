@@ -9,7 +9,7 @@ namespace kr
 		template <typename Base, bool autoClose> class SelfBufferedIStream :
 			public InStream<SelfBufferedIStream<Base>, typename Base::Component, StreamInfo<false, Empty>>
 		{
-			CLASS_HEADER(SelfBufferedIStream, InStream<SelfBufferedIStream<Base>, typename Base::Component, StreamInfo<false, Empty>>);
+			CLASS_HEADER(InStream<SelfBufferedIStream<Base>, typename Base::Component, StreamInfo<false, Empty>>);
 		public:
 			static_assert(IsIStream<Base>::value, "Base is not InStream");
 			INHERIT_COMPONENT();

@@ -6,64 +6,51 @@
 
 using namespace kr;
 
-struct QuitWork :Task
-{
-	void operator ()() override
-	{
+struct QuitWork :Task {
+	void operator ()() override {
 		throw QuitException(0);
 	}
 };
 
-namespace
-{
-	int taskThread(TaskQueue* queue) noexcept
-	{
+namespace {
+	int taskThread(TaskQueue* queue) noexcept {
 		return dump_wrap([queue] {
-			try
-			{
-				for (;;)
-				{
+			try {
+				for (;;) {
 					queue->process();
 					queue->wait();
 				}
 			}
-			catch (QuitException & quit)
-			{
+			catch (QuitException & quit) {
 				return quit.exitCode;
 			}
-			});
+		});
 	}
 }
 
-TaskThread::TaskThread() noexcept
-{
+TaskThread::TaskThread() noexcept {
 	m_quited = false;
 	m_thread.create<TaskQueue, taskThread>(this);
 	ondebug(m_thread.setName("KEN TaskThread"));
 }
-TaskThread::~TaskThread() noexcept
-{
+TaskThread::~TaskThread() noexcept {
 	postQuit();
 	m_thread.join();
 }
-ThreadObject TaskThread::getThreadObject() noexcept
-{
+ThreadObject TaskThread::getThreadObject() noexcept {
 	return m_thread;
 }
-void TaskThread::postQuit() noexcept
-{
+void TaskThread::postQuit() noexcept {
 	if (m_quited) return;
 	attach(_new QuitWork);
 	m_quited = true;
 }
-void TaskThread::attach(Task* task) noexcept
-{
+void TaskThread::attach(Task* task) noexcept {
 	_assert(!m_quited); // 작업은 전부 처리하는 것을 목표로 한다
 	TaskQueue::attach(task);
 }
 
-ThreadPoolKrImpl::ThreadPoolKrImpl(int cpuCount) noexcept
-{
+ThreadPoolKrImpl::ThreadPoolKrImpl(int cpuCount) noexcept {
 	m_threads.resize(cpuCount);
 
 	uint number = 0;
@@ -74,11 +61,9 @@ ThreadPoolKrImpl::ThreadPoolKrImpl(int cpuCount) noexcept
 	}
 }
 ThreadPoolKrImpl::ThreadPoolKrImpl() noexcept
-	:ThreadPoolKrImpl(getCPUCount())
-{
+	:ThreadPoolKrImpl(getCPUCount()) {
 }
-ThreadPoolKrImpl::~ThreadPoolKrImpl() noexcept
-{
+ThreadPoolKrImpl::~ThreadPoolKrImpl() noexcept {
 	for (ThreadObject thread : m_threads)
 	{
 		attach(_new QuitWork);
@@ -89,21 +74,18 @@ ThreadPoolKrImpl::~ThreadPoolKrImpl() noexcept
 	}
 	m_threads = nullptr;
 }
-ThreadPoolKrImpl * ThreadPoolKrImpl::getInstance() noexcept
-{
+ThreadPoolKrImpl * ThreadPoolKrImpl::getInstance() noexcept {
 	static ThreadPoolKrImpl instance;
 	return &instance;
 }
 
 #ifdef WIN32
 
-ThreadPoolWinImpl* ThreadPoolWinImpl::getInstance() noexcept
-{
+ThreadPoolWinImpl* ThreadPoolWinImpl::getInstance() noexcept {
 	static ThreadPoolWinImpl instance;
 	return &instance;
 }
-void ThreadPoolWinImpl::attach(Task* work) noexcept
-{
+void ThreadPoolWinImpl::attach(Task* work) noexcept  {
 	if (!QueueUserWorkItem([](void* context) {
 			Must<Task> work = (Task*)context;
 			work->call();
@@ -114,11 +96,9 @@ void ThreadPoolWinImpl::attach(Task* work) noexcept
 	}
 }
 
-ThreadPoolWinImpl::ThreadPoolWinImpl() noexcept
-{
+ThreadPoolWinImpl::ThreadPoolWinImpl() noexcept {
 }
-ThreadPoolWinImpl::~ThreadPoolWinImpl() noexcept
-{
+ThreadPoolWinImpl::~ThreadPoolWinImpl() noexcept {
 }
 
 #endif

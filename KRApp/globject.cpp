@@ -22,15 +22,21 @@ bool gl::Object::operator !=(const Object& other) noexcept
 
 void gl::Buffer::generate() noexcept
 {
+	glCheck();
 	glGenBuffers(1, &m_id);
+	glCheck();
 }
 void gl::Buffer::generate(kr::Buffer buffer, GLenum target) noexcept
 {
 	generate();
 	glBindBuffer(target, m_id);
+	glCheck();
 	glBufferData(target, buffer.size(), buffer.data(), GL_STATIC_DRAW);
+	glCheck();
 }
 void gl::Buffer::remove() noexcept
 {
+	glCheck();
 	glDeleteBuffers(1, &m_id);
+	glCheck();
 }

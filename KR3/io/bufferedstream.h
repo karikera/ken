@@ -10,7 +10,7 @@ namespace kr
 		class BufferedIStream
 			:public FilterIStream < BufferedIStream<Base, autoClose, BUFFER_SIZE>, Base, autoClose, typename Base::Component>
 		{
-			CLASS_HEADER(BufferedIStream, FilterIStream<BufferedIStream<Base, autoClose, BUFFER_SIZE>, Base, autoClose, typename Base::Component>);
+			CLASS_HEADER(FilterIStream<BufferedIStream<Base, autoClose, BUFFER_SIZE>, Base, autoClose, typename Base::Component>);
 		public:
 			INHERIT_COMPONENT();
 
@@ -647,7 +647,7 @@ namespace kr
 		class BufferedOStream 
 			:public FilterOStream<BufferedOStream<Base, endFlush, autoClose, BUFFER_SIZE>, Base, autoClose>
 		{
-			CLASS_HEADER(BufferedOStream, FilterOStream<BufferedOStream<Base, endFlush, autoClose, BUFFER_SIZE>, Base, autoClose>);
+			CLASS_HEADER(FilterOStream<BufferedOStream<Base, endFlush, autoClose, BUFFER_SIZE>, Base, autoClose>);
 		public:
 			INHERIT_COMPONENT();
 

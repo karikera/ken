@@ -15,6 +15,7 @@
 #include "common/math.h"
 #include "common/random.h"
 #include "common/temp.h"
+#include "common/unaligned.h"
 #include "common/text.h"
 #include "common/stdio.h"
 #include "common/error.h"

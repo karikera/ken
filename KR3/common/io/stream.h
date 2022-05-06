@@ -36,7 +36,7 @@ namespace kr
 		class StreamableStream :
 			public InOutStream<StreamableStream<Base, C>, C, StreamInfo<Base::accessable, Base>>
 		{
-			CLASS_HEADER(StreamableStream, InOutStream<StreamableStream<Base, C>, C, StreamInfo<Base::accessable, Base>>);
+			CLASS_HEADER(InOutStream<StreamableStream<Base, C>, C, StreamInfo<Base::accessable, Base>>);
 		public:
 			INHERIT_COMPONENT();
 			using StreamableBase = Base;
