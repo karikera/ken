@@ -148,6 +148,44 @@ namespace kr
 			return R;
 		}
 
+		static T* minimum(T* begin, T* end) noexcept {
+			_assert(begin != end);
+
+			T* minimum = begin;
+			K minimumKey = getKey(*begin++);
+
+			for (; begin != end; begin++) {
+				K key = getKey(*begin);
+				if (compare(key, minimumKey) < 0) {
+					minimumKey = key;
+					minimum = begin;
+				}
+			}
+			return minimum;
+		}
+		static T* maximum(T* begin, T* end) noexcept {
+			_assert(begin != end);
+
+			T* maximum = begin;
+			K maximumKey = getKey(*begin++);
+
+			for (; begin != end; begin++) {
+				K key = getKey(*begin);
+				if (compare(key, maximumKey) > 0) {
+					maximumKey = key;
+					maximum = begin;
+				}
+			}
+			return maximum;
+		}
+		static T* minimum(View<T> array)
+		{
+			return minimum((T*)array.begin(), (T*)array.end());
+		}
+		static T* maximum(View<T> array)
+		{
+			return maximum((T*)array.begin(), (T*)array.end());
+		}
 		static void swap(T & a, T& b)
 		{
 			T tmp = move(a);

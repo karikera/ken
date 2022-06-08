@@ -184,7 +184,7 @@ void BufferQueue::commit(size_t size) noexcept
 	m_totalSize += size;
 	m_last->size += size;
 }
-void BufferQueue::write(const void * data, size_t size) noexcept
+void BufferQueue::$write(const void * data, size_t size) noexcept
 {
 	m_totalSize += size;
 
@@ -231,10 +231,6 @@ _refill:
 		buff->next = nullptr;
 	}
 	m_last = buff;
-}
-void BufferQueue::write(Buffer data) noexcept
-{
-	write(data.data(), data.size());
 }
 void BufferQueue::peek(void * dest, size_t size) throws(EofException)
 {

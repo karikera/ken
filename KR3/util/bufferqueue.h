@@ -101,8 +101,7 @@ namespace kr
 		BufferQueue& operator = (BufferQueue&& _move) noexcept;
 		WView<void> prepare() noexcept;
 		void commit(size_t size) noexcept;
-		void write(const void * data, size_t size) noexcept;
-		void write(Buffer data) noexcept;
+		void $write(const void * data, size_t size) noexcept;
 		void peek(void * dest, size_t size) throws(EofException);
 		void read(void * dest, size_t size) throws(EofException);
 		ReadResult read(size_t size) throws(EofException);
@@ -124,7 +123,7 @@ namespace kr
 		void checkBufferCorrution() noexcept;
 
 		template <typename T>
-		T readas() noexcept
+		T readas() throws(EofException)
 		{
 			T data;
 			read(&data, sizeof(T));
@@ -132,7 +131,7 @@ namespace kr
 		}
 
 		template <typename T>
-		T peekas() noexcept
+		T peekas() throws(EofException)
 		{
 			T data;
 			peek(&data, sizeof(T));

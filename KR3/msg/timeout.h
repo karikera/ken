@@ -92,12 +92,7 @@ namespace kr
 				}
 				void call() noexcept override
 				{
-#ifdef WIN32
-					_repost();
 					m_lambda(this);
-#elif defined(__EMSCRIPTEN__)
-					m_lambda(this);
-#endif
 				}
 			};
 			return _new LambdaWrap(forward<LAMBDA>(lambda));

@@ -32,9 +32,11 @@
     <_debug>_debug</_debug>
   </PropertyGroup>
   <PropertyGroup Label="UserMacros" Condition="'$(Configuration)' != 'Debug' And '$(Configuration)' != 'DebugStatic'">
-    <d></d>
+    <d>
+    </d>
     <ConfigDir>Release</ConfigDir>
-    <_debug></_debug>
+    <_debug>
+    </_debug>
   </PropertyGroup>
   <PropertyGroup Label="UserMacros">
     <ZLIB_NAME>zlib$(d)$(StaticLibraryExt)</ZLIB_NAME>
@@ -67,7 +69,7 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
     <ClCompile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -93,14 +95,12 @@
       <PreprocessorDefinitions>PROJECTRUN;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
-  
   <ItemDefinitionGroup Condition="'$(Configuration)' == 'ReleaseTest'">
     <ClCompile>
       <PreprocessorDefinitions>PROJECTRUN;NDEBUG;RELEASE_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'ReleaseStatic'">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -135,8 +135,6 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
-  
-  
   <ItemDefinitionGroup Condition="'$(Platform)' != 'Emscripten'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>

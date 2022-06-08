@@ -493,7 +493,7 @@ namespace kr
 		if (count == 0) return Promise<void>::resolve();
 		class Prom :public Promise<void> {
 		public:
-			using Promise<void>::_resolve;
+			// using Promise<void>::_resolve;
 			size_t count = 0;
 		};
 		auto * prom = new Prom;
