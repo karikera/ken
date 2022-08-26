@@ -280,33 +280,41 @@ size_t PdbReader::undecorate<char16_t>::$copyTo(char16_t* out) const noexcept
 }
 bool PdbReader::search16(pcstr16 filter, SearchCallback16 callback) noexcept
 {
+	const char* filterAptr;
+	AText filterA;
+	if (filter != nullptr) {
+		filterA << (Utf16ToAnsi)(Text16)filter << nullterm;
+		filterAptr = filterA.data();
+	}
+	else {
+		filterAptr = nullptr;
+	}
+
 	DbgHelp* dbghelp = DbgHelp::getInstance();
-	return dbghelp->SymEnumSymbolsExW(
+	return dbghelp->SymEnumSymbols(
 		m_process,
 		m_base,
-		wide(filter),
-		[](SYMBOL_INFOW* symInfo, ULONG SymbolSize, void* callback)->BOOL {
-			Text16 name = Text16(unwide(symInfo->Name), symInfo->NameLen - 1);
-			return (*(SearchCallback16*)callback)(name, (autoptr64)symInfo->Address, symInfo->TypeIndex);
+		filterAptr,
+		[](SYMBOL_INFO* symInfo, ULONG SymbolSize, void* callback)->BOOL {
+			AText16 name16 = (AnsiToUtf16)Text(symInfo->Name, symInfo->NameLen);
+			return (*(SearchCallback16*)callback)(name16, (autoptr64)symInfo->Address, symInfo->TypeIndex);
 		},
-		(PVOID)&callback,
-		SYMENUM_OPTIONS_DEFAULT);
+		(PVOID)&callback);
 }
 bool PdbReader::getAllEx16(GetAllExCallback16 callback) noexcept
 {
 	DbgHelp* dbghelp = DbgHelp::getInstance();
 
-	return dbghelp->SymEnumSymbolsExW(
+	return dbghelp->SymEnumSymbols(
 		m_process,
 		m_base,
 		nullptr,
-		[](SYMBOL_INFOW* symInfo, ULONG SymbolSize, void* callback)->BOOL {
+		[](SYMBOL_INFO* symInfo, ULONG SymbolSize, void* callback)->BOOL {
+			AText16 name16 = (AnsiToUtf16)Text(symInfo->Name, symInfo->NameLen);
 			GetAllExCallback16* cb = (GetAllExCallback16*)callback;
-			Text16 name = Text16(unwide(symInfo->Name), symInfo->NameLen-1);
-			return (*cb)(name, symInfo);
+			return (*cb)(name16, symInfo);
 		},
-		(PVOID)&callback,
-		SYMENUM_OPTIONS_DEFAULT);
+		(PVOID)&callback);
 }
 bool PdbReader::getAll16(SearchCallback16 callback) noexcept
 {

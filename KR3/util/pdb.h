@@ -3,7 +3,6 @@
 #include <KR3/main.h>
 #include <KR3/util/callable.h>
 typedef struct _SYMBOL_INFO SYMBOL_INFO;
-typedef struct _SYMBOL_INFOW SYMBOL_INFOW;
 namespace kr
 {
 
@@ -65,7 +64,7 @@ namespace kr
 		bool search16(pcstr16 filter, SearchCallback16 callback) noexcept;
 		bool getAll16(SearchCallback16 callback) noexcept;
 		
-		using GetAllExCallback16 = Lambda<sizeof(void*) * 3, bool(Text16 name, SYMBOL_INFOW* info)>;
+		using GetAllExCallback16 = Lambda<sizeof(void*) * 3, bool(Text16 name, SYMBOL_INFO* info)>;
 		bool getAllEx16(GetAllExCallback16 callback) noexcept;
 
 		autoptr64 getFunctionAddress(const char* name) noexcept;
