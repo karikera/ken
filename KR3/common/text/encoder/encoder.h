@@ -43,6 +43,30 @@ namespace kr
 				size_t $size() const noexcept;
 				size_t $copyTo(From * dest) const noexcept;
 
+				static size_t length(ToText text) noexcept
+				{
+					return Derived::delength(text);
+				}
+				static size_t encode(From* out, ToText text) noexcept
+				{
+					return Derived::decode(out, text);
+				}
+				static void encode(ArrayWriter<From>* out, ToText* text) noexcept
+				{
+					return Derived::decode(out, text);
+				}
+				static size_t delength(FromText text) noexcept
+				{
+					return Derived::length(text);
+				}
+				static size_t decode(To* out, FromText text) noexcept
+				{
+					return Derived::encode(out, text);
+				}
+				static void decode(ArrayWriter<To>* out, FromText* text) noexcept
+				{
+					return Derived::encode(out, text);
+				}
 			private:
 				const View<To> m_data;
 				const size_t m_size;
@@ -129,7 +153,7 @@ namespace kr
 			{
 				encode(out, text);
 			}
-		};;
+		};
 
 	}
 	

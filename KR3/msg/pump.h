@@ -57,17 +57,7 @@ namespace kr
 		}
 
 		template <typename LAMBDA>
-		TimerEvent* makePost(timepoint at, LAMBDA &&lambda) noexcept
-		{
-			TimerEvent * node = TimerEvent::create(at, forward<LAMBDA>(lambda));
-			node->AddRef();
-			if (attach(node))
-			{
-				return node;
-			}
-			node->Release();
-			return nullptr;
-		}
+		TimerEvent* makePost(timepoint at, LAMBDA&& lambda) noexcept;
 
 		template <typename LAMBDA>
 		void post(duration wait, LAMBDA &&lambda) noexcept
@@ -195,6 +185,19 @@ namespace kr
 		ThreadHandle * m_thread;
 		EventPump * m_pump;
 	};
+
+	template <typename LAMBDA>
+	TimerEvent* EventPump::makePost(timepoint at, LAMBDA&& lambda) noexcept
+	{
+		TimerEvent* node = TimerEvent::create(at, forward<LAMBDA>(lambda));
+		node->AddRef();
+		if (attach(node))
+		{
+			return node;
+		}
+		node->Release();
+		return nullptr;
+	}
 
 	template <typename LAMBDA>
 	static TimerEvent* TimerEvent::create(timepoint at, LAMBDA&& lambda) noexcept
